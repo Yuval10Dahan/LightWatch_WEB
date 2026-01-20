@@ -1,0 +1,33 @@
+automation/
+├─ core/
+│  ├─ config.py
+│  ├─ browser.py
+│  ├─ base_page.py
+│  ├─ base_component.py
+│  └─ assertions.py
+│
+├─ components/
+│  ├─ sidebar.py
+│  ├─ topbar.py
+│  └─ dialogs.py
+│
+├─ pages/
+│  ├─ login_page.py
+│  ├─ management_map_page.py
+│  ├─ service_list_page.py
+│  ├─ inventory_page.py
+│  └─ alarms_page.py
+│
+├─ flows/
+│  ├─ login_flow.py
+│  ├─ service_provision_flow.py
+│  └─ device_discovery_flow.py
+│
+├─ tests/
+│  ├─ test_login.py
+│  ├─ test_navigation.py
+│  ├─ test_management_map.py
+│  └─ test_services.py
+│
+├─ conftest.py
+└─ pytest.ini

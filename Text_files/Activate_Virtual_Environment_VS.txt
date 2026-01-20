@@ -1,0 +1,29 @@
+1️⃣ Create a new project folder:
+
+mkdir my_new_project
+cd my_new_project
+code .
+==========================================
+
+2️⃣ Create a virtual environment using Python 3.14:
+
+py -3.14 -m venv .venv
+==========================================
+
+3️⃣ Activate the virtual environment:
+
+.venv\Scripts\activate
+==========================================
+
+4️⃣ Upgrade tooling inside the venv (important):
+
+python -m pip install --upgrade pip setuptools wheel
+==========================================
+
+5️⃣ Tell VS Code to use this Python (CRITICAL):
+
+In VS Code:
+1. Ctrl + Shift + P
+2. Python: Select Interpreter
+3. Choose: .venv\Scripts\python.exe
+
