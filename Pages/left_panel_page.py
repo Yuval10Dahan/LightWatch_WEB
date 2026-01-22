@@ -7,6 +7,11 @@ Date: 20/01/2026
 from playwright.sync_api import Page, expect
 
 class LeftPanel:
+    """
+    Left Panel page – Provides simple click methods for each navigation item and verifies successful navigation
+    by checking active states or expected page elements (e.g., the Common Functions container).
+    """
+
     def __init__(self, page: Page):
         self.page = page
 

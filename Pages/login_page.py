@@ -8,6 +8,11 @@ from playwright.sync_api import expect, TimeoutError, Page
 
 
 class LoginPage:
+    """
+    Login page – Handles navigation to the login page, credential validation, authentication,
+    logout, and recovery via the Reload button with clear success/failure outcomes.
+    """
+
     LOGIN_PATH = "/logins"
 
     # ==========================================================

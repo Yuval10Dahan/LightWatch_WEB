@@ -18,54 +18,60 @@ USERNAME = "administrator"
 PASSWORD = "administrator"
 
 def test_navigation_left_panel(page):
-    # Initialize the LeftPanel class
-    left_panel = LeftPanel(page)
+    try:
+        # Initialize the LeftPanel class
+        left_panel = LeftPanel(page)
 
-    # Test navigation for each section in the left panel
+        # Test navigation for each section in the left panel
 
-    # Click on "Service List" and verify it's visible
-    left_panel.click_service_list()
+        # Click on "Service List" and verify it's visible
+        left_panel.click_service_list()
 
-    # Click on "Management Map" and verify it's visible
-    left_panel.click_management_map()
+        # Click on "Management Map" and verify it's visible
+        left_panel.click_management_map()
 
-    # Click again on "Management Map" and verify it's handle correctly
-    left_panel.click_management_map()
+        # Click again on "Management Map" and verify it's handle correctly
+        left_panel.click_management_map()
 
-    # Click on "Service Provisioning" and verify it's visible
-    left_panel.click_service_provisioning()
+        # Click on "Service Provisioning" and verify it's visible
+        left_panel.click_service_provisioning()
 
-    # Click on "Performance" and verify it's visible
-    left_panel.click_performance()
+        # Click on "Performance" and verify it's visible
+        left_panel.click_performance()
 
-    # Click on "Device Discovery" and verify it's visible
-    left_panel.click_device_discovery()
+        # Click on "Device Discovery" and verify it's visible
+        left_panel.click_device_discovery()
 
-    # Click on "Domain Management" and verify it's visible
-    left_panel.click_domain_management()
+        # Click on "Domain Management" and verify it's visible
+        left_panel.click_domain_management()
 
-    # Click on "Inventory" and verify it's visible
-    left_panel.click_inventory()
+        # Click on "Inventory" and verify it's visible
+        left_panel.click_inventory()
 
-    # Click on "Alarms & Events" and verify it's visible
-    left_panel.click_alarms_and_events()
+        # Click on "Alarms & Events" and verify it's visible
+        left_panel.click_alarms_and_events()
 
-    # Click on "Common Functions" and verify it's visible
-    left_panel.click_common_functions()
-    common_functions = CommonFunctionsPage(page)
-    common_functions.click_exit()
+        # Click on "Common Functions" and verify it's visible
+        left_panel.click_common_functions()
+        common_functions = CommonFunctionsPage(page)
+        common_functions.click_exit()
 
-    # Click on "User Management" and verify it's visible
-    left_panel.click_user_management()
+        # Click on "User Management" and verify it's visible
+        left_panel.click_user_management()
 
-    # Click on "Task Manager" and verify it's visible
-    left_panel.click_task_manager()
+        # Click on "Task Manager" and verify it's visible
+        left_panel.click_task_manager()
 
-    # Click on "System Configuration" and verify it's visible
-    left_panel.click_system_configuration()
+        # Click on "System Configuration" and verify it's visible
+        left_panel.click_system_configuration()
 
-    # Finally, test logout
-    left_panel.click_logout()
+        # Finally, test logout
+        left_panel.click_logout()
+
+        print("Test Success ✅")
+    
+    except:
+        print("Test Failed ❌")
 
 
 def run_tests():

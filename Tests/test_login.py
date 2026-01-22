@@ -28,11 +28,13 @@ def test_login():
         login_page.goto(base_url)
         if login_page.login(USERNAME, PASSWORD):
             print("Login Success ✅")
+
+            # Extra sanity: left menu exists
+            expect(page.locator("app-sidenav")).to_be_visible()
+            print("Step 1 Success ✅")
         else:
             print("Login Failed ❌")
-
-        # Extra sanity: left menu exists
-        expect(page.locator("app-sidenav")).to_be_visible()
+            print("Step 1 Failed ❌")
 
         context.close()
         browser.close()
@@ -46,9 +48,9 @@ def test_login_short_username():
         login = LoginPage(page)
         login.goto(SERVER_HOST_IP)
         if login.login("admin", "administrator"):
-            print("Fail ❌")
+            print("Step 2 Failed ❌")
         else:
-            print("Success ✅")
+            print("Step 2 Success ✅")
 
         context.close()
         browser.close()
@@ -62,9 +64,9 @@ def test_login_short_password():
         login = LoginPage(page)
         login.goto(SERVER_HOST_IP)
         if login.login("administrator", "123"):
-            print("Fail ❌")
+            print("Step 3 Failed ❌")
         else:
-            print("Success ✅")
+            print("Step 3 Success ✅")
 
         context.close()
         browser.close()
@@ -78,9 +80,9 @@ def test_login_wrong_credentials():
         login = LoginPage(page)
         login.goto(SERVER_HOST_IP)
         if login.login("administrator", "wrongpass123"):
-            print("Fail ❌")
+            print("Step 4 Failed ❌")
         else:
-            print("Success ✅")
+            print("Step 4 Success ✅")
 
         context.close()
         browser.close()
@@ -99,9 +101,9 @@ def test_logout():
             print("Login Failed ❌")
 
         if login_page.logout():
-            print("Logout Success ✅")
+            print("Step 5 Success ✅")
         else:
-            print("Logout Failed ❌")
+            print("Step 5 Failed ❌")
 
         context.close()
         browser.close()
@@ -113,13 +115,11 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     # login_page = LoginPage()
 
-    # test_login()
-    # test_login_short_username()
-    # test_login_short_password()
-    # test_login_wrong_credentials()
+    test_login()
+    test_login_short_username()
+    test_login_short_password()
+    test_login_wrong_credentials()
     test_logout()
-
-    sleep(150)
 
     end_time = time.perf_counter()
     print(f"Total runtime: {end_time - start_time:.2f} seconds")

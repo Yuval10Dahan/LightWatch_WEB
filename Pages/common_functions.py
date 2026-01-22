@@ -10,6 +10,11 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 
 class CommonFunctionsPage:
+    """
+    Common Functioms page – Provides high-level methods to trigger system actions (polling restart, OTN/ROADM sync and cleanup)
+    and validates their success using toast messages and overlay state checks.
+    """
+
     def __init__(self, page: Page):
         self.page = page
 
@@ -24,6 +29,8 @@ class CommonFunctionsPage:
         # The div that contains the buttons, to check if Common Functions page is opened
         self.common_functions_container = page.locator('.common-functions-container')
 
+
+    # Methods for interacting with each section
     def click_polling_restart(self) -> bool:       
         success_message = "Topology polling restarted Successfully"
         failure_message = "Polling Restart"
@@ -86,8 +93,10 @@ class CommonFunctionsPage:
             print(f"exit failed ❌")
             return False
 
-    # Method to verify if the Common Functions window is loaded
     def is_common_functions_page_visible(self) -> bool:
+        """
+        Method to verify if the Common Functions window is loaded.
+        """
         try:
             expect(self.common_functions_container).to_be_visible(timeout=10_000)
             return True
@@ -96,7 +105,11 @@ class CommonFunctionsPage:
             print("Common Functions window is closed ❌")
             return False
     
+    # Generic function
     def click_button(self, success_message, failure_message):
+        """
+        Generic function to click a button and verify that the action succeeded.
+        """
         try:
             # Ensure the success message is visible and verification wrapper appear(HTML)
             success_message = self.page.locator(f'text={success_message}')
