@@ -22,6 +22,7 @@ class ManagementMap:
     def __init__(self, page: Page):
         self.page = page
         self.mapLocator = MapLocators(page)
+        self.reload_button = page.locator('button', has_text="Reload")
 
     # ==========================================================
     # Internal small helpers
@@ -401,9 +402,9 @@ class ManagementMap:
         # Zoom in and out once before to get the actual max zoom-out range
         # (at first width: 320px; height: 225.774px --> actual max zoom-out range: width: 251.733px; height: 177.609px)
         self.mapLocator.zoom_controls.locator("button").nth(0).click()
-        sleep(2)
+        sleep(1)
         self.mapLocator.zoom_controls.locator("button").nth(1).click()
-        sleep(2)
+        sleep(1)
         before_w, before_h = get_viewport_size()
 
         # Click zoom-out
@@ -438,19 +439,151 @@ class ManagementMap:
         pass
 
     # ==========================================================
+    # Navigation Info helpers
+    # ==========================================================
+    def navinfo_section(self):
+        return self.mapLocator.root.locator("section.main-controls-section-inventory-tree")
+
+    def navinfo_toggle(self):
+        return self.navinfo_section().locator("div.main-controls-section-inventory-tree-inner")
+
+    def navinfo_wrapper(self):
+        return self.mapLocator.root.locator("div.main-controls-section-inventory-tree-wrapper")
+
+    def navinfo_is_open(self) -> bool:
+        """
+        - closed => inner div contains class 'collapsed'
+        - open   => wrapper appears and/or 'collapsed' removed
+        We'll treat wrapper visibility as the strongest signal.
+        """
+        wrapper = self.navinfo_wrapper()
+        if wrapper.count() > 0 and wrapper.is_visible():
+            return True
+
+        cls = self.navinfo_toggle().get_attribute("class") or ""
+        
+        if cls is None:
+            raise AssertionError(f"navinfo_is_open failed.")
+        
+        return "collapsed" not in cls.split()
+
+    def navigation_info_container(self):
+        """
+        Container of the Navigation Info tree.
+        """
+        return self.page.locator("section.main-controls-section-inventory-tree:has(header .title:has-text('Navigation Info'))")
+    
+    def _nav_text_regex(self, element_name: str) -> re.Pattern:
+        """
+        Build a regex that matches even if the UI splits text into spans
+        and inserts spaces around '/'.
+        Example:
+          'BS-12/12'  -> matches 'BS-12/12' or 'BS-12 / 12'
+          'Chassis: 2/2' -> matches 'Chassis: 2/2' or 'Chassis: 2 / 2'
+        """
+        s = element_name.strip()
+
+        # Escape everything, then allow optional spaces around "/"
+        esc = re.escape(s)
+        esc = esc.replace(r"\/", r"\s*/\s*")
+
+        # Also tolerate multiple spaces generally
+        esc = esc.replace(r"\ ", r"\s+")
+
+        return re.compile(esc)
+
+    def nav_row_locator(self, element_name: str):
+        """
+        Finds a Navigation Info tree row by its displayed text.
+        Supports labels split across multiple spans.
+        """
+        container = self.navigation_info_container()
+
+        # Prefer matching on the whole title element
+        rx = self._nav_text_regex(element_name)
+        return container.locator("div.inventory-tree-level-title", has_text=rx).first
+        
+
+    # ==========================================================
     # Navigation info
     # ==========================================================
     def show_navigation_info(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        """
+        - If already open -> do nothing
+        - Else click the navigation-info toggle and ASSERT it opened
+        """
+        if self.navinfo_is_open():
+            return
+
+        toggle = self.navinfo_toggle()
+        try:
+            toggle.click()
+            self.wait_until(lambda: self.navinfo_is_open(), timeout_ms=5000, interval_ms=200)
+
+            # Strong assertion: wrapper should become visible
+            wrapper = self.navinfo_wrapper()
+            if wrapper.count() == 0:
+                raise AssertionError("Navigation info wrapper did not appear in DOM after opening.")
+            expect(wrapper).to_be_visible(timeout=5000)
+
+        except Exception as e:
+            raise AssertionError(f"show_navigation_info failed: navigation panel did not open. Problem: {e}")
 
     def hide_navigation_info(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        """
+        - If already closed -> do nothing
+        - Else close via the close button (close-square) and ASSERT it closed
+        """
 
-    def navigation_info_double_click_on_element(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        if not self.navinfo_is_open():
+            return
+
+        close_btn = self.page.locator("app-icon[name='close-square']").first
+
+        try:
+            # Prefer clicking the close button if it exists/visible
+            if close_btn.count() > 0 and close_btn.is_visible():
+                close_btn.click()
+
+            self.wait_until(lambda: not self.navinfo_is_open(), timeout_ms=5000, interval_ms=200)
+
+            # Optional strong assertions (don’t over-assume DOM removal)
+            wrapper = self.navinfo_wrapper()
+            if wrapper.count() > 0:
+                # wrapper might remain in DOM but should not be visible when closed
+                expect(wrapper).not_to_be_visible(timeout=5000)
+
+            cls = self.navinfo_toggle().get_attribute("class") or ""
+            if "collapsed" not in cls.split():
+                raise AssertionError(f"Expected 'collapsed' class after closing. Actual class: '{cls}'")
+
+        except Exception as e:
+            raise AssertionError(f"hide_navigation_info failed: navigation panel did not close. Problem: {e}")
+
+    def navigation_info_double_click_on_element(self, element_name: str, timeout: int = 10000):
+        """
+        Double-click an element in Navigation Info to navigate the map to it.
+
+        1) Find Navigation Info panel
+        2) Find row by text (works even if text is split into spans)
+        3) Scroll into view
+        4) Double-click
+        """
+        try:
+            container = self.navigation_info_container()
+            expect(container).to_be_visible(timeout=timeout)
+
+            row = self.nav_row_locator(element_name)
+            expect(row).to_be_visible(timeout=timeout)
+
+            row.scroll_into_view_if_needed()
+            sleep(1)
+            row.dblclick()
+            sleep(1)
+            row.dblclick()
+
+        except Exception as e:
+            raise AssertionError(f"navigation_info_double_click_on_element('{element_name}') failed. Problem: {e}")
 
     def navigation_info_open_element_details(self):
         # Not provided in your HTML snippet (leave empty for now)
@@ -510,4 +643,7 @@ class ManagementMap:
     # ==========================================================
     def element_details_info(self):
         # Not provided in your HTML snippet (leave empty for now)
+        pass
+
+    def refresh_page(self) -> bool:
         pass

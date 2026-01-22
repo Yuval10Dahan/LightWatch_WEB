@@ -1,0 +1,9 @@
+exit venv:
+
+deactivate
+
+pip list:
+
+venv-python 3.14: py -3.14 -m pip list
+
+python 3.8: py -3.8 -m pip list

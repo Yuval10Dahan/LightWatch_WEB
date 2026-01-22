@@ -71,38 +71,51 @@ def test_management_map(page, left_panel):
     run_step(2, "Severity filters (Critical/Minor/Cleared)", step_2)
 
     # ----------------------------
-    # Step 3: Map edit flow (Enable drag / Save & Lock / Enable drag / Discard & Lock)
+    # Step 3: Navigation Info panel
     # ----------------------------
     def step_3():
-        # Enter edit mode
-        management_map.enable_drag()
+        management_map.show_navigation_info()
+        management_map.hide_navigation_info()
 
-        # Save changes and lock (exit edit mode)
-        management_map.save_and_lock()
+        management_map.show_navigation_info()
 
-        # Enter edit mode again
-        management_map.enable_drag()
+        management_map.navigation_info_double_click_on_element("DR-13/13")
 
-        # Discard changes and lock (exit edit mode)
-        management_map.discard_and_lock()
-
-    run_step(3, "Map edit flow (Enable drag → Save&Lock → Enable drag → Discard&Lock)", step_3)
+    run_step(3, "Navigation Info (show/hide)", step_3)
 
     # ----------------------------
-    # Step 4: Layer toggles
+    # Step 4: Map edit flow
     # ----------------------------
     def step_4():
+        management_map.enable_drag()
+        management_map.save_and_lock()
+
+        management_map.enable_drag()
+        management_map.discard_and_lock()
+
+    run_step(
+        4,
+        "Map edit flow (Enable drag → Save&Lock → Enable drag → Discard&Lock)",
+        step_4
+    )
+
+    # ----------------------------
+    # Step 5: Layer toggles
+    # ----------------------------
+    def step_5():
         management_map.enable_chassis()
         management_map.enable_OTN()
         management_map.enable_ROADM()
         management_map.enable_manage()
 
-    run_step(4, "Layer toggles (Chassis/OTN/ROADM/Manage)", step_4)
+    run_step(5, "Layer toggles (Chassis/OTN/ROADM/Manage)", step_5)
+
+    # management_map.refresh_page()
 
     # ----------------------------
-    # Step 5: Zoom controls
+    # Step 6: Zoom controls
     # ----------------------------
-    def step_5():
+    def step_6():
         management_map.map_zoom_in()
         management_map.map_zoom_in()
         management_map.map_zoom_in()
@@ -110,8 +123,10 @@ def test_management_map(page, left_panel):
         management_map.map_zoom_out()
         management_map.map_zoom_out()
 
-        # After this zoom_out is suppose to say:
-        # "Zoom out is not possible anymore - got to the max zoom-out range. (Continue with the script)"
+        # Expected to display "Zoom out is not possible anymore - got to the max zoom-out range. (Continue with the script)" 4 times.
+        management_map.map_zoom_out()
+        management_map.map_zoom_out()
+        management_map.map_zoom_out()
         management_map.map_zoom_out()
 
         management_map.map_zoom_in()
@@ -119,7 +134,7 @@ def test_management_map(page, left_panel):
         management_map.map_zoom_in()
         management_map.map_zoom_out()
 
-    run_step(5, "Zoom controls (Zoom in/out)", step_5)
+    run_step(6, "Zoom controls (Zoom in/out)", step_6)
 
     print("Test Finished ✅")
 

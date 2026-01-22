@@ -1,0 +1,905 @@
+<section _ngcontent-ng-c3538289712="" class="main-controls-section-inventory-tree"><div _ngcontent-ng-c3538289712="" class="main-controls-section-inventory-tree-inner animation"><!----><div _ngcontent-ng-c3538289712="" class="main-controls-section-inventory-tree-wrapper" style="width: 320px; height: 774.667px;"><header _ngcontent-ng-c3538289712=""><div _ngcontent-ng-c3538289712="" class="title">Navigation Info</div><app-icon _ngcontent-ng-c3538289712="" name="close-square" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg style="width: 100%; height: 100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9.17188 14.8299L14.8319 9.16992" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="M14.8319 14.8299L9.17188 9.16992" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon></header><ngx-simplebar _ngcontent-ng-c3538289712="" data-simplebar="init" class="simplebar"><div class="simplebar-wrapper" style="margin: 0px;"><div class="simplebar-height-auto-observer-wrapper"><div class="simplebar-height-auto-observer"></div></div><div class="simplebar-mask"><div class="simplebar-offset" style="right: 0px; bottom: 0px;"><div role="region" class="simplebar-content-wrapper" tabindex="0" aria-label="scrollable content" style="height: 100%; overflow: hidden;"><div class="simplebar-content" style="padding: 0px;"><app-inventory-tree _ngcontent-ng-c3538289712="" _nghost-ng-c1903733509=""><div _ngcontent-ng-c1903733509="" class="inventory-tree-container"><header _ngcontent-ng-c1903733509=""><h3 _ngcontent-ng-c1903733509="">Default</h3><!----></header><div _ngcontent-ng-c1903733509="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="DOMAIN"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189599)">
+            <path d="M8 16C8 16.5523 8.44772 17 9 17C9.55228 17 10 16.5523 10 16C10 15.4477 9.55228 15 9 15C8.44772 15 8 15.4477 8 16Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M15 16C15 16.5523 15.4477 17 16 17C16.5523 17 17 16.5523 17 16C17 15.4477 16.5523 15 16 15C15.4477 15 15 15.4477 15 16Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M1 16C1 16.5523 1.44772 17 2 17C2.55228 17 3 16.5523 3 16C3 15.4477 2.55228 15 2 15C1.44772 15 1 15.4477 1 16Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7 3C7 4.10457 7.89543 5 9 5C10.1046 5 11 4.10457 11 3C11 1.89543 10.1046 1 9 1C7.89543 1 7 1.89543 7 3Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 5L9 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 15L16 11.5714C16 9.85714 15.125 9 13.375 9L4.625 9C2.875 9 2 9.85714 2 11.5714L2 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189599">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">sub-domain-Demo</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">BS-12</span><span _ngcontent-ng-c2621967554="">/12</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="MUXPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 13.4995L4.6 13.4995C5.095 13.4995 5.5 13.9045 5.5 14.3995L5.5 15.5995C5.5 16.0945 5.095 16.4995 4.6 16.4995L1.9 16.4995C1.405 16.4995 1 16.0945 1 15.5995L1 14.3995C1 13.9045 1.405 13.4995 1.9 13.4995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 1.5L4.6 1.5C5.095 1.5 5.5 1.90501 5.5 2.40001L5.5 3.59999C5.5 4.09499 5.095 4.5 4.6 4.5L1.9 4.5C1.405 4.5 1 4.09499 1 3.59999L1 2.40001C1 1.90501 1.405 1.5 1.9 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">ADM1-EDGE-SIN1</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.29)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.30)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.31)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.32)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">DC -14</span><span _ngcontent-ng-c2621967554="">/14</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.37)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.38)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.39)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.40)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="MUXPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 13.4995L4.6 13.4995C5.095 13.4995 5.5 13.9045 5.5 14.3995L5.5 15.5995C5.5 16.0945 5.095 16.4995 4.6 16.4995L1.9 16.4995C1.405 16.4995 1 16.0945 1 15.5995L1 14.3995C1 13.9045 1.405 13.4995 1.9 13.4995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 1.5L4.6 1.5C5.095 1.5 5.5 1.90501 5.5 2.40001L5.5 3.59999C5.5 4.09499 5.095 4.5 4.6 4.5L1.9 4.5C1.405 4.5 1 4.09499 1 3.59999L1 2.40001C1 1.90501 1.405 1.5 1.9 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-4000M (10.60.100.103)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">DR-13</span><span _ngcontent-ng-c2621967554="">/13</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.33)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.34)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.35)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.36)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Haifa-15</span><span _ngcontent-ng-c2621967554="">/15</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="MUXPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 13.4995L4.6 13.4995C5.095 13.4995 5.5 13.9045 5.5 14.3995L5.5 15.5995C5.5 16.0945 5.095 16.4995 4.6 16.4995L1.9 16.4995C1.405 16.4995 1 16.0945 1 15.5995L1 14.3995C1 13.9045 1.405 13.4995 1.9 13.4995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 1.5L4.6 1.5C5.095 1.5 5.5 1.90501 5.5 2.40001L5.5 3.59999C5.5 4.09499 5.095 4.5 4.6 4.5L1.9 4.5C1.405 4.5 1 4.09499 1 3.59999L1 2.40001C1 1.90501 1.405 1.5 1.9 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-4000M (10.30.7.15)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.41)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.42)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.43)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.44)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.45)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="MUXPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 13.4995L4.6 13.4995C5.095 13.4995 5.5 13.9045 5.5 14.3995L5.5 15.5995C5.5 16.0945 5.095 16.4995 4.6 16.4995L1.9 16.4995C1.405 16.4995 1 16.0945 1 15.5995L1 14.3995C1 13.9045 1.405 13.4995 1.9 13.4995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 1.5L4.6 1.5C5.095 1.5 5.5 1.90501 5.5 2.40001L5.5 3.59999C5.5 4.09499 5.095 4.5 4.6 4.5L1.9 4.5C1.405 4.5 1 4.09499 1 3.59999L1 2.40001C1 1.90501 1.405 1.5 1.9 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-4000M (10.60.100.100)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">TLV-11</span><span _ngcontent-ng-c2621967554="">/11</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.25)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.26)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.27)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.28)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="MUXPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 13.4995L4.6 13.4995C5.095 13.4995 5.5 13.9045 5.5 14.3995L5.5 15.5995C5.5 16.0945 5.095 16.4995 4.6 16.4995L1.9 16.4995C1.405 16.4995 1 16.0945 1 15.5995L1 14.3995C1 13.9045 1.405 13.4995 1.9 13.4995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 1.5L4.6 1.5C5.095 1.5 5.5 1.90501 5.5 2.40001L5.5 3.59999C5.5 4.09499 5.095 4.5 4.6 4.5L1.9 4.5C1.405 4.5 1 4.09499 1 3.59999L1 2.40001C1 1.90501 1.405 1.5 1.9 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-4000M (10.60.100.102)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">TLV-16</span><span _ngcontent-ng-c2621967554="">/16</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.46)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.47)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.48)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.49)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="ROADM"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2560_189592)">
+            <path d="M5 14L13 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L4 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 6L14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 16L18 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 16L1.14208e-07 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8.98618 1.41373L8.98618 -1.4147" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7.5 5.2L7.5 2.8C7.5 2.36 7.90501 2 8.40001 2L9.59999 2C10.095 2 10.5 2.36 10.5 2.8L10.5 5.2C10.5 5.64 10.095 6 9.59999 6L8.40001 6C7.90501 6 7.5 5.64 7.5 5.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 15.2L13 12.8C13 12.36 13.405 12 13.9 12L15.1 12C15.595 12 16 12.36 16 12.8L16 15.2C16 15.64 15.595 16 15.1 16L13.9 16C13.405 16 13 15.64 13 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M2 15.2L2 12.8C2 12.36 2.40501 12 2.90001 12L4.09999 12C4.59499 12 5 12.36 5 12.8L5 15.2C5 15.64 4.59499 16 4.09999 16L2.90001 16C2.40501 16 2 15.64 2 15.2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2560_189592">
+                <rect width="18" height="18" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GRO (10.60.100.50)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="MUXPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 13.4995L4.6 13.4995C5.095 13.4995 5.5 13.9045 5.5 14.3995L5.5 15.5995C5.5 16.0945 5.095 16.4995 4.6 16.4995L1.9 16.4995C1.405 16.4995 1 16.0945 1 15.5995L1 14.3995C1 13.9045 1.405 13.4995 1.9 13.4995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 1.5L4.6 1.5C5.095 1.5 5.5 1.90501 5.5 2.40001L5.5 3.59999C5.5 4.09499 5.095 4.5 4.6 4.5L1.9 4.5C1.405 4.5 1 4.09499 1 3.59999L1 2.40001C1 1.90501 1.405 1.5 1.9 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-4000M (10.60.100.101)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Chassis: 1</span><span _ngcontent-ng-c2621967554="">/1</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="TRANSPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">TP1-EDGE-SIN1</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Chassis: 2</span><span _ngcontent-ng-c2621967554="">/2</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Chassis: 3</span><span _ngcontent-ng-c2621967554="">/3</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Chassis: 8</span><span _ngcontent-ng-c2621967554="">/8</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="TRANSPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-2000T (172.16.30.117)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Chassis: 10</span><span _ngcontent-ng-c2621967554="">/10</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="MUXPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L5.5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 13.4995L4.6 13.4995C5.095 13.4995 5.5 13.9045 5.5 14.3995L5.5 15.5995C5.5 16.0945 5.095 16.4995 4.6 16.4995L1.9 16.4995C1.405 16.4995 1 16.0945 1 15.5995L1 14.3995C1 13.9045 1.405 13.4995 1.9 13.4995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M1.9 1.5L4.6 1.5C5.095 1.5 5.5 1.90501 5.5 2.40001L5.5 3.59999C5.5 4.09499 5.095 4.5 4.6 4.5L1.9 4.5C1.405 4.5 1 4.09499 1 3.59999L1 2.40001C1 1.90501 1.405 1.5 1.9 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">ADM1-EDGE-SIN10</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Chassis: 35</span><span _ngcontent-ng-c2621967554="">/35</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="TRANSPONDER"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1.9 7.5L4.6 7.5C5.095 7.5 5.5 7.90501 5.5 8.40001L5.5 9.59999C5.5 10.095 5.095 10.5 4.6 10.5L1.9 10.5C1.405 10.5 1 10.095 1 9.59999L1 8.40001C1 7.90501 1.405 7.5 1.9 7.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M13.4286 7L15.5714 7C16.3571 7 17 7.6 17 8.33333L17 9.66667C17 10.4 16.3571 11 15.5714 11L13.4286 11C12.6429 11 12 10.4 12 9.66667L12 8.33333C12 7.6 12.6429 7 13.4286 7Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 9L6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-2000T (172.16.30.118)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><app-inventory-tree-level _ngcontent-ng-c1903733509="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="CHASSIS"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon black" style="width: 18px; height: 18px;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_2112_183164)">
+            <path d="M0.915365 10.9998L0.915365 2.9165C0.915365 1.81193 1.81079 0.916503 2.91536 0.916503L19.082 0.916504C20.1866 0.916504 21.082 1.81193 21.082 2.9165L21.082 10.9998L21.082 19.0832C21.082 20.1877 20.1866 21.0832 19.082 21.0832L2.91536 21.0832C1.81079 21.0832 0.915364 20.1877 0.915364 19.0832L0.915365 10.9998Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="bevel"></path>
+            <path d="M21 8H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M21 14.5H1" stroke="currentColor" stroke-width="1.2"></path>
+            <path d="M5.79167 6.41667L5.20833 6.41667C4.81713 6.41667 4.5 6.09954 4.5 5.70833C4.5 5.31713 4.81713 5 5.20833 5L5.79167 5C6.18287 5 6.5 5.31713 6.5 5.70833C6.5 6.09954 6.18287 6.41667 5.79167 6.41667Z" fill="currentColor"></path>
+            <path d="M5.79167 13.2467L5.20833 13.2467C4.81713 13.2467 4.5 12.9296 4.5 12.5384C4.5 12.1472 4.81713 11.8301 5.20833 11.8301L5.79167 11.8301C6.18287 11.8301 6.5 12.1472 6.5 12.5384C6.5 12.9296 6.18287 13.2467 5.79167 13.2467Z" fill="currentColor"></path>
+            <path d="M5.79167 19.7502L5.20833 19.7502C4.81713 19.7502 4.5 19.433 4.5 19.0418C4.5 18.6506 4.81713 18.3335 5.20833 18.3335L5.79167 18.3335C6.18287 18.3335 6.5 18.6506 6.5 19.0418C6.5 19.433 6.18287 19.7502 5.79167 19.7502Z" fill="currentColor"></path>
+            <path d="M17 3.6665L17 5.6665M13.5 3.6665L13.5 5.6665M10 3.6665L10 5.6665" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 10.5L17 12.5M13.5 10.5L13.5 12.5M10 10.5L10 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+            <path d="M17 17L17 19M13.5 17L13.5 19M10 17L10 19" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel"></path>
+        </g>
+        <defs>
+            <clipPath id="clip0_2112_183164">
+                <rect width="22" height="22" fill="white"></rect>
+            </clipPath>
+        </defs>
+    </svg>
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">Chassis: 36</span><span _ngcontent-ng-c2621967554="">/36</span><!----></div></div><!----><app-icon _ngcontent-ng-c2621967554="" name="arrow-down" aria-controls="collapseManual" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon" style="width: 18px; height: 18px;">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.2787 5.9668L8.93208 10.3135C8.41875 10.8268 7.57875 10.8268 7.06542 10.3135L2.71875 5.9668" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </i></app-icon><!----><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="true" class="collapse" style="display: none; overflow: hidden;"><app-inventory-tree-level _ngcontent-ng-c2621967554="" _nghost-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-container last"><header _ngcontent-ng-c2621967554=""><div _ngcontent-ng-c2621967554="" container="body" class="inventory-tree-level-title no-select" type="DEVICE"><div _ngcontent-ng-c2621967554="" class="inventory-tree-level-title-content"><app-icon _ngcontent-ng-c2621967554="" _nghost-ng-c603535723=""><i _ngcontent-ng-c603535723="" class="pl-icon dark-grey" style="width: 18px; height: 18px;">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15.0379 13.5L2.96211 13.5C1.7405 13.5 0.75 12.3642 0.75 10.9844L0.75 8.51565C0.75 7.12641 1.74876 6 2.96211 6L15.0379 6C16.2595 6 17.25 7.1358 17.25 8.51565V10.9844C17.25 12.3642 16.2513 13.5 15.0379 13.5Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M3.5 9L3.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M6.5 9V10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12.25 10.067C12.5833 10.2594 12.5833 10.7406 12.25 10.933L10 12.2321C9.66667 12.4245 9.25 12.1839 9.25 11.799L9.25 9.20096C9.25 8.81606 9.66667 8.5755 10 8.76795L12.25 10.067Z" fill="currentColor"></path>
+        <path d="M12.75 9.43301C12.4167 9.24056 12.4167 8.75944 12.75 8.56699L15 7.26795C15.3333 7.0755 15.75 7.31606 15.75 7.70096L15.75 10.299C15.75 10.6839 15.3333 10.9245 15 10.7321L12.75 9.43301Z" fill="currentColor"></path>
+    </svg>
+
+  </i></app-icon><!----><span _ngcontent-ng-c2621967554="">PL-1000GIL (172.16.40.29)</span><!----></div></div><!----><!----></header><div _ngcontent-ng-c2621967554="" id="collapseManual" aria-hidden="false" class="collapse in show" style="display: block;"><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree-level><!----><!----></div></div></app-inventory-tree></div></div></div></div><div class="simplebar-placeholder" style="width: 320px; height: 644px;"></div></div><div class="simplebar-track simplebar-horizontal" style="visibility: hidden;"><div class="simplebar-scrollbar" style="width: 0px; display: none;"></div></div><div class="simplebar-track simplebar-vertical" style="visibility: hidden;"><div class="simplebar-scrollbar" style="height: 0px; transform: translate3d(0px, 0px, 0px); display: none;"></div></div></ngx-simplebar></div><!----></div></section>
