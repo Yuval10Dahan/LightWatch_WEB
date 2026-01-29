@@ -168,7 +168,7 @@ class ManagementMap:
     # ==========================================================
     # Severity filters
     # ==========================================================
-    def _set_severity_filter(self, label_text: str, enable: bool):
+    def set_severity_filter(self, label_text: str, enable: bool):
         """
           - Enabled (ON)  => tile does NOT have class 'disabled'
           - Disabled (OFF)=> tile HAS class 'disabled'
@@ -193,22 +193,22 @@ class ManagementMap:
             raise AssertionError(f"{label_text} filter did not become {desired}. Problem: {e}")
         
     def show_critical_major(self):
-        self._set_severity_filter("Critical", enable=True)
+        self.set_severity_filter("Critical", enable=True)
 
     def hide_critical_major(self):
-        self._set_severity_filter("Critical", enable=False)
+        self.set_severity_filter("Critical", enable=False)
 
     def show_minor(self):
-        self._set_severity_filter("Minor", enable=True)
+        self.set_severity_filter("Minor", enable=True)
 
     def hide_minor(self):
-        self._set_severity_filter("Minor", enable=False)
+        self.set_severity_filter("Minor", enable=False)
 
     def show_cleared(self):
-        self._set_severity_filter("Cleared", enable=True)
+        self.set_severity_filter("Cleared", enable=True)
 
     def hide_cleared(self):
-        self._set_severity_filter("Cleared", enable=False)
+        self.set_severity_filter("Cleared", enable=False)
 
     # ==========================================================
     # Map interaction controls
@@ -473,7 +473,7 @@ class ManagementMap:
         """
         return self.page.locator("section.main-controls-section-inventory-tree:has(header .title:has-text('Navigation Info'))")
     
-    def _nav_text_regex(self, element_name: str) -> re.Pattern:
+    def nav_text_regex(self, element_name: str) -> re.Pattern:
         """
         Build a regex that matches even if the UI splits text into spans
         and inserts spaces around '/'.
@@ -494,13 +494,13 @@ class ManagementMap:
 
     def nav_row_locator(self, element_name: str):
         """
-        Finds a Navigation Info tree row by its displayed text.
-        Supports labels split across multiple spans.
+        Returns the Navigation Info "row title" locator for the given element text.
+        Uses regex text matching so it works even if the title is split across spans.
         """
         container = self.navigation_info_container()
 
         # Prefer matching on the whole title element
-        rx = self._nav_text_regex(element_name)
+        rx = self.nav_text_regex(element_name)
         return container.locator("div.inventory-tree-level-title", has_text=rx).first
         
 
@@ -585,65 +585,385 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"navigation_info_double_click_on_element('{element_name}') failed. Problem: {e}")
 
-    def navigation_info_open_element_details(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+    def navigation_info_open_element_details(self, element_name: str, timeout: int = 5000):
+        """
+        Opens the element details panel by single-clicking the element
+        in the Navigation Info tree.
+        """
+        row = self.nav_row_locator(element_name)
+        expect(row).to_be_visible(timeout=timeout)
 
-    def navigation_info_close_element_details(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        try:
+            row.scroll_into_view_if_needed()
+            row.click()
+
+            # Details panel title (left panel)
+            panel_title = self.page.locator(
+                "xpath=//div[contains(@class,'details') or contains(@class,'modal')]"
+                "//span[contains(normalize-space(.), '{}')]".format(element_name.split("/")[0]))
+
+            # Fallback: close button visibility means panel is open
+            close_btn = self.page.locator(
+                "xpath=//*[name()='svg']"
+                "/ancestor::*[self::button or self::div][1]")
+
+            self.wait_until(lambda: panel_title.count() > 0 or close_btn.count() > 0, timeout_ms=timeout,interval_ms=200)
+
+        except Exception as e:
+            raise AssertionError(f"navigation_info_open_element_details('{element_name}') failed: {e}")
+
+    def navigation_info_close_element_details(self, timeout: int = 5000):
+        """
+        Close the opened Node Properties (details) panel by clicking the X (close-square) icon.
+        Asserts that the node-properties container disappears.
+        """
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        close_icon = panel.locator(".node-properties-header .controls app-icon[name='close-square']").first
+        expect(close_icon).to_be_visible(timeout=timeout)
+
+        # click the icon (or inner <i>)
+        target = close_icon.locator("i").first
+        if target.count() > 0:
+            target.click(timeout=timeout, force=True)
+        else:
+            close_icon.click(timeout=timeout, force=True)
+
+        # assert closed
+        expect(panel).to_be_hidden(timeout=timeout)
+        
+    def navigation_info_expand_element_byClick_on_arrow(self, element_name: str, timeout: int = 5000):
+        """
+        Expands an element in Navigation Info by clicking its arrow icon
+        and waits until its children container becomes visible.
+        """
+        row = self.nav_row_locator(element_name)
+        expect(row).to_be_visible(timeout=timeout)
+
+        arrow = row.locator("xpath=ancestor::header//app-icon[@name='arrow-down']")
+        collapse = row.locator("xpath=ancestor::header/following-sibling::div[contains(@class,'collapse')]")
+
+        try:
+            # If already open → do nothing
+            if collapse.get_attribute("aria-hidden") == "false":
+                return
+
+            arrow.click()
+
+            self.wait_until(lambda: collapse.get_attribute("aria-hidden") == "false", timeout_ms=timeout, interval_ms=200
+            )
+
+        except Exception as e:
+            raise AssertionError(f"navigation_info_open_element_details('{element_name}') failed: {e}") 
+        
+    def navigation_info_shrink_element_byClick_on_arrow(self, element_name: str, timeout: int = 5000):
+        """
+        Collapses an element in Navigation Info by clicking its toggle (arrow) and
+        waits until its children container becomes hidden (aria-hidden='true').
+        """
+        row = self.nav_row_locator(element_name)
+        expect(row).to_be_visible(timeout=timeout)
+        row.scroll_into_view_if_needed()
+
+        header = row.locator("xpath=ancestor::header[1]")
+        expect(header).to_be_visible(timeout=timeout)
+
+        # The collapsible children container is the next sibling after the header
+        collapse = header.locator("xpath=following-sibling::div[contains(@class,'collapse')][1]")
+        expect(collapse).to_be_attached(timeout=timeout)
+
+        try:
+            # If already closed -> do nothing
+            if (collapse.get_attribute("aria-hidden") or "").lower() == "true":
+                return
+
+            # Try to click the real arrow (down/up arrow) if it exists 
+            arrow = header.locator("xpath=.//app-icon[contains(@name,'arrow') or contains(@name,'chevron') or contains(@name,'caret')]").first
+
+            if arrow.count() > 0:
+                arrow.click(timeout=timeout, force=True)
+            else:
+                # Fallback: clicking the title area often toggles collapse too
+                header.locator("div.inventory-tree-level-title-content").click(timeout=timeout, force=True)
+
+            # Wait until it becomes closed
+            self.wait_until(lambda: (collapse.get_attribute("aria-hidden") or "").lower() == "true",timeout_ms=timeout,interval_ms=200)
+
+            # Optional extra guard (display none)
+            self.wait_until(lambda: "none" in ((collapse.get_attribute("style") or "").lower()), timeout_ms=timeout,interval_ms=200)
+
+        except Exception as e:
+            raise AssertionError(f"navigation_info_shrink_element_byClick_on_arrow('{element_name}') failed: {e}")
+        
 
     # ==========================================================
     # Element details
     # ==========================================================
-    def element_details_chassis(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
 
-    def element_details_services(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+    def element_details_click_format(self, label_text: str, timeout: int = 5000):
+        """
+        In the Node Properties (element details) panel:
+        Click the top-level tab(Chassis/Services/Faults/Info).
+        """
 
-    def element_details_faults(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        tab = panel.locator(f"tabset.secondary ul.nav-tabs a.nav-link:has(span:has-text('{label_text}'))").first
+        expect(tab).to_be_visible(timeout=timeout)
+
+        def is_active() -> bool:
+            cls = (tab.get_attribute("class") or "")
+            aria = (tab.get_attribute("aria-selected") or "").strip().lower()
+            return ("active" in cls.split()) or (aria == "true")
+
+        # already selected
+        if is_active():
+            return
+
+        tab.scroll_into_view_if_needed()
+        tab.click(force=True)
+
+        try:
+            self.wait_until(is_active, timeout_ms=timeout, interval_ms=200)
+            expect(tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
+        except Exception as e:
+            raise AssertionError(f"element_details_click_on_{label_text.lower()} failed: tab did not become active. Problem: {e}")
+
+    def element_details_click_on_chassis(self):
+        self.element_details_click_format("Chassis")
+
+    def element_details_click_on_services(self):
+        self.element_details_click_format("Services")
+
+    def element_details_click_on_faults(self):
+        self.element_details_click_format("Faults")
+
+    def element_details_click_on_info(self):
+        self.element_details_click_format("Info")
 
     # ==========================================================
     # Faults → Alarms
     # ==========================================================
-    def element_details_faults_click_on_alarms(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+    def element_details_faults_click_on_alarms(self, timeout: int = 5000):
+        """
+        In the Node Properties panel -> Faults tab:
+        Click the inner tab "Alarms" and assert it becomes active.
+        """
+        # Make sure we are on Faults main tab first
+        self.element_details_click_on_faults()
 
-    def element_details_faults_view_all_alarms(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
 
-    def element_details_faults_get_all_alarms(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        alarms_tab = panel.locator("tabset.primary ul.nav-tabs a.nav-link:has(span:has-text('Alarms'))").first
+        expect(alarms_tab).to_be_visible(timeout=timeout)
+
+        def is_active() -> bool:
+            cls = (alarms_tab.get_attribute("class") or "")
+            aria = (alarms_tab.get_attribute("aria-selected") or "").strip().lower()
+            return ("active" in cls.split()) or (aria == "true")
+
+        if is_active():
+            return
+
+        alarms_tab.scroll_into_view_if_needed()
+        alarms_tab.click(force=True)
+
+        try:
+            self.wait_until(is_active, timeout_ms=timeout, interval_ms=200)
+            expect(alarms_tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
+        except Exception as e:
+            raise AssertionError(f"element_details_faults_click_on_alarms failed: tab did not become active. Problem: {e}")
+
+    def element_details_faults_view_all_alarms(self, timeout: int = 10000):
+        """
+        Clicks the "View All Alarms" button in Faults -> Alarms.
+        Asserts something changed(direct the user straight to to Alarms & Events page).
+        """
+        self.element_details_faults_click_on_alarms(timeout=timeout)
+
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        btn = panel.locator(".fault-pane-footer button.btn.btn-primary:has-text('View All Alarms')").first
+        expect(btn).to_be_visible(timeout=timeout)
+
+        before_url = self.page.url
+        btn.scroll_into_view_if_needed()
+        btn.click()
+
+        # Assert a generic “something changed”.
+        def changed() -> bool:
+            try:
+                url_changed = self.page.url != before_url
+                btn_gone = (btn.count() == 0) or (not btn.is_visible())
+                return url_changed or btn_gone
+            except Exception:
+                # If DOM changed and locator got stale, that's also a "changed"
+                return True
+
+        try:
+            self.wait_until(changed, timeout_ms=timeout, interval_ms=200)
+        except Exception as e:
+            raise AssertionError(f"element_details_faults_view_all_alarms failed: click did not trigger any visible change. Problem: {e}")
+
+    def element_details_faults_get_all_alarms(self, timeout: int = 5000) -> list:
+        """
+        Returns a list of alarms currently shown in Faults -> Alarms list.
+        Output example:
+        [
+          {'Alarm_Type': 'Power Supply Failure', 'Alarm_Source': '172.16.30.16 PSU 2 | Device |', 'Alarm_Date_and_Time': 'Jan 20, 2026 16:41 | Jan 25, 2026 13:22:21'}
+        ]
+        """
+        self.element_details_faults_click_on_alarms(timeout=timeout)
+
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        alarms = panel.locator("app-alarm .alarm")
+        # alarms can be 0; that's valid
+        alarms_count = alarms.count()
+
+        def clean(s: str) -> str:
+            return re.sub(r"\s+", " ", (s or "").strip())
+
+        out = []
+        for i in range(alarms_count):
+            alarm = alarms.nth(i)
+
+            alarm_type = clean(alarm.locator(".content .title").first.inner_text(timeout=timeout))
+
+            meta_rows = alarm.locator(".content .meta-row")
+            alarm_source = clean(meta_rows.nth(0).inner_text(timeout=timeout)) if meta_rows.count() > 0 else ""
+            alarm_date_and_time = clean(meta_rows.nth(1).inner_text(timeout=timeout)) if meta_rows.count() > 1 else ""
+
+            out.append(
+                {
+                    "Alarm_Type": alarm_type,
+                    "Alarm_Source": alarm_source,
+                    "Alarm_Date_and_Time": alarm_date_and_time,
+                }
+            )
+
+        return out
 
     # ==========================================================
     # Faults → Events
     # ==========================================================
-    def element_details_faults_click_on_events(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+    def element_details_faults_click_on_events(self, timeout: int = 5000):
+        """
+        In the Node Properties panel -> Faults tab:
+        Click the inner tab "Events" and assert it becomes active.
+        """
+        # Make sure we are on Faults main tab first
+        self.element_details_click_on_faults()
 
-    def element_details_faults_view_all_events(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
 
-    def element_details_faults_get_all_events(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        events_tab = panel.locator("tabset.primary ul.nav-tabs a.nav-link:has(span:has-text('Events'))").first
+        expect(events_tab).to_be_visible(timeout=timeout)
 
-    # ==========================================================
-    # General info
-    # ==========================================================
-    def element_details_info(self):
-        # Not provided in your HTML snippet (leave empty for now)
-        pass
+        def is_active() -> bool:
+            cls = (events_tab.get_attribute("class") or "")
+            aria = (events_tab.get_attribute("aria-selected") or "").strip().lower()
+            return ("active" in cls.split()) or (aria == "true")
 
-    def refresh_page(self) -> bool:
-        pass
+        if is_active():
+            return
+
+        events_tab.scroll_into_view_if_needed()
+        events_tab.click(force=True)
+
+        try:
+            self.wait_until(is_active, timeout_ms=timeout, interval_ms=200)
+            expect(events_tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
+        except Exception as e:
+            raise AssertionError(f"element_details_faults_click_on_events failed: tab did not become active. Problem: {e}")
+
+    def element_details_faults_view_all_events(self, timeout: int = 10000):
+        """
+        Clicks the "View All Events" button in Faults -> Events.
+        Asserts something changed(direct the user straight to to Alarms & Events page).
+        """
+        self.element_details_faults_click_on_events(timeout=timeout)
+
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        btn = panel.locator(".fault-pane-footer button.btn.btn-primary:has-text('View All Events')").first
+        expect(btn).to_be_visible(timeout=timeout)
+
+        before_url = self.page.url
+        btn.scroll_into_view_if_needed()
+        btn.click()
+
+        def changed() -> bool:
+            try:
+                url_changed = self.page.url != before_url
+                btn_gone = (btn.count() == 0) or (not btn.is_visible())
+                return url_changed or btn_gone
+            except Exception:
+                # If DOM changed and locator got stale, that's also a "changed"
+                return True
+
+        try:
+            self.wait_until(changed, timeout_ms=timeout, interval_ms=200)
+        except Exception as e:
+            raise AssertionError(f"element_details_faults_view_all_events failed: click did not trigger any visible change. Problem: {e}")
+
+    def element_details_faults_get_all_events(self, timeout: int = 5000) -> list:
+        """
+        Returns a list of events currently shown in Faults -> Events list.
+        Output example:
+        [
+        {'Event_Type': 'Ethernet Link Failure',
+        'Event_Source': '10.60.100.29 Ethernet | Device |',
+        'Event_Date_and_Time': 'Sep 21, 2025 10:08 | Jun 6, 2025 01:33:38'}
+        ]
+        """
+
+        self.element_details_faults_click_on_events(timeout=timeout)
+
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        
+        # Takes a few seconds to render the events list
+        # Wait until at least 1 event exists (or timeout)
+        self.wait_until(lambda: panel.locator("app-event .event").count() > 0, timeout_ms=timeout, interval_ms=200)
+
+        events = panel.locator("app-event .event")
+        events_count = events.count()
+
+        def clean(s: str) -> str:
+            return re.sub(r"\s+", " ", (s or "").strip())
+
+        out = []
+        seen = set()  # UI sometimes duplicates items
+
+        for i in range(events_count):
+            ev = events.nth(i)
+
+            event_type = clean(ev.locator(".content .title").first.inner_text(timeout=timeout))
+
+            meta_rows = ev.locator(".content .meta-row")
+            event_source = clean(meta_rows.nth(0).inner_text(timeout=timeout)) if meta_rows.count() > 0 else ""
+            event_date_and_time = clean(meta_rows.nth(1).inner_text(timeout=timeout)) if meta_rows.count() > 1 else ""
+
+            key = (event_type, event_source, event_date_and_time)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            out.append(
+                {
+                    "Event_Type": event_type,
+                    "Event_Source": event_source,
+                    "Event_Date_and_Time": event_date_and_time,
+                }
+            )
+
+        return out

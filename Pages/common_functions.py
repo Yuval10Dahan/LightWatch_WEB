@@ -74,7 +74,10 @@ class CommonFunctionsPage:
         self.click_button(success_message, failure_message)
 
     def click_synchronizing_ROADM_services(self) -> bool:
-        pass
+        success_message = "ROADM services synchronization started Successfully"
+        failure_message = "Synchronizing ROADM services"
+        self.synchronizing_roadm_services_btn.click()
+        self.click_button(success_message, failure_message)
 
     def click_exit(self) -> bool:
         try:

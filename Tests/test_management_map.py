@@ -8,6 +8,7 @@ from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.management_map import ManagementMap
 import time
+from Utils.utils import refresh_page
 
 
 SERVER_HOST_IP = "172.16.10.62:8080"
@@ -81,6 +82,30 @@ def test_management_map(page, left_panel):
 
         management_map.navigation_info_double_click_on_element("DR-13/13")
 
+        management_map.navigation_info_open_element_details("DR-13/13")
+
+        management_map.element_details_click_on_chassis()
+        management_map.element_details_click_on_services()
+        management_map.element_details_click_on_info()
+        management_map.element_details_click_on_faults()
+
+        management_map.element_details_faults_click_on_events()
+        events_list = management_map.element_details_faults_get_all_events()
+        print(f"Events List:\n{events_list}")
+        # management_map.element_details_faults_view_all_events()
+
+        management_map.element_details_faults_click_on_alarms()
+        alarms_list = management_map.element_details_faults_get_all_alarms()
+        print(f"Alarms List:\n{alarms_list}")
+        # management_map.element_details_faults_view_all_alarms()
+
+        management_map.navigation_info_close_element_details()
+
+        management_map.navigation_info_expand_element_byClick_on_arrow("DR-13/13")
+        management_map.navigation_info_open_element_details("PL-1000GRO (10.60.100.33)")
+        management_map.navigation_info_close_element_details()
+        management_map.navigation_info_shrink_element_byClick_on_arrow("DR-13/13")
+
     run_step(3, "Navigation Info (show/hide)", step_3)
 
     # ----------------------------
@@ -136,7 +161,15 @@ def test_management_map(page, left_panel):
 
     run_step(6, "Zoom controls (Zoom in/out)", step_6)
 
+    # ----------------------------
+    # Step 7: 
+    # ----------------------------
+    def step_7():
+        pass
+        
+
     print("Test Finished ✅")
+
 
 
 if __name__ == "__main__":
@@ -159,6 +192,7 @@ if __name__ == "__main__":
             raise SystemExit(1)
 
         left_panel = LeftPanel(page)
+        refresh_page(page)
 
         # Run the test
         test_management_map(page, left_panel)
