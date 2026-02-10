@@ -28,6 +28,8 @@ class MapLocators:
     # ==========================================================
     # Internal helpers
     # ==========================================================
+
+    # ✅
     def must_be_visible(self, locator, description: str, timeout: int = 5000):
         """
         Ensures locator is visible.
@@ -41,6 +43,8 @@ class MapLocators:
     # ==========================================================
     # Events / alarms filters
     # ==========================================================
+
+    # ✅
     def events_filter_tile(self, label_text: str):
         """
         Returns the full clickable tile (icon + text) by label.
@@ -51,6 +55,7 @@ class MapLocators:
         self.must_be_visible(loc, f"Events filter tile '{label_text}'")
         return loc
 
+    # ✅
     def events_filter_span(self, label_text: str):
         """
         Returns ONLY the label span inside the filter tile.
@@ -59,7 +64,8 @@ class MapLocators:
         loc = tile.locator("span.no-select")
         self.must_be_visible(loc, f"Events filter span '{label_text}'")
         return loc
-    
+
+    # ✅
     def events_filter_icon(self, label_text: str):
         """
         Returns the app-icon locator inside the tile.
@@ -69,6 +75,7 @@ class MapLocators:
         self.must_be_visible(icon, f"Events filter icon '{label_text}'")
         return icon
     
+    # ✅
     def events_filter_icon_name(self, label_text: str) -> str:
         """
         Returns the icon's 'name' attribute (string).
@@ -85,6 +92,7 @@ class MapLocators:
             )
         return name.strip()
 
+    # ✅
     def events_filter_tile_class(self, label_text: str) -> str:
         """
         Returns the class attribute of the tile container.
@@ -100,6 +108,8 @@ class MapLocators:
     # ==========================================================
     # Map edit controls
     # ==========================================================
+    
+    # ✅
     def enable_drag_button(self):
         """
         Left-bottom button:
@@ -107,6 +117,7 @@ class MapLocators:
         loc = self.controls_left_bottom.locator("div.btn:has-text('Enable drag')")
         return loc  # don't force visible: it may disappear when already enabled
 
+    # ✅
     def save_and_lock_button(self):
         """
         'Save & Lock' button 
@@ -115,6 +126,7 @@ class MapLocators:
         self.must_be_visible(loc, f"Save & Lock button")
         return loc
 
+    # ✅
     def discard_and_lock_button(self):
         """
         'Discard & Lock' button
@@ -126,6 +138,8 @@ class MapLocators:
     # ==========================================================
     # Tabs
     # ==========================================================
+    
+    # ✅
     def find_tab(self, tab_name: str):
         """
         Returns the tab container locator for a given tab name.

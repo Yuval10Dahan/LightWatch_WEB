@@ -22,6 +22,8 @@ class ServiceProvisioning:
     # ==========================================================
     # Locators
     # ==========================================================
+
+    # ✅
     def modal(self):
         """
         Return the service provisioning modal container.
@@ -31,18 +33,21 @@ class ServiceProvisioning:
             raise AssertionError("Service Provisioning modal not found: div.main-modal-content")
         return modal
 
+    # ✅
     def modal_title(self):
         """
         Return the modal title element.
         """
         return self.modal().locator("div.title").first
 
+    # ✅
     def service_btn(self, name: str):
         """
         Return a service button by name.
         """
         return self.modal().locator("button.btn.btn-primary", has_text=re.compile(rf"^\s*{re.escape(name)}\s*$")).first
 
+    # ✅
     def exit_btn(self):
         """
         Return the Exit button in the modal.
@@ -52,6 +57,8 @@ class ServiceProvisioning:
     # ==========================================================
     # Modal state helpers (using wait_until)
     # ==========================================================
+    
+    # ✅
     def wait_until(self, condition: Callable[[], bool], timeout_ms: int = 10000, interval_ms: int = 200):
         """
         Polls condition() until it returns True or timeout.
@@ -74,6 +81,7 @@ class ServiceProvisioning:
             raise AssertionError(f"Condition not met within {timeout_ms}ms. Last error: {last_exc}")
         raise AssertionError(f"Condition not met within {timeout_ms}ms.")
 
+    # ✅
     def wait_modal_visible(self, timeout_ms: int = 12000):
         """
         Wait until the service provisioning modal is visible and ready.
@@ -82,6 +90,7 @@ class ServiceProvisioning:
         self.wait_until(lambda: self.modal_title().is_visible(), timeout_ms=timeout_ms)
         self.wait_until(lambda: bool(re.match(r"^\s*Choose Service to create\s*$", self.modal_title().inner_text())), timeout_ms=timeout_ms)
 
+    # ✅
     def wait_modal_hidden(self, timeout_ms: int = 12000):
         """
         Wait until the service provisioning modal is hidden or removed.
@@ -97,6 +106,8 @@ class ServiceProvisioning:
     # ==========================================================
     # Click actions 
     # ==========================================================
+    
+    # ✅
     def create_service(self, service_name: str, timeout_ms: int = 12000, close_modal_expected: bool = True):
         """
         Generic click on a service button inside 'Choose Service to create' modal.
@@ -112,24 +123,28 @@ class ServiceProvisioning:
         if close_modal_expected:
             self.wait_modal_hidden(timeout_ms=timeout_ms)
 
+    # ✅
     def create_ROADM_service(self, timeout_ms: int = 12000, close_modal_expected: bool = True):
         """
         Create a ROADM service from the modal.
         """
         self.create_service("ROADM", timeout_ms=timeout_ms, close_modal_expected=close_modal_expected)
 
+    # ✅
     def create_OTN_service(self, timeout_ms: int = 12000, close_modal_expected: bool = True):
         """
         Create an OTN service from the modal.
         """
         self.create_service("OTN", timeout_ms=timeout_ms, close_modal_expected=close_modal_expected)
 
+    # ✅
     def create_CHASSIS_service(self, timeout_ms: int = 12000, close_modal_expected: bool = True):
         """
         Create a CHASSIS service from the modal.
         """
         self.create_service("CHASSIS", timeout_ms=timeout_ms, close_modal_expected=close_modal_expected)
 
+    # ✅
     def click_exit(self, timeout_ms: int = 12000):
         """
         Exit the create services window.

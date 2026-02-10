@@ -11,7 +11,7 @@ import time
 from Utils.utils import refresh_page
 
 
-SERVER_HOST_IP = "172.16.10.62:8080"
+SERVER_HOST_IP = "172.16.10.22:8080"
 BASE_URL = f"http://{SERVER_HOST_IP}/"
 USERNAME = "administrator"
 PASSWORD = "administrator"

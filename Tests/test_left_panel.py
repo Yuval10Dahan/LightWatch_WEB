@@ -12,7 +12,7 @@ from Pages.common_functions import CommonFunctionsPage
 import time
 
 # Initialize constants
-SERVER_HOST_IP = "172.16.10.62:8080"  # Your base URL here
+SERVER_HOST_IP = "172.16.10.22:8080"  # Your base URL here
 BASE_URL = f"http://{SERVER_HOST_IP}/"  # Complete URL with trailing slash
 USERNAME = "administrator"
 PASSWORD = "administrator"

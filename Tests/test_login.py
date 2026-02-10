@@ -10,7 +10,7 @@ from time import sleep
 import time
 
 
-SERVER_HOST_IP = "http://172.16.10.62:8080/"
+SERVER_HOST_IP = "http://172.16.10.22:8080/"
 USERNAME = "administrator"
 PASSWORD = "administrator"
 
@@ -108,7 +108,23 @@ def test_logout():
         context.close()
         browser.close()
 
+def test_clear():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
 
+        login_page = LoginPage(page)
+        login_page.goto(SERVER_HOST_IP)
+
+        cleared = login_page.clear_login_fields()
+        if cleared:
+            print("Step 6 Success ✅")
+        else:
+            print("Step 6 Failed ❌")
+
+        context.close()
+        browser.close()
 
 
 if __name__ == "__main__":
@@ -120,6 +136,7 @@ if __name__ == "__main__":
     test_login_short_password()
     test_login_wrong_credentials()
     test_logout()
+    # test_clear()
 
     end_time = time.perf_counter()
     print(f"Total runtime: {end_time - start_time:.2f} seconds")

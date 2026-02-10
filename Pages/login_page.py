@@ -41,6 +41,8 @@ class LoginPage:
     # ==========================================================
     # Navigation
     # ==========================================================
+
+    # ✅
     def goto(self, base_url: str) -> None:
         """
         Navigate to login page.
@@ -72,6 +74,8 @@ class LoginPage:
     # ==========================================================
     # Login Action
     # ==========================================================
+    
+    # ✅
     def login(self, username: str, password: str) -> bool:
         """
         Attempts login and returns result.
@@ -116,6 +120,8 @@ class LoginPage:
     # ==========================================================
     # Logout Action
     # ==========================================================
+    
+    # ✅
     def logout(self) -> bool:
         """
         Attempts to log out the user by clicking the logout button and ensuring login page appears.
@@ -128,7 +134,7 @@ class LoginPage:
         # Ensure the logout button is visible and click it
         if self.logout_btn.is_visible():
             self.logout_btn.click()
-            self.click_reload_button()
+            # self.click_reload_button()
 
             # Wait for the login screen to appear (post-logout)
             try:
@@ -143,6 +149,8 @@ class LoginPage:
     # ==========================================================
     # Reload Action
     # ==========================================================
+    
+    # ✅
     def click_reload_button(self) -> bool:
         """
         Attempts to click the Reload button on the error page and waits for the page to reload successfully.
@@ -164,4 +172,27 @@ class LoginPage:
 
         except TimeoutError:
             return False
-    
+        
+    def clear_login_fields(self) -> bool:
+        """
+        Click the Clear button and verify username & password fields are emptied.
+
+        Returns:
+            True  -> fields cleared successfully
+            False -> clear failed
+        """
+        try:
+            clear_btn = self.page.locator("footer button.btn.simple-btn", has_text="Clear")
+
+            expect(clear_btn).to_be_visible(timeout=5_000)
+            clear_btn.click()
+
+            # Verify fields are cleared
+            expect(self.username).to_have_value("", timeout=5_000)
+            expect(self.password).to_have_value("", timeout=5_000)
+
+            return True
+
+        except TimeoutError as e:
+            print(f"Clear login fields failed ❌ Problem: {e}")
+            return False

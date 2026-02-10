@@ -7,7 +7,7 @@ Date: 26/01/2026
 from playwright.sync_api import Page, TimeoutError
 
 
-
+# ✅
 def refresh_page(page: Page, timeout: int = 30_000) -> bool:
     """
     Refresh the current page regardless of UI.

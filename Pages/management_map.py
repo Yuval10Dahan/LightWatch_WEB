@@ -8,7 +8,7 @@ from Utils.map_locators import MapLocators
 import time
 from typing import Callable
 import re
-from time import sleep
+from time import sleep 
 
 
 
@@ -27,6 +27,8 @@ class ManagementMap:
     # ==========================================================
     # Internal small helpers
     # ==========================================================
+
+    # ✅
     def is_pressed(self, label_text: str) -> bool:
         """
         Checks if a filter is ACTIVE.
@@ -43,6 +45,7 @@ class ManagementMap:
 
         return "pressed" in cls.split()
 
+    # ✅
     def is_filter_disabled(self, label_text: str) -> bool:
         """
         OFF == tile has class 'disabled'
@@ -53,6 +56,7 @@ class ManagementMap:
 
         return "disabled" in cls.split()
 
+    # ✅
     def is_tab_currently_selected(self, tab_name: str) -> bool:
         """
         Checks if a tab is currently selected.
@@ -68,7 +72,8 @@ class ManagementMap:
             raise AssertionError(f"is_tab_currently_selected failed: 'class' attribute is missing for tab '{tab_name}'")
 
         return "current" in cls.split()
-    
+
+    # ✅
     def wait_until(self, condition: Callable[[], bool], timeout_ms: int = 10000, interval_ms: int = 200):
         """
         Polls condition() until it returns True or timeout.
@@ -92,6 +97,7 @@ class ManagementMap:
             raise AssertionError(f"Condition not met within {timeout_ms}ms. Last error: {last_exc}")
         raise AssertionError(f"Condition not met within {timeout_ms}ms.")
 
+    # ✅
     def is_edit_mode(self) -> bool:
         """
         When edit mode is active, center-bottom Save/Discard buttons appear.
@@ -105,7 +111,9 @@ class ManagementMap:
         
     # ==========================================================
     # Alarms visibility
-    # ==========================================================
+    # ==========================================================    
+
+    # ✅
     def show_alarms(self):
         """
         - If already shown -> do nothing
@@ -129,6 +137,7 @@ class ManagementMap:
 
         raise AssertionError(f"show_alarms failed: unexpected alarms status '{status}'")
 
+    # ✅
     def hide_alarms(self):
         """
         - If already hidden -> do nothing
@@ -151,6 +160,7 @@ class ManagementMap:
 
         raise AssertionError(f"hide_alarms failed: unexpected alarms status '{status}'")
 
+    # ✅    
     def get_alarms_status(self) -> str:
         """
         Returns: "shown" | "hidden" | "unknown"
@@ -168,6 +178,8 @@ class ManagementMap:
     # ==========================================================
     # Severity filters
     # ==========================================================
+
+    # ✅
     def set_severity_filter(self, label_text: str, enable: bool):
         """
           - Enabled (ON)  => tile does NOT have class 'disabled'
@@ -191,28 +203,36 @@ class ManagementMap:
         except Exception as e:
             desired = "enabled" if enable else "disabled"
             raise AssertionError(f"{label_text} filter did not become {desired}. Problem: {e}")
-        
+    
+    # ✅
     def show_critical_major(self):
         self.set_severity_filter("Critical", enable=True)
 
+    # ✅
     def hide_critical_major(self):
         self.set_severity_filter("Critical", enable=False)
 
+    # ✅
     def show_minor(self):
         self.set_severity_filter("Minor", enable=True)
 
+    # ✅
     def hide_minor(self):
         self.set_severity_filter("Minor", enable=False)
 
+    # ✅
     def show_cleared(self):
         self.set_severity_filter("Cleared", enable=True)
 
+    # ✅
     def hide_cleared(self):
         self.set_severity_filter("Cleared", enable=False)
 
     # ==========================================================
     # Map interaction controls
     # ==========================================================
+
+    # ✅
     def enable_drag(self):
         """
         - If drag is already enabled -> do nothing
@@ -237,6 +257,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"enable_drag failed: edit mode did not start properly. Problem: {e}")
 
+    # ✅
     def save_and_lock(self):
         """
         - If not in edit mode -> do nothing
@@ -255,6 +276,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"save_and_lock failed: did not exit edit mode after Save & Lock. Problem: {e}")
 
+    # ✅
     def discard_and_lock(self):
         """
         - If not in edit mode -> do nothing
@@ -273,9 +295,94 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"discard_and_lock failed: did not exit edit mode after Discard & Lock. Problem: {e}")
 
+    def double_click_on_element_via_the_map(self, element_name: str, parent_chassis: str | None = None, timeout: int = 8000) -> bool:
+        """
+        Double-click an element directly on the topology map.
+        If the device is inside a chassis, parent_chassis must be provided
+        so the chassis will be expanded first.
+        """
+        try:
+            target = (element_name or "").strip()
+            if not target:
+                raise ValueError("element_name is empty")
+
+            is_ip = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
+            map_root = self.page.locator("svg").first
+
+            # -------- expand chassis first (if needed) --------
+            if parent_chassis:
+                chassis_rx = self.nav_text_regex(parent_chassis)
+
+                chassis_node = map_root.locator("g.fix-node text.fix-node-name").filter(has_text=chassis_rx).first
+
+                if chassis_node.count() == 0:
+                    raise AssertionError(f"Chassis '{parent_chassis}' not found on map")
+
+                chassis_node.scroll_into_view_if_needed()
+                expect(chassis_node).to_be_visible(timeout=timeout)
+                chassis_node.dblclick()
+
+            # -------- locate element on map --------
+            if is_ip:
+                element = map_root.locator(f"path[data-idkey='{target}']").first
+            else:
+                element_rx = self.nav_text_regex(target)
+                element = map_root.locator("g.fix-node text.fix-node-name, text.node-chassis-id").filter(has_text=element_rx).first
+
+            expect(element).to_be_visible(timeout=timeout)
+            element.scroll_into_view_if_needed()
+            element.dblclick()
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"double_click_on_element_via_the_map('{element_name}') failed. Problem: {e}")
+
+    def click_on_element_via_the_map(self, element_name: str, parent_chassis: str | None = None, timeout: int = 8000) -> bool:
+        """
+        Single-click an element directly on the topology map.
+        If the device is inside a chassis, parent_chassis must be provided.
+        """
+        try:
+            target = (element_name or "").strip()
+            if not target:
+                raise ValueError("element_name is empty")
+
+            is_ip = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
+            map_root = self.page.locator("svg").first
+
+            # -------- expand chassis first (if needed) --------
+            if parent_chassis:
+                chassis_rx = self.nav_text_regex(parent_chassis)
+
+                chassis_node = map_root.locator("g.fix-node text.fix-node-name").filter(has_text=chassis_rx).first
+
+                if chassis_node.count() == 0:
+                    raise AssertionError(f"Chassis '{parent_chassis}' not found on map")
+
+                chassis_node.scroll_into_view_if_needed()
+                expect(chassis_node).to_be_visible(timeout=timeout)
+                chassis_node.dblclick()
+
+            # -------- locate element on map --------
+            if is_ip:
+                element = map_root.locator(f"path[data-idkey='{target}']").first
+            else:
+                element_rx = self.nav_text_regex(target)
+                element = map_root.locator("g.fix-node text.fix-node-name, text.node-chassis-id").filter(has_text=element_rx).first
+
+            expect(element).to_be_visible(timeout=timeout)
+            element.scroll_into_view_if_needed()
+            element.click()
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"click_on_element_via_the_map('{element_name}') failed. Problem: {e}")
+
     # ==========================================================
     # Layer toggles
     # ==========================================================
+    
+    # ✅
     def enable_chassis(self):
         """
         - If already selected -> do nothing
@@ -292,6 +399,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"enable_chassis failed: tab did not become current. Problem: {e}")
 
+    # ✅
     def enable_OTN(self):
         """
         - If already selected -> do nothing
@@ -308,6 +416,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"enable_OTN failed: tab did not become current. Problem: {e}")
 
+    # ✅
     def enable_ROADM(self):
         """
         - If already selected -> do nothing
@@ -324,6 +433,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"enable_ROADM failed: tab did not become current. Problem: {e}")
 
+    # ✅
     def enable_manage(self):
         """
         - If already selected -> do nothing
@@ -344,6 +454,7 @@ class ManagementMap:
     # Zoom controls
     # ==========================================================
     
+    # ✅
     def get_svg_transform(self) -> str:
         """
         Helper: returns the current transform value of the main SVG <g>.
@@ -355,6 +466,7 @@ class ManagementMap:
             raise AssertionError("SVG transform attribute is missing.")
         return transform
 
+    # ✅
     def map_zoom_in(self):
         """
         - Click zoom-in
@@ -370,6 +482,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"map_zoom_in failed: SVG transform did not change. Problem: {e}")
 
+    # ✅
     def map_zoom_out(self):
         """
         - Click zoom-out
@@ -441,15 +554,20 @@ class ManagementMap:
     # ==========================================================
     # Navigation Info helpers
     # ==========================================================
+
+    # ✅
     def navinfo_section(self):
         return self.mapLocator.root.locator("section.main-controls-section-inventory-tree")
 
+    # ✅
     def navinfo_toggle(self):
         return self.navinfo_section().locator("div.main-controls-section-inventory-tree-inner")
 
+    # ✅
     def navinfo_wrapper(self):
         return self.mapLocator.root.locator("div.main-controls-section-inventory-tree-wrapper")
 
+    # ✅
     def navinfo_is_open(self) -> bool:
         """
         - closed => inner div contains class 'collapsed'
@@ -467,12 +585,14 @@ class ManagementMap:
         
         return "collapsed" not in cls.split()
 
+    # ✅
     def navigation_info_container(self):
         """
         Container of the Navigation Info tree.
         """
         return self.page.locator("section.main-controls-section-inventory-tree:has(header .title:has-text('Navigation Info'))")
     
+    # ✅
     def nav_text_regex(self, element_name: str) -> re.Pattern:
         """
         Build a regex that matches even if the UI splits text into spans
@@ -492,6 +612,7 @@ class ManagementMap:
 
         return re.compile(esc)
 
+    # ✅
     def nav_row_locator(self, element_name: str):
         """
         Returns the Navigation Info "row title" locator for the given element text.
@@ -507,6 +628,8 @@ class ManagementMap:
     # ==========================================================
     # Navigation info
     # ==========================================================
+
+    # ✅
     def show_navigation_info(self):
         """
         - If already open -> do nothing
@@ -529,6 +652,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"show_navigation_info failed: navigation panel did not open. Problem: {e}")
 
+    # ✅
     def hide_navigation_info(self):
         """
         - If already closed -> do nothing
@@ -560,6 +684,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"hide_navigation_info failed: navigation panel did not close. Problem: {e}")
 
+    # ✅
     def navigation_info_double_click_on_element(self, element_name: str, timeout: int = 10000):
         """
         Double-click an element in Navigation Info to navigate the map to it.
@@ -585,6 +710,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"navigation_info_double_click_on_element('{element_name}') failed. Problem: {e}")
 
+    # ✅
     def navigation_info_open_element_details(self, element_name: str, timeout: int = 5000):
         """
         Opens the element details panel by single-clicking the element
@@ -612,6 +738,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"navigation_info_open_element_details('{element_name}') failed: {e}")
 
+    # ✅
     def navigation_info_close_element_details(self, timeout: int = 5000):
         """
         Close the opened Node Properties (details) panel by clicking the X (close-square) icon.
@@ -632,7 +759,8 @@ class ManagementMap:
 
         # assert closed
         expect(panel).to_be_hidden(timeout=timeout)
-        
+
+    # ✅  
     def navigation_info_expand_element_byClick_on_arrow(self, element_name: str, timeout: int = 5000):
         """
         Expands an element in Navigation Info by clicking its arrow icon
@@ -656,7 +784,8 @@ class ManagementMap:
 
         except Exception as e:
             raise AssertionError(f"navigation_info_open_element_details('{element_name}') failed: {e}") 
-        
+    
+    # ✅
     def navigation_info_shrink_element_byClick_on_arrow(self, element_name: str, timeout: int = 5000):
         """
         Collapses an element in Navigation Info by clicking its toggle (arrow) and
@@ -701,6 +830,7 @@ class ManagementMap:
     # Element details
     # ==========================================================
 
+    # ✅
     def element_details_click_format(self, label_text: str, timeout: int = 5000):
         """
         In the Node Properties (element details) panel:
@@ -731,21 +861,27 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"element_details_click_on_{label_text.lower()} failed: tab did not become active. Problem: {e}")
 
+    # ✅
     def element_details_click_on_chassis(self):
         self.element_details_click_format("Chassis")
 
+    # ✅
     def element_details_click_on_services(self):
         self.element_details_click_format("Services")
 
+    # ✅
     def element_details_click_on_faults(self):
         self.element_details_click_format("Faults")
 
+    # ✅
     def element_details_click_on_info(self):
         self.element_details_click_format("Info")
 
     # ==========================================================
     # Faults → Alarms
     # ==========================================================
+    
+    # ✅
     def element_details_faults_click_on_alarms(self, timeout: int = 5000):
         """
         In the Node Properties panel -> Faults tab:
@@ -777,6 +913,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"element_details_faults_click_on_alarms failed: tab did not become active. Problem: {e}")
 
+    # ✅
     def element_details_faults_view_all_alarms(self, timeout: int = 10000):
         """
         Clicks the "View All Alarms" button in Faults -> Alarms.
@@ -809,6 +946,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"element_details_faults_view_all_alarms failed: click did not trigger any visible change. Problem: {e}")
 
+    # ✅
     def element_details_faults_get_all_alarms(self, timeout: int = 5000) -> list:
         """
         Returns a list of alarms currently shown in Faults -> Alarms list.
@@ -852,6 +990,8 @@ class ManagementMap:
     # ==========================================================
     # Faults → Events
     # ==========================================================
+    
+    # ✅
     def element_details_faults_click_on_events(self, timeout: int = 5000):
         """
         In the Node Properties panel -> Faults tab:
@@ -883,6 +1023,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"element_details_faults_click_on_events failed: tab did not become active. Problem: {e}")
 
+    # ✅
     def element_details_faults_view_all_events(self, timeout: int = 10000):
         """
         Clicks the "View All Events" button in Faults -> Events.
@@ -914,6 +1055,7 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"element_details_faults_view_all_events failed: click did not trigger any visible change. Problem: {e}")
 
+    # ✅
     def element_details_faults_get_all_events(self, timeout: int = 5000) -> list:
         """
         Returns a list of events currently shown in Faults -> Events list.

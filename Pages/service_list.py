@@ -4,7 +4,7 @@ Date: 21/01/2026
 '''
 
 from playwright.sync_api import Page, expect
-from typing import Callable, List, Optional
+from typing import Callable
 import time
 import re
 from time import sleep
@@ -26,6 +26,8 @@ class ServiceList:
     # ==========================================================
     # Internal small helpers 
     # ==========================================================
+
+    # ✅
     def wait_until(self, condition: Callable[[], bool], timeout_ms: int = 10000, interval_ms: int = 200):
         """
         Polls condition() until it returns True or timeout.
@@ -48,6 +50,7 @@ class ServiceList:
             raise AssertionError(f"Condition not met within {timeout_ms}ms. Last error: {last_exc}")
         raise AssertionError(f"Condition not met within {timeout_ms}ms.")
 
+    # ✅
     @staticmethod
     def _clean(s: str) -> str:
         """
@@ -55,6 +58,7 @@ class ServiceList:
         """
         return re.sub(r"\s+", " ", (s or "").strip())
 
+    # ✅
     def filters_root(self):
         """
         Return the root locator for the Service List filters section.
@@ -62,6 +66,7 @@ class ServiceList:
         """
         return self.page.locator(".service-filters").first
 
+    # ✅
     def dropdown(self, label: str):
         """
         Locate a dropdown component by its label text.
@@ -71,6 +76,7 @@ class ServiceList:
         expect(dropdown).to_be_visible(timeout=5000)
         return dropdown
 
+    # ✅
     def dropdown_selected_text(self, label: str) -> str:
         """
         Return the currently selected value of a labeled dropdown.
@@ -80,6 +86,7 @@ class ServiceList:
         expect(selected).to_be_visible(timeout=5000)
         return self._clean(selected.inner_text())
 
+    # ✅
     def open_dropdown(self, label: str):
         """
         Open a labeled dropdown by clicking its toggle button.
@@ -89,6 +96,7 @@ class ServiceList:
         expect(btn).to_be_visible(timeout=5000)
         btn.click(force=True)
 
+    # ✅
     def dropdown_pick(self, label: str, value: str, timeout: int = 8000):
         """
         Select a value from a labeled dropdown.
@@ -136,6 +144,7 @@ class ServiceList:
             if after == before:
                 raise AssertionError(f"Dropdown '{label}' selection did not change (still '{after}').")
 
+    # ✅
     def filter_by_container(self):
         """
         Return the 'Filter by' container.
@@ -145,6 +154,7 @@ class ServiceList:
         expect(radio_btn).to_be_visible(timeout=5000)
         return radio_btn
 
+    # ✅
     def date_input_field(self):
         """
         Return the date range input field.
@@ -154,6 +164,7 @@ class ServiceList:
         expect(date_inp).to_be_visible(timeout=5000)
         return date_inp
 
+    # ✅
     def message_input_field(self):
         """
         Return the Message filter input field.
@@ -163,6 +174,7 @@ class ServiceList:
         expect(inp).to_be_visible(timeout=5000)
         return inp
 
+    # ✅
     def descending_checkbox(self):
         """
         Return the Descending order checkbox.
@@ -172,6 +184,7 @@ class ServiceList:
         expect(cb).to_be_visible(timeout=5000)
         return cb
 
+    # ✅
     def read_all_pages_from_table(self, table_locator, timeout: int = 12_000) -> list:
         """
         Read all rows from a paginated simple-table and return them as list of dicts.
@@ -233,11 +246,13 @@ class ServiceList:
 
         return all_rows
     
+    # ✅
     def day_suffix(self, day: int) -> str:
         if 11 <= day <= 13:
             return "th"
         return {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
 
+    # ✅
     def format_for_picker(self, dt: datetime) -> str:
         # Example: January 27th 2026, 11:14:39 am
         month = dt.strftime("%B")
@@ -254,12 +269,15 @@ class ServiceList:
     # =========================
     # Severity
     # =========================
+
+    # ✅
     def get_severity(self):
         """
         Get the currently selected Severity filter value.
         """
         return self.dropdown_selected_text("Severity")
 
+    # ✅
     def set_severity(self, severity: str):
         """
         Set the Severity filter to the given value.
@@ -270,6 +288,8 @@ class ServiceList:
     # =========================
     # Category
     # =========================
+
+    # ✅
     def get_category(self):
         """
         Get the currently selected Category filter value.
@@ -277,6 +297,7 @@ class ServiceList:
         """
         return self.dropdown_selected_text("Category")
 
+    # ✅
     def set_category(self, category: str):
         """
         Set the Category filter to the given value.
@@ -287,6 +308,8 @@ class ServiceList:
     # =========================
     # Filter By (general)
     # =========================
+
+    # ✅
     def get_filter_by(self):
         """
         Return the currently selected 'Filter by' mode.
@@ -307,7 +330,8 @@ class ServiceList:
                 continue
 
         return ""  # unknown
-
+    
+    # ✅
     def set_filter_by(self, filter_by: str):
         """
         Select a 'Filter by' option by label text.
@@ -337,6 +361,8 @@ class ServiceList:
     # =========================
     # Filter By → Devices
     # =========================
+
+    # ✅
     def devices_dropdown(self):
         """
         Return the app-dropdown for Devices.
@@ -347,6 +373,7 @@ class ServiceList:
             raise AssertionError("Devices dropdown not found.")
         return dropdown
 
+    # ✅
     def _try_open_devices_dropdown(self, timeout: int = 8000):
         """
         Best-effort open for Devices dropdown.
@@ -383,6 +410,7 @@ class ServiceList:
 
         return None
 
+    # ✅
     def open_devices_dropdown(self, timeout: int = 8000):
         """
         Open the Devices dropdown and return its menu locator.
@@ -393,12 +421,14 @@ class ServiceList:
             raise AssertionError("Devices dropdown menu did not open (menu stayed hidden).")
         return menu
 
+    # ✅
     def is_device_checked(self, device_li) -> bool:
         """
         Return True if the device checkbox is selected.
         """
         return device_li.locator("svg.unchecked").count() == 0
 
+    # ✅
     def device_text(self, device_li) -> str:
         """
         Extract the device label text from the li (ignoring checkbox).
@@ -406,6 +436,7 @@ class ServiceList:
         txt = self._clean(device_li.inner_text())
         return txt.split()[0] if txt else ""
 
+    # ✅
     def set_all_devices_filterBy_devices(self, timeout: int = 10000):
         """
         Select all devices in the Devices filter by selecting each device row.
@@ -501,6 +532,7 @@ class ServiceList:
 
         self.wait_until(all_selected_across_scroll, timeout_ms=timeout, interval_ms=250)
 
+    # ✅
     def get_all_selected_devices_filterBy_devices(self, timeout: int = 8000) -> list:
         """
         Return a list of selected devices in the Devices filter.
@@ -573,6 +605,7 @@ class ServiceList:
             print("No devices are selected in Devices filter.")
         return out
 
+    # ✅
     def select_device_filterBy_devices(self, device_name: str, timeout: int = 10000):
         """
         Select a specific device in the Devices filter.
@@ -619,6 +652,7 @@ class ServiceList:
 
         raise AssertionError(f"Device '{device_name}' not found in Devices dropdown (even after scrolling).")
 
+    # ✅
     def remove_device_filterBy_devices(self, device_name: str, timeout: int = 10000):
         """
         Unselect a specific device in the Devices filter.
@@ -665,6 +699,7 @@ class ServiceList:
 
         raise AssertionError(f"Device '{device_name}' not found in Devices dropdown (even after scrolling).")
 
+    # ✅
     def remove_all_devices_filterBy_devices(self, timeout: int = 10000):
         """
         Unselect all devices by clicking the 'All' control (it clears all selections in this UI).
@@ -693,6 +728,8 @@ class ServiceList:
     # =========================
     # Filter By → Domain / Chassis
     # =========================
+
+    # ✅
     def click_on_inventory_tree_icon(self, timeout: int = 5000):
         """
         Click the inventory-tree icon next to the Domain field to open the Domain/Chassis picker modal.
@@ -709,6 +746,7 @@ class ServiceList:
         expect(modal).to_be_visible(timeout=timeout)
         return modal
 
+    # ✅
     def get_selected_domain_or_chassis_filterBy_domain_or_chassis(self) -> str:
         """
         Return the currently selected Domain/Chassis value.
@@ -740,7 +778,8 @@ class ServiceList:
             return self._clean(domain_section.locator("app-input[label='Domain']").inner_text())
         except Exception:
             return ""
-
+    
+    # ✅
     def reset_domain_or_chassis_filterBy_domain_or_chassis(self, timeout: int = 8000):
         """
         Reset the Domain/Chassis filter using the picker modal (click icon -> Reset -> Ok).
@@ -772,7 +811,8 @@ class ServiceList:
             self.wait_until(updated, timeout_ms=timeout, interval_ms=200)
         except Exception:
             pass
-
+    
+    # ✅
     def select_domain_or_chassis_filterBy_domain_or_chassis(self, value: str, timeout: int = 10000):
         """
         Select a Domain/Chassis group from the inventory-tree modal and confirm with Ok.
@@ -816,31 +856,37 @@ class ServiceList:
     # =========================
     # Filter By → Device Type
     # =========================
+    
+    # ❌
     def set_all_devices_filterBy_device_type(self):
         """
         Select 'All' in the Device Type filter.
         """
         pass
-
+    
+    # ❌
     def get_all_selected_devices_filterBy_device_type(self):
         """
         Return a list with the selected device type.
         Returns [] if 'All' is selected.
         """
         pass
-
+    
+    # ❌
     def select_device_type_filterBy_device_type(self, device_type: str):
         """
         Select a specific device type in the filter.
         """
         pass
 
+    # ❌
     def remove_device_type_filterBy_device_type(self, device_type: str):
         """
         Remove a selected device type by resetting to 'All'.
         """
         pass
-
+    
+    # ❌
     def remove_all_devices_filterBy_device_type(self):
         """
         Reset Device Type filter to 'All'.
@@ -850,6 +896,8 @@ class ServiceList:
     # =========================
     # Date
     # =========================
+
+    # ✅
     def get_date(self):
         """
         Return the currently selected date range string.
@@ -860,6 +908,7 @@ class ServiceList:
         except Exception:
             return self._clean(inp.get_attribute("value") or "")
 
+    # ✅
     def set_date(self, from_date_and_time: str, to_date_and_time: str, timeout: int = 10000):
         """
         Set date range using easy inputs like 'YEAR-MONTH-DAY HOUR:MINUTES' or 'YEAR-MONTH-DAY HOUR:MINUTES:SECONDS'
@@ -902,6 +951,8 @@ class ServiceList:
     # =========================
     # Message
     # =========================
+    
+    # ✅
     def set_message(self, message: str):
         """
         Set the Message filter text.
@@ -915,12 +966,15 @@ class ServiceList:
     # =========================
     # Ordering / Sorting
     # =========================
+    
+    # ✅
     def get_order_by(self):
         """
         Return the currently selected Order By value.
         """
         return self.dropdown_selected_text("Order by")
 
+    # ✅
     def set_order_by(self, column_name: str):
         """
         Set the Order By dropdown to a specific column.
@@ -928,6 +982,7 @@ class ServiceList:
         self.dropdown_pick("Order by", column_name)
         sleep(1)
 
+    # ✅
     def set_order_by_all(self):
         """
         Set the Order By dropdown to 'All'.
@@ -935,6 +990,7 @@ class ServiceList:
         self.dropdown_pick("Order by", "All")
         sleep(1)
 
+    # ✅
     def enable_descending_order(self):
         """
         Enable descending sort order if it is not already enabled.
@@ -953,6 +1009,7 @@ class ServiceList:
         label.click(force=True)
         self.wait_until(is_checked, timeout_ms=5000, interval_ms=200)
 
+    # ✅
     def disable_descending_order(self):
         """
         Disable descending sort order if it is currently enabled.
@@ -974,6 +1031,8 @@ class ServiceList:
     # =========================
     # Pagination
     # =========================
+
+    # ✅
     def click_previous(self, timeout: int = 5000) -> bool:
         """
         Click the Previous page button.
@@ -994,6 +1053,7 @@ class ServiceList:
         prev_a.click(force=True)
         return True
 
+    # ✅
     def click_next(self, timeout: int = 5000) -> bool:
         """
         Click the Next page button.
@@ -1017,6 +1077,8 @@ class ServiceList:
     # =========================
     # Events / Alarms Panel
     # =========================
+
+    # ✅
     def events_tabset(self):
         """Return the Events/Alarms tabset container."""
         tabset = self.page.locator("tabset.tab-container").first
@@ -1024,6 +1086,7 @@ class ServiceList:
             raise AssertionError("Events/Alarms tabset not found (tabset.tab-container).")
         return tabset
 
+    # ✅
     def click_events_tab(self, tab_name: str, timeout: int = 12000):
         """Click a tab by its name (Events history / Alarms / Alarms summary)."""
         tabset = self.events_tabset()
@@ -1039,6 +1102,7 @@ class ServiceList:
         # Wait until tab is marked active
         expect(tab_btn).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
 
+    # ✅
     def active_tab_table(self, timeout: int = 12000):
         """
         Return the simple-table <table> inside the ACTIVE tab-pane.
@@ -1051,6 +1115,7 @@ class ServiceList:
         expect(table).to_be_visible(timeout=timeout)
         return table
 
+    # ✅
     def extract_headers(self, table) -> list:
         """
         Extract table headers robustly.
@@ -1065,6 +1130,7 @@ class ServiceList:
 
         return headers
 
+    # ✅
     def read_table_as_dicts(self, table) -> list:
         """Read an HTML table into a list[dict] using header names as keys."""
         headers = self.extract_headers(table)
@@ -1087,6 +1153,7 @@ class ServiceList:
 
         return out
     
+    # ✅
     def click_on_events_history(self, timeout: int = 12000):
         """
         Switch to 'Events history' tab in Events/Alarms panel.
@@ -1106,6 +1173,7 @@ class ServiceList:
             # Some builds may render empty/no table – don't hard fail here
             pass
 
+    # ✅
     def click_on_alarms(self, timeout: int = 12000):
         """
         Switch to 'Alarms' tab in Events/Alarms panel.
@@ -1118,6 +1186,7 @@ class ServiceList:
 
         self.click_events_tab("Alarms", timeout=timeout)
 
+    # ✅
     def click_on_alarms_summary(self, timeout: int = 12000):
         """
         Switch to 'Alarms summary' tab in Events/Alarms panel.
@@ -1130,6 +1199,7 @@ class ServiceList:
 
         self.click_events_tab("Alarms summary", timeout=timeout)
 
+    # ✅
     def open_events_alarms(self, timeout: int = 12000):
         """
         Open the Events/Alarms inside panel.
@@ -1140,6 +1210,7 @@ class ServiceList:
         btn.click(force=True)
         expect(self.page.locator("tabset.tab-container").first).to_be_visible(timeout=timeout)
 
+    # ❌
     def get_all_events_history(self, timeout: int = 12_000) -> list:
         """
         Return all Events history records across all pagination pages.
@@ -1153,6 +1224,7 @@ class ServiceList:
         table = self.active_tab_table(timeout=timeout)  
         return self.read_all_pages_from_table(table, timeout=timeout)
     
+    # ❌
     def get_all_alarms(self, timeout: int = 12_000) -> list:
         """
         Return all Alarms records across all pagination pages.
@@ -1166,6 +1238,7 @@ class ServiceList:
         table = self.page.locator("section.faults-enabled app-simple-table table").first  
         return self.read_all_pages_from_table(table, timeout=timeout)
 
+    # ❌
     def get_alarms_summary(self, timeout: int = 12_000) -> list:
         """
         Read ALL 'Alarms summary' rows across pagination pages.
@@ -1219,6 +1292,8 @@ class ServiceList:
     # =========================
     # Column Editing
     # =========================
+
+    # ✅
     def click_edit_columns(self):
         """
         Clicks the Edit Columns button.
@@ -1227,6 +1302,7 @@ class ServiceList:
         expect(btn).to_be_visible(timeout=5000)
         btn.click()
 
+    # ✅
     def click_save_changes(self, timeout: int = 5000):
         """
         Click 'Save changes' in the Edit Columns footer.
@@ -1241,6 +1317,7 @@ class ServiceList:
         # Wait until edit mode exits (buttons disappear or footer changes)
         self.wait_until(lambda: footer.locator("button:has-text('Save changes')").count() == 0, timeout_ms=timeout, interval_ms=200)
 
+    # ✅
     def click_revert_changes(self, timeout: int = 5000):
         """
         Click 'Revert changes' in the Edit Columns footer.

@@ -29,14 +29,18 @@ class CommonFunctionsPage:
         # The div that contains the buttons, to check if Common Functions page is opened
         self.common_functions_container = page.locator('.common-functions-container')
 
-
+    # ==========================================================
     # Methods for interacting with each section
+    # ==========================================================
+
+    # ✅
     def click_polling_restart(self) -> bool:       
         success_message = "Topology polling restarted Successfully"
         failure_message = "Polling Restart"
         self.polling_restart_btn.click()
         self.click_button(success_message, failure_message)
 
+    # ✅
     def click_polling_restart_backup(self) -> bool:
         self.polling_restart_btn.click()
 
@@ -55,30 +59,35 @@ class CommonFunctionsPage:
             print("Polling Restart failed: toast did not appear ❌")
             return False
 
+    # ✅
     def click_deleting_OTN_inconsistent_services(self) -> bool:
         success_message = "OTN services removed Successfully"
         failure_message = "Deleting OTN inconsistent services"
         self.deleting_otn_inconsistent_services_btn.click()
         self.click_button(success_message, failure_message)
 
+    # ✅
     def click_synchronizing_OTN_services(self) -> bool:
         success_message = "OTN services synchronized Successfully"
         failure_message = "Synchronizing OTN services"
         self.synchronizing_otn_services_btn.click()
         self.click_button(success_message, failure_message)
 
+    # ✅
     def click_deleting_ROADM_inconsistent_services(self) -> bool:
         success_message = "Inconsistent ROADM services deleted Successfully"
         failure_message = "Deleting ROADM inconsistent services"
         self.deleting_roadm_inconsistent_services_btn.click()
         self.click_button(success_message, failure_message)
 
+    # ✅
     def click_synchronizing_ROADM_services(self) -> bool:
         success_message = "ROADM services synchronization started Successfully"
         failure_message = "Synchronizing ROADM services"
         self.synchronizing_roadm_services_btn.click()
         self.click_button(success_message, failure_message)
 
+    # ✅
     def click_exit(self) -> bool:
         try:
             # Make sure the Common Functions window is open before exiting from it
@@ -96,6 +105,7 @@ class CommonFunctionsPage:
             print(f"exit failed ❌")
             return False
 
+    # ✅
     def is_common_functions_page_visible(self) -> bool:
         """
         Method to verify if the Common Functions window is loaded.
@@ -108,7 +118,11 @@ class CommonFunctionsPage:
             print("Common Functions window is closed ❌")
             return False
     
+    # ==========================================================
     # Generic function
+    # ==========================================================
+
+    # ✅
     def click_button(self, success_message, failure_message):
         """
         Generic function to click a button and verify that the action succeeded.

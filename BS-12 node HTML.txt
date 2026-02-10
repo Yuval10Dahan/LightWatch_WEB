@@ -1,0 +1,1 @@
+<g _ngcontent-ng-c3538289712="" class="fix-node" transform="translate(598,737) scale(4.106776180698152)"><text _ngcontent-ng-c3538289712="" fill="red" pointer-events="none" opacity="0" text-anchor="middle" class="fix-node-name">BS-12</text></g>

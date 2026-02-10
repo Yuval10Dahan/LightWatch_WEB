@@ -23,6 +23,8 @@ class DeviceDiscovery:
     # ==========================================================
     # Internal small helpers
     # ==========================================================
+
+    # ✅
     def wait_until(self, condition: Callable[[], bool], timeout_ms: int = 10000, interval_ms: int = 200):
         """
         Polls condition() until it returns True or timeout.
@@ -45,6 +47,7 @@ class DeviceDiscovery:
             raise AssertionError(f"Condition not met within {timeout_ms}ms. Last error: {last_exc}")
         raise AssertionError(f"Condition not met within {timeout_ms}ms.")
 
+    # ✅
     def clean(self, s: str) -> str:
         """
         Normalize whitespace and strip.
@@ -54,6 +57,8 @@ class DeviceDiscovery:
     # ==========================================================
     # Base locators
     # ==========================================================
+    
+    # ✅
     def container(self):
         """
         Return the device discovery container.
@@ -63,18 +68,21 @@ class DeviceDiscovery:
             raise AssertionError("DeviceDiscovery: container not found (div.device-discovery-container).")
         return container
 
+    # ✅
     def header(self):
         """
         Return header section (title + controls).
         """
         return self.container().locator("div.device-discovery-header").first
 
+    # ✅
     def content(self):
         """
         Return content section (fields + tabs).
         """
         return self.container().locator("div.device-discovery-content").first
 
+    # ✅
     def footer(self):
         """
         Return footer section (Reset/Save/Start Discovery).
@@ -84,6 +92,8 @@ class DeviceDiscovery:
     # ==========================================================
     # Header controls
     # ==========================================================
+
+    # ✅
     def range_toggle(self):
         """
         Return the Range slide-toggle component in the header.
@@ -93,6 +103,7 @@ class DeviceDiscovery:
             raise AssertionError("DeviceDiscovery: Range toggle not found (app-slide-toggle with text 'Range').")
         return toggle
 
+    # ✅
     def is_range_enabled(self) -> bool:
         """
         Return True if Range toggle is ON according to the SVG knob position.
@@ -113,6 +124,7 @@ class DeviceDiscovery:
         # Fallback: if DOM changed, consider not enabled
         return False
 
+    # ✅
     def close_btn(self):
         """
         Close (X) icon button.
@@ -122,6 +134,8 @@ class DeviceDiscovery:
     # ==========================================================
     # Main IP input
     # ==========================================================
+
+    # ✅
     def ip_app_input(self):
         """
         Return the app-input container for the IP address field.
@@ -131,6 +145,7 @@ class DeviceDiscovery:
             raise AssertionError("DeviceDiscovery: IP app-input not found (formcontrolname='ip').")
         return inp
 
+    # ✅
     def ip_input(self):
         """
         Return the visible input element of the IP address field.
@@ -138,6 +153,7 @@ class DeviceDiscovery:
         # When Range mode is enabled, the single IP input may become hidden/disabled but still exist in DOM.
         return self.ip_app_input().locator("input:visible").first
 
+    # ✅
     def set_ip_address(self, ip: str, timeout: int = 8000):
         """
         Set IP address field (single IP mode).
@@ -162,6 +178,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_ip_address('{ip}') failed. Problem: {e}")
 
+    # ✅
     def get_ip_address(self, timeout: int = 8000) -> str:
         """
         Get IP address field value.
@@ -180,6 +197,8 @@ class DeviceDiscovery:
     # =========================
     # IP Range
     # =========================
+
+    # ✅
     def click_start_discovery_for_ip_range(self, timeout: int = 8000):
         """
         Enable Range toggle (IP range discovery).
@@ -202,6 +221,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"click_start_discovery_for_ip_range failed. Problem: {e}")
 
+    # ✅
     def click_stop_discovery_for_ip_range(self, timeout: int = 8000):
         """
         Disable Range toggle (return to single IP discovery).
@@ -225,6 +245,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"click_stop_discovery_for_ip_range failed. Problem: {e}")
 
+    # ✅
     def set_range_start_ip(self, start_ip: str, timeout: int = 8000):
         """
         Set the Start IP field (Range mode).
@@ -238,6 +259,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_range_start_ip('{start_ip}') failed. Problem: {e}")
 
+    # ✅
     def get_range_start_ip(self, timeout: int = 8000) -> str:
         """
         Get the Start IP field value (Range mode).
@@ -249,6 +271,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"get_range_start_ip failed. Problem: {e}")
 
+    # ✅
     def set_range_end_ip(self, end_ip: str, timeout: int = 8000):
         """
         Set the End IP field (Range mode).
@@ -262,6 +285,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_range_end_ip('{end_ip}') failed. Problem: {e}")
 
+    # ✅
     def get_range_end_ip(self, timeout: int = 8000) -> str:
         """
         Get the End IP field value (Range mode).
@@ -276,6 +300,8 @@ class DeviceDiscovery:
     # ==========================================================
     # Protocol tabs (ICMP / SNMPv2 / SNMPv3)
     # ==========================================================
+    
+    # ✅
     def protocol_tabset(self, timeout: int = 10000):
         """
         Return protocol tabset container.
@@ -287,7 +313,8 @@ class DeviceDiscovery:
 
         except Exception as e:
             raise AssertionError(f"protocol_tabset failed. Problem: {e}")
-
+    
+    # ✅
     def click_protocol_tab(self, tab_name: str, timeout: int = 10000):
         """
         Click protocol tab by name and assert the tab content becomes active.
@@ -307,18 +334,21 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"click_protocol_tab('{tab_name}') failed. Problem: {e}")
 
+    # ✅
     def click_ICMP(self, timeout: int = 10000):
         """
         Switch to ICMP tab.
         """
         self.click_protocol_tab("ICMP", timeout=timeout)
 
+    # ✅
     def click_SNMPv2(self, timeout: int = 10000):
         """
         Switch to SNMPv2 tab.
         """
         self.click_protocol_tab("SNMPv2", timeout=timeout)
 
+    # ✅
     def click_SNMPv3(self, timeout: int = 10000):
         """
         Switch to SNMPv3 tab.
@@ -328,6 +358,8 @@ class DeviceDiscovery:
     # ==========================================================
     # app-input helpers
     # ==========================================================
+
+    # ✅
     def active_tab_pane(self):
         """
         Return the currently active tab-pane under the protocol tabset.
@@ -338,6 +370,7 @@ class DeviceDiscovery:
             raise AssertionError("DeviceDiscovery: active tab pane not found.")
         return pane
 
+    # ✅
     def app_input(self, formcontrolname: str, scope=None):
         """
         Return app-input.
@@ -348,12 +381,14 @@ class DeviceDiscovery:
             raise AssertionError(f"DeviceDiscovery: app-input not found (formcontrolname='{formcontrolname}').")
         return loc
 
+    # ✅
     def app_input_field(self, formcontrolname: str, scope=None):
         """
         Return <input> inside app-input.
         """
         return self.app_input(formcontrolname, scope=scope).locator("input").first
 
+    # ✅
     def set_app_input_value(self, formcontrolname: str, value: str, timeout: int = 8000, scope=None):
         """
         Fill an app-input.
@@ -367,6 +402,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_app_input_value('{formcontrolname}', '{value}') failed. Problem: {e}")
 
+    # ✅
     def get_app_input_value(self, formcontrolname: str, timeout: int = 8000, scope=None) -> str:
         """
         Read an app-input value.
@@ -381,6 +417,8 @@ class DeviceDiscovery:
     # ==========================================================
     # Dropdowns
     # ==========================================================
+    
+    # ✅
     def app_dropdown(self, label: str):
         """
         Return app-dropdown by label.
@@ -391,6 +429,7 @@ class DeviceDiscovery:
             raise AssertionError(f"DeviceDiscovery: dropdown not found (label='{label}').")
         return dropdown
 
+    # ✅
     def dropdown_selected_text(self, label: str, timeout: int = 8000) -> str:
         """
         Return current selected text of a dropdown.
@@ -403,6 +442,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"dropdown_selected_text('{label}') failed. Problem: {e}")
 
+    # ✅
     def open_dropdown(self, label: str, timeout: int = 8000):
         """
         Open a dropdown by label.
@@ -415,6 +455,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"open_dropdown('{label}') failed. Problem: {e}")
 
+    # ✅
     def dropdown_pick(self, label: str, value: str, timeout: int = 8000):
         """
         Pick a value from a labeled dropdown.
@@ -438,6 +479,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"dropdown_pick('{label}', '{value}') failed. Problem: {e}")
 
+    # ✅
     def set_dropdown_with_validation(self, label: str, value: str, timeout: int = 8000):
         """
         Validate the value exists in the dropdown and then select it.
@@ -456,6 +498,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_dropdown_with_validation('{label}', '{value}') failed. Problem: {e}")
 
+    # ✅
     def dropdown_menu(self, label: str, timeout: int = 8000):
         """
         Return the dropdown menu for a labeled dropdown.
@@ -489,6 +532,7 @@ class DeviceDiscovery:
             f"button_id='{btn_id}'"
         )
 
+    # ✅
     def try_open_dropdown_menu(self, label: str, timeout: int = 8000):
         """
         Best-effort open for a dropdown. Returns the menu if visible, else None.
@@ -521,6 +565,7 @@ class DeviceDiscovery:
 
         return None
 
+    # ✅
     def open_dropdown_menu(self, label: str, timeout: int = 8000):
         """
         Open dropdown and return its menu locator.
@@ -540,6 +585,8 @@ class DeviceDiscovery:
     # ==========================================================
     # SNMPv2 
     # ==========================================================
+
+    # ✅
     def set_SNMPv2_read_community(self, value: str, timeout: int = 8000):
         """
         Set SNMPv2 Read Community.
@@ -547,6 +594,7 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         self.set_app_input_value("readCommunity", value, timeout=timeout)
 
+    # ✅
     def get_SNMPv2_read_community(self, timeout: int = 8000) -> str:
         """
         Get SNMPv2 Read Community.
@@ -554,6 +602,7 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         return self.get_app_input_value("readCommunity", timeout=timeout)
 
+    # ✅
     def set_SNMPv2_write_community(self, value: str, timeout: int = 8000):
         """
         Set SNMPv2 Write Community.
@@ -561,6 +610,7 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         self.set_app_input_value("writeCommunity", value, timeout=timeout)
 
+    # ✅
     def get_SNMPv2_write_community(self, timeout: int = 8000) -> str:
         """
         Get SNMPv2 Write Community.
@@ -568,6 +618,7 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         return self.get_app_input_value("writeCommunity", timeout=timeout)
 
+    # ✅
     def set_SNMPv2_admin_community(self, value: str, timeout: int = 8000):
         """
         Set SNMPv2 Admin Community.
@@ -575,6 +626,7 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         self.set_app_input_value("adminCommunity", value, timeout=timeout)
 
+    # ✅
     def get_SNMPv2_admin_community(self, timeout: int = 8000) -> str:
         """
         Get SNMPv2 Admin Community.
@@ -582,6 +634,7 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         return self.get_app_input_value("adminCommunity", timeout=timeout)
 
+    # ✅
     def set_SNMPv2_contact_port(self, port: int, timeout: int = 8000):
         """
         Set SNMPv2 Contact Port.
@@ -589,6 +642,7 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         self.set_app_input_value("contactPort", str(port), timeout=timeout)
 
+    # ✅
     def get_SNMPv2_contact_port(self, timeout: int = 8000) -> str:
         """
         Get SNMPv2 Contact Port.
@@ -599,6 +653,8 @@ class DeviceDiscovery:
     # ==========================================================
     # SNMPv3 fields
     # ==========================================================
+
+    # ✅
     def SNMPv3_security_level_text(self, timeout: int = 8000) -> str:
         """
         Return the current SNMPv3 Security Level selected text.
@@ -608,7 +664,8 @@ class DeviceDiscovery:
             return self.clean(self.dropdown_selected_text("Security Level", timeout=timeout))
         except Exception as e:
             raise AssertionError(f"_snmpv3_security_level_text failed. Problem: {e}")
-
+    
+    # ✅
     def SNMPv3_expected_fields(self, timeout: int = 8000) -> dict:
         """
         Return which SNMPv3 fields should be visible based on the selected Security Level.
@@ -644,6 +701,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"_snmpv3_expected_fields failed. Problem: {e}")
 
+    # ✅
     def SNMPv3_assert_visibility_by_security_level(self, timeout: int = 8000):
         """
         Assert SNMPv3 UI fields visibility matches the selected Security Level.
@@ -683,7 +741,8 @@ class DeviceDiscovery:
 
         except Exception as e:
             raise AssertionError(f"_snmpv3_assert_visibility_by_security_level failed. Problem: {e}")
-    
+
+    # ✅
     def set_SNMPv3_user_name(self, value: str, timeout: int = 8000):
         """
         Set SNMPv3 User Name.
@@ -691,6 +750,7 @@ class DeviceDiscovery:
         self.click_SNMPv3()
         self.set_app_input_value("userName", value, timeout=timeout)
 
+    # ✅
     def get_SNMPv3_user_name(self, timeout: int = 8000) -> str:
         """
         Get SNMPv3 User Name.
@@ -698,6 +758,7 @@ class DeviceDiscovery:
         self.click_SNMPv3()
         return self.get_app_input_value("userName", timeout=timeout)
     
+    # ✅
     def set_SNMPv3_security_level(self, value: str, timeout: int = 8000):
         """
         Set SNMPv3 Security Level dropdown.
@@ -705,6 +766,7 @@ class DeviceDiscovery:
         self.click_SNMPv3(timeout=timeout)
         self.set_dropdown_with_validation("Security Level", value, timeout=timeout)
 
+    # ✅
     def get_SNMPv3_security_level(self, timeout: int = 8000) -> str:
         """
         Get SNMPv3 Security Level dropdown value.
@@ -712,6 +774,7 @@ class DeviceDiscovery:
         self.click_SNMPv3(timeout=timeout)
         return self.dropdown_selected_text("Security Level", timeout=timeout)
 
+    # ✅
     def set_SNMPv3_contact_port(self, port: int, timeout: int = 8000):
         """
         Set SNMPv3 Contact Port.
@@ -720,6 +783,7 @@ class DeviceDiscovery:
         pane = self.active_tab_pane()
         self.set_app_input_value("contactPort", str(port), timeout=timeout, scope=pane)
 
+    # ✅
     def get_SNMPv3_contact_port(self, timeout: int = 8000) -> str:
         """
         Get SNMPv3 Contact Port.
@@ -731,6 +795,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"get_SNMPv3_contact_port failed. Problem: {e}")
 
+    # ✅
     def set_SNMPv3_authentication_protocol(self, value: str, timeout: int = 8000):
         """
         Set SNMPv3 Authentication Protocol dropdown.
@@ -746,6 +811,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_SNMPv3_authentication_protocol('{value}') failed. Problem: {e}")
 
+    # ✅
     def get_SNMPv3_authentication_protocol(self, timeout: int = 8000) -> str:
         """
         Get SNMPv3 Authentication Protocol value.
@@ -761,6 +827,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"get_SNMPv3_authentication_protocol failed. Problem: {e}")
 
+    # ✅
     def set_SNMPv3_authentication_password(self, password: str, timeout: int = 8000):
         """
         Set SNMPv3 Authentication Password.
@@ -778,6 +845,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_SNMPv3_authentication_password failed. Problem: {e}")
 
+    # ✅
     def get_SNMPv3_authentication_password(self, timeout: int = 8000) -> str:
         """
         Get SNMPv3 Authentication Password value.
@@ -793,6 +861,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"get_SNMPv3_authentication_password failed. Problem: {e}")
 
+    # ✅
     def set_SNMPv3_privacy_protocol(self, value: str, timeout: int = 8000):
         """
         Set SNMPv3 Privacy Protocol dropdown.
@@ -808,6 +877,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_SNMPv3_privacy_protocol('{value}') failed. Problem: {e}")
 
+    # ✅
     def get_SNMPv3_privacy_protocol(self, timeout: int = 8000) -> str:
         """
         Get SNMPv3 Privacy Protocol value.
@@ -823,6 +893,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"get_SNMPv3_privacy_protocol failed. Problem: {e}")
 
+    # ✅
     def set_SNMPv3_privacy_password(self, password: str, timeout: int = 8000):
         """
         Set SNMPv3 Privacy Password.
@@ -840,6 +911,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"set_SNMPv3_privacy_password failed. Problem: {e}")
 
+    # ✅
     def get_SNMPv3_privacy_password(self, timeout: int = 8000) -> str:
         """
         Get SNMPv3 Privacy Password value.
@@ -855,6 +927,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"get_SNMPv3_privacy_password failed. Problem: {e}")
 
+    # ✅
     def configure_SNMPv3_entire_process(
         self,
         security_level: str,
@@ -907,12 +980,15 @@ class DeviceDiscovery:
     # ==========================================================
     # Performance Transport Protocol
     # ==========================================================
+
+    # ✅
     def set_performance_transport_protocol(self, value: str, timeout: int = 8000):
         """
         Set Performance Transport Protocol dropdown.
         """
         self.set_dropdown_with_validation("Performance Transport Protocol", value, timeout=timeout)
 
+    # ✅
     def get_performance_transport_protocol(self, timeout: int = 8000) -> str:
         """
         Get Performance Transport Protocol dropdown value.
@@ -922,24 +998,29 @@ class DeviceDiscovery:
     # ==========================================================
     # Footer buttons
     # ==========================================================
+
+    # ✅
     def reset_to_default_btn(self):
         """
         Return Reset to Default button.
         """
         return self.footer().locator("button.btn.simple-btn", has_text=re.compile(r"^\s*Reset to Default\s*$")).first
 
+    # ✅
     def save_as_default_btn(self):
         """
         Return Save as Default button.
         """
         return self.footer().locator("button.btn.simple-btn.with-icon-btn", has_text=re.compile(r"^\s*Save as Default\s*$")).first
 
+    # ✅
     def start_discovery_btn(self):
         """
         Return Start Discovery button.
         """
         return self.footer().locator("button.btn.btn-primary.default-btn", has_text=re.compile(r"^\s*Start Discovery\s*$")).first
 
+    # ✅
     def default_override_modal(self):
         """
         Return the 'Confirm default override' modal dialog.
@@ -947,6 +1028,7 @@ class DeviceDiscovery:
         modal = self.page.locator("div.modal-dialog.pl-modal").filter(has=self.page.locator("div.title", has_text=re.compile(r"^\s*Confirm default override\s*$"))).first
         return modal
 
+    # ✅
     def default_override_yes_btn(self):
         """
         Return the Yes button in the default override modal.
@@ -954,6 +1036,7 @@ class DeviceDiscovery:
         modal = self.default_override_modal()
         return modal.locator("div.actions button", has_text=re.compile(r"^\s*Yes\s*$")).first
 
+    # ✅
     def default_override_no_btn(self):
         """
         Return the No button in the default override modal.
@@ -961,6 +1044,7 @@ class DeviceDiscovery:
         modal = self.default_override_modal()
         return modal.locator("div.actions button", has_text=re.compile(r"^\s*No\s*$")).first
 
+    # ✅
     def click_button_and_validate_toast(self, success_text: str, failure_label: str, timeout: int = 8000) -> bool:
         """
         Click action validation using toast + overlay wrapper visibility.
@@ -981,6 +1065,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"{failure_label} failed. Problem: {e}")
 
+    # ✅
     def click_reset_to_default(self, timeout: int = 8000):
         """
         Click Reset to Default button.
@@ -992,6 +1077,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"click_reset_to_default failed. Problem: {e}")
 
+    # ✅
     def click_save_as_default(self, timeout: int = 8000):
         """
         Click Save as Default button.
@@ -1003,6 +1089,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"click_save_as_default failed. Problem: {e}")
 
+    # ✅
     def confirm_default_override(self, timeout: int = 8000):
         """
         Click Yes on the default override confirmation modal that comes
@@ -1022,6 +1109,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"confirm_default_override failed. Problem: {e}")
 
+    # ✅
     def reject_default_override(self, timeout: int = 8000):
         """
         Click No on the default override confirmation modal that comes
@@ -1041,6 +1129,7 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"reject_default_override failed. Problem: {e}")
 
+    # ✅
     def click_start_discovery(self, timeout: int = 8000) -> bool:
         """
         Click Start Discovery and verify that the action succeeded.
@@ -1063,6 +1152,8 @@ class DeviceDiscovery:
     # ==========================================================
     # Close
     # ==========================================================
+
+    # ✅
     def close_device_discovery(self, timeout: int = 10000):
         """
         Close the Device Discovery container using the X icon.
