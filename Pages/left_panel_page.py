@@ -7,6 +7,7 @@ Date: 20/01/2026
 from time import sleep
 from playwright.sync_api import Page, expect
 import re
+from Utils.utils import refresh_page
 
 class LeftPanel:
     """
@@ -103,7 +104,9 @@ class LeftPanel:
         try:
             self.domain_management.click()
             expect(self.domain_management).to_have_class('sw-1-8 active')
+            refresh_page(self.page)
             sleep(5)
+
             return True
         
         except TimeoutError:

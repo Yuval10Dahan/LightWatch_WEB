@@ -9,6 +9,7 @@ from Pages.left_panel_page import LeftPanel
 from Pages.domain_management import DomainManagement
 import time
 from Utils.utils import refresh_page
+from time import sleep
 
 
 SERVER_HOST_IP = "172.16.10.22:8080"
@@ -69,57 +70,55 @@ def test_domain_management(page, left_panel):
     move_domain = domain_b
     move_chassis = "Chassis: 8/8"
 
-    # # ----------------------------
-    # # Step 1: add_domain (A + B)
-    # # ----------------------------
-    # def step_1():
-    #     dm.add_domain(domain_a, domain_description="auto test domain A", parent_domain_name="Inventory")
-    #     dm.add_domain(domain_b, domain_description="auto test domain B", parent_domain_name="sub-domain-Demo")
+    # ----------------------------
+    # Step 1: add_domain (A + B)
+    # ----------------------------
+    def step_1():
+        dm.add_domain(domain_a, domain_description="auto test domain A", parent_domain_name="Inventory")
+        dm.add_domain(domain_b, domain_description="auto test domain B", parent_domain_name="sub-domain-Demo")
 
-    # run_step(1, "Domain Management: add_domain (create A + B)", step_1)
+    run_step(1, "Domain Management: add_domain (create A + B)", step_1)
 
-    # # ----------------------------
-    # # Step 2: rename_domain (A -> A2)
-    # # ----------------------------
-    # chassis_a = "BS-12/12"
-    # chassis_b = "Chassis: 35/35"
-    # chassis_a2 = f"RENAMED_BS-12"
-    # chassis_b2 = f"RENAMED_Chassis: 35"
+    # ----------------------------
+    # Step 2: rename_domain (A -> A2)
+    # ----------------------------
+    chassis_a = "BS-12/12"
+    chassis_b = "Chassis: 35/35"
+    chassis_a2 = f"RENAMED_BS-12"
+    chassis_b2 = f"RENAMED_Chassis: 35"
 
-    # def step_2():
-    #     dm.rename_domain(chassis_a, chassis_a2, new_description="renamed by automation")
-    #     dm.rename_domain(chassis_b, chassis_b2, new_description="renamed by automation2")
+    def step_2():
+        dm.rename_domain(chassis_a, chassis_a2, new_description="renamed by automation")
+        dm.rename_domain(chassis_b, chassis_b2, new_description="renamed by automation2")
 
-    #     dm.rename_domain(chassis_a2, "BS-12", new_description="")
-    #     dm.rename_domain(chassis_b2, "Chassis: 35", new_description="")
+        dm.rename_domain(chassis_a2, "BS-12", new_description="")
+        dm.rename_domain(chassis_b2, "Chassis: 35", new_description="")
 
-    # run_step(2, "Domain Management: rename_domain (A -> A2)", step_2)
+    run_step(2, "Domain Management: rename_domain (A -> A2)", step_2)
 
-    # # ----------------------------
-    # # Step 3: move_to_domain (best-effort)
-    # # ----------------------------
-    # def step_3():
-    #     dm.move_to_domain(source_item_name=move_domain, target_domain_name="Default")
-    #     dm.move_to_domain(source_item_name=move_chassis, target_domain_name="sub-domain-Demo")
+    # ----------------------------
+    # Step 3: move_to_domain (best-effort)
+    # ----------------------------
+    def step_3():
+        dm.move_to_domain(source_item_name=move_domain, target_domain_name="Default")
+        dm.move_to_domain(source_item_name=move_chassis, target_domain_name="sub-domain-Demo")
 
-    #     # dm.move_to_domain(source_item_name=move_chassis, target_domain_name="sub-domain-Demo")
-    #     # dm.move_to_domain(source_item_name=move_domain, target_domain_name=move_domain)
+        # dm.move_to_domain(source_item_name=move_chassis, target_domain_name="sub-domain-Demo")
+        # dm.move_to_domain(source_item_name=move_domain, target_domain_name=move_domain)
 
-    #     dm.move_to_domain(source_item_name=move_domain, target_domain_name="sub-domain-Demo")
-    #     dm.move_to_domain(source_item_name=move_chassis, target_domain_name="Default")
+        dm.move_to_domain(source_item_name=move_domain, target_domain_name="sub-domain-Demo")
+        dm.move_to_domain(source_item_name=move_chassis, target_domain_name="Default")
 
-    # run_step(3, "Domain Management: move_to_domain (A2 -> B) smoke", step_3)
+    run_step(3, "Domain Management: move_to_domain (A2 -> B) smoke", step_3)
 
-    # # ----------------------------
-    # # Step 4: cleanup remove_domain (best-effort)
-    # # ----------------------------
-    # def step_4():
-    #     for name in [domain_a, domain_b]:
-    #             dm.remove_domain(name)
+    # ----------------------------
+    # Step 4: cleanup remove_domain (best-effort)
+    # ----------------------------
+    def step_4():
+        for name in [domain_a, domain_b]:
+                dm.remove_domain(name)
 
-    # run_step(4, "Domain Management: remove_domain cleanup (A2 + B)", step_4)
-
-    
+    run_step(4, "Domain Management: remove_domain cleanup (A2 + B)", step_4)
 
     # ----------------------------
     # Step 5: Change CHASSIS ID (open -> previous -> close)
@@ -130,35 +129,46 @@ def test_domain_management(page, left_panel):
         chassis_name_muxponder = "PL-4000M (10.60.100.100)"
         wrong_parent_chassis_name = "Chassis: 200/200"
 
-        # # 1) Open Change Chassis ID modal (NEW mode, but we won't save)
+        # 1) Open Change Chassis ID modal (NEW mode, but we won't save)
         dm.change_CHASSIS_ID(
             chassis_id=chassis_name_transponder,
             to_mode="existing",
-            new_chassis_id=99, 
+            new_chassis_id=None, 
             existing_chassis_id="BS-12/12",
-            parent_chassis="DC-14/14"
+            parent_chassis="DC-14"
         )
+        print("finished change number 1")
 
-        # 2) Re-open modal manually to test Previous + Close
-        dm.click_change_CHASSIS_ID(chassis_name_transponder)
-        # dm.click_change_CHASSIS_ID(chassis_name_roadm, parent_chassis="BS-12/12")
-        # dm.click_change_CHASSIS_ID(chassis_name_muxponder, parent_chassis="Haifa-15/15")
-        # dm.click_change_CHASSIS_ID(chassis_name_muxponder, parent_chassis=wrong_parent_chassis_name)
+        dm.change_CHASSIS_ID(
+            chassis_id=chassis_name_transponder,
+            to_mode="existing",
+            new_chassis_id=None, 
+            existing_chassis_id="DC-14",
+            parent_chassis="BS-12/12"
+        )
+        print("finished change number 2")
 
-        modal = dm.change_CHASSIS_ID_modal()
-        expect(modal).to_be_visible()
+        dm.change_CHASSIS_ID(
+            chassis_id=chassis_name_roadm,
+            to_mode="new",
+            new_chassis_id="99", 
+            existing_chassis_id=None,
+            parent_chassis="BS-12/12"
+        )
+        print("finished change number 3")
 
-        # Select New chassis ID and go Next
-        dm.change_the_chassis_ID_to_new_chassis_ID()
-        dm.change_the_chassis_ID_next_btn()
+        dm.change_CHASSIS_ID(
+            chassis_id=chassis_name_roadm,
+            to_mode="existing",
+            new_chassis_id=None, 
+            existing_chassis_id="BS-12/12",
+            parent_chassis="Chassis: 99"
+        )
+        print("finished change number 4")
 
-        # 3) Click Previous (should go back without closing modal)
-        dm.change_the_chassis_ID_previous_btn()
-        expect(dm.change_CHASSIS_ID_modal()).to_be_visible()
+        dm.remove_chassis("Chassis: 99/99")
 
-        # 4) Close modal using X
-        dm.close_change_the_chassis_ID_window()
-
+        # dm.remove_device("PL-1000GRO (10.60.100.38)", parent_domain_name="Default", parent_chassis="DC-14")
 
     run_step(5, "Domain Management: Change CHASSIS ID (Previous + Close)", step_5)
 

@@ -42,79 +42,93 @@ def test_management_map(page, left_panel):
         print(f"Failed to open Management Map ❌ | Error: {e}")
         return
 
-    # # ----------------------------
-    # # Step 1: Alarms visibility
-    # # ----------------------------
-    # def step_1():
-    #     management_map.show_alarms()
-    #     if management_map.get_alarms_status() != "shown":
-    #         raise AssertionError("Alarms expected to be 'shown' after show_alarms()")
+    # ----------------------------
+    # Step 1: Alarms visibility
+    # ----------------------------
+    def step_1():
+        management_map.show_alarms()
+        if management_map.get_alarms_status() != "shown":
+            raise AssertionError("Alarms expected to be 'shown' after show_alarms()")
 
-    #     management_map.hide_alarms()
-    #     if management_map.get_alarms_status() != "hidden":
-    #         raise AssertionError("Alarms expected to be 'hidden' after hide_alarms()")
+        management_map.hide_alarms()
+        if management_map.get_alarms_status() != "hidden":
+            raise AssertionError("Alarms expected to be 'hidden' after hide_alarms()")
 
-    # run_step(1, "Alarms visibility (show/hide)", step_1)
+    run_step(1, "Alarms visibility (show/hide)", step_1)
 
-    # # ----------------------------
-    # # Step 2: Severity filters
-    # # ----------------------------
-    # def step_2():
-    #     management_map.hide_critical_major()
-    #     management_map.show_critical_major()
+    # ----------------------------
+    # Step 2: Severity filters
+    # ----------------------------
+    def step_2():
+        management_map.hide_critical_major()
+        management_map.show_critical_major()
 
-    #     management_map.hide_minor()
-    #     management_map.show_minor()
+        management_map.hide_minor()
+        management_map.show_minor()
 
-    #     management_map.hide_cleared()
-    #     management_map.show_cleared()
+        management_map.hide_cleared()
+        management_map.show_cleared()
 
-    # run_step(2, "Severity filters (Critical/Minor/Cleared)", step_2)
+    run_step(2, "Severity filters (Critical/Minor/Cleared)", step_2)
 
-    # # ----------------------------
-    # # Step 3: Navigation Info panel
-    # # ----------------------------
-    # def step_3():
-    #     management_map.show_navigation_info()
-    #     management_map.hide_navigation_info()
+    # ----------------------------
+    # Step 3: Navigation Info panel
+    # ----------------------------
+    def step_3():
+        management_map.show_navigation_info()
+        management_map.hide_navigation_info()
 
-    #     management_map.show_navigation_info()
+        management_map.show_navigation_info()
 
-    #     management_map.navigation_info_double_click_on_element("DR-13/13")
+        management_map.navigation_info_double_click_on_element("DR-13/13")
 
-    #     management_map.navigation_info_open_element_details("DR-13/13")
+        management_map.navigation_info_open_element_details("DR-13/13")
 
-    #     management_map.element_details_click_on_chassis()
-    #     management_map.element_details_click_on_services()
-    #     management_map.element_details_click_on_info()
-    #     management_map.element_details_click_on_faults()
+        management_map.element_details_click_on_chassis()
+        management_map.element_details_click_on_services()
+        management_map.element_details_click_on_info()
+        management_map.element_details_click_on_faults()
 
-    #     management_map.element_details_faults_click_on_events()
-    #     events_list = management_map.element_details_faults_get_all_events()
-    #     print(f"Events List:\n{events_list}")
-    #     # management_map.element_details_faults_view_all_events()
+        management_map.element_details_faults_click_on_events()
+        events_list = management_map.element_details_faults_get_all_events()
+        print(f"Events List:\n{events_list}")
+        # management_map.element_details_faults_view_all_events()
 
-    #     management_map.element_details_faults_click_on_alarms()
-    #     alarms_list = management_map.element_details_faults_get_all_alarms()
-    #     print(f"Alarms List:\n{alarms_list}")
-    #     # management_map.element_details_faults_view_all_alarms()
+        management_map.element_details_faults_click_on_alarms()
+        alarms_list = management_map.element_details_faults_get_all_alarms()
+        print(f"Alarms List:\n{alarms_list}")
+        # management_map.element_details_faults_view_all_alarms()
 
-    #     management_map.navigation_info_close_element_details()
+        management_map.navigation_info_close_element_details()
 
-    #     management_map.navigation_info_expand_element_byClick_on_arrow("DR-13/13")
-    #     management_map.navigation_info_open_element_details("PL-1000GRO (10.60.100.33)")
-    #     management_map.navigation_info_close_element_details()
-    #     management_map.navigation_info_shrink_element_byClick_on_arrow("DR-13/13")
+        management_map.navigation_info_expand_element_byClick_on_arrow("DR-13/13")
+        management_map.navigation_info_open_element_details("PL-1000GRO (10.60.100.33)")
+        management_map.navigation_info_close_element_details()
+        management_map.navigation_info_shrink_element_byClick_on_arrow("DR-13/13")
+        management_map.hide_navigation_info()
 
-    # run_step(3, "Navigation Info (show/hide)", step_3)
+    run_step(3, "Navigation Info (show/hide)", step_3)
 
     # ----------------------------
     # Step 4: Map edit flow + Map interactions (NEW)
     # ----------------------------
     def step_4():
-        management_map.double_click_on_element_via_the_map(element_name="DR-13/13")
-        management_map.click_on_element_via_the_map(element_name="PL-1000GRO (10.60.100.34)", parent_chassis="DR-13/13")
-        
+        refresh_page(page)
+        management_map.click_on_element_via_the_map(element_data_id="7") # DR-13
+        management_map.navigation_info_close_element_details()
+        management_map.click_on_element_via_the_map(element_data_id="45") # 10.60.100.100
+        management_map.navigation_info_close_element_details()
+
+        management_map.double_click_on_element_via_the_map(element_data_id="7") # DR-13
+        management_map.click_on_element_via_the_map(element_data_id="27") # PL-1000GRO 10.60.100.34
+        management_map.navigation_info_close_element_details()
+        refresh_page(page)
+
+        number_of_elements = management_map.get_number_of_elements_inside_chassis("7")
+        print(f"Number of Elements: {number_of_elements}") # DR-13 --> 4
+        number_of_elements = management_map.get_number_of_elements_inside_chassis("4")
+        print(f"Number of Elements: {number_of_elements}") # TLV-16 --> 5
+
         # ---- Existing: Map edit flow ----
         management_map.enable_drag()
         management_map.save_and_lock()

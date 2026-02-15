@@ -9,6 +9,7 @@ import time
 from typing import Callable
 import re
 from time import sleep 
+from Utils.utils import refresh_page
 
 
 
@@ -295,88 +296,165 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"discard_and_lock failed: did not exit edit mode after Discard & Lock. Problem: {e}")
 
-    def double_click_on_element_via_the_map(self, element_name: str, parent_chassis: str | None = None, timeout: int = 8000) -> bool:
+    # ✅
+    def double_click_on_element_via_the_map(self, element_data_id: str | int, timeout: int = 12000) -> bool:
         """
-        Double-click an element directly on the topology map.
-        If the device is inside a chassis, parent_chassis must be provided
-        so the chassis will be expanded first.
+        Double-click an element on the map using its SVG data-id.
+        data-id is the ONLY supported selector (most stable).
+
+        How to find the `data-id` manually (step-by-step):
+        --------------------------------------------------
+        1. Open the GUI and navigate to the map view.
+        2. Right-click the desired element (chassis or device) on the map.
+        3. Choose "Inspect" (open DevTools).
+        4. In the Elements tab, locate the SVG <path> that represents the element.
+        It will look similar to:
+
+            <path class="gradient"
+                    fill="url(#fault_gradient)"
+                    data-idKey=""
+                    data-id="7"
+                    d="M24 0H8C3.58..."></path>
+
+        or for devices:
+
+            <path class="in-chassis-gradient device"
+                    fill="url(#fault_gradient)"
+                    data-id="22"
+                    data-idKey="10.60.100.34"
+                    d="M24 0H8C3.58..."></path>
+
+        5. Copy the value of `data-id` (for example: "7").
+
+        Notes:
+        ------
+        - Double-clicking a chassis typically expands it to show the elements inside.
+        - Double-clicking a device may open its PacketLight GUI in another tab.
         """
         try:
-            target = (element_name or "").strip()
-            if not target:
-                raise ValueError("element_name is empty")
+            did = str(element_data_id).strip()
+            if not did:
+                raise ValueError("data_id is empty")
 
-            is_ip = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
-            map_root = self.page.locator("svg").first
+            svg = self.page.locator("svg.svg-container").first
 
-            # -------- expand chassis first (if needed) --------
-            if parent_chassis:
-                chassis_rx = self.nav_text_regex(parent_chassis)
+            # Target clickable SVG tile
+            tile = svg.locator(
+                f"path.gradient[data-id='{did}'], "
+                f"path.gradient.device[data-id='{did}'], "
+                f"path.in-chassis-gradient.device[data-id='{did}']"
+            ).first
 
-                chassis_node = map_root.locator("g.fix-node text.fix-node-name").filter(has_text=chassis_rx).first
+            if tile.count() == 0:
+                raise AssertionError(f"Map element with data-id='{did}' not found.")
 
-                if chassis_node.count() == 0:
-                    raise AssertionError(f"Chassis '{parent_chassis}' not found on map")
+            tile.scroll_into_view_if_needed()
+            refresh_page(self.page)
+            sleep(2)
+            tile.dblclick(timeout=timeout, force=True)
+            sleep(5)
 
-                chassis_node.scroll_into_view_if_needed()
-                expect(chassis_node).to_be_visible(timeout=timeout)
-                chassis_node.dblclick()
-
-            # -------- locate element on map --------
-            if is_ip:
-                element = map_root.locator(f"path[data-idkey='{target}']").first
-            else:
-                element_rx = self.nav_text_regex(target)
-                element = map_root.locator("g.fix-node text.fix-node-name, text.node-chassis-id").filter(has_text=element_rx).first
-
-            expect(element).to_be_visible(timeout=timeout)
-            element.scroll_into_view_if_needed()
-            element.dblclick()
             return True
 
         except Exception as e:
-            raise AssertionError(f"double_click_on_element_via_the_map('{element_name}') failed. Problem: {e}")
+            raise AssertionError(f"double_click_on_element_via_the_map(data_id={element_data_id}) failed. Problem: {e}")
 
-    def click_on_element_via_the_map(self, element_name: str, parent_chassis: str | None = None, timeout: int = 8000) -> bool:
+    # ✅
+    def click_on_element_via_the_map(self, element_data_id: str | int, timeout: int = 12000) -> bool:
         """
-        Single-click an element directly on the topology map.
-        If the device is inside a chassis, parent_chassis must be provided.
+        Click an element on the map using its SVG data-id.
+        data-id is the ONLY supported selector (most stable).
+
+        How to find the `data-id` manually (step-by-step):
+        --------------------------------------------------
+        1. Open the GUI and navigate to the map view.
+        2. Right-click the desired element (chassis or device) on the map.
+        3. Choose "Inspect" (open DevTools).
+        4. In the Elements tab, locate the SVG <path> that represents the element.
+        It will look similar to:
+
+            <path class="gradient"
+                    fill="url(#fault_gradient)"
+                    data-idKey=""
+                    data-id="7"
+                    d="M24 0H8C3.58..."></path>
+
+        or for devices:
+
+            <path class="in-chassis-gradient device"
+                    fill="url(#fault_gradient)"
+                    data-id="22"
+                    data-idKey="10.60.100.34"
+                    d="M24 0H8C3.58..."></path>
+
+        5. Copy the value of `data-id` (for example: "7").
         """
         try:
-            target = (element_name or "").strip()
-            if not target:
-                raise ValueError("element_name is empty")
+            sleep(3)
+            did = str(element_data_id).strip()
+            if not did:
+                raise ValueError("data_id is empty")
 
-            is_ip = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
-            map_root = self.page.locator("svg").first
+            svg = self.page.locator("svg.svg-container").first
+            sleep(1)
 
-            # -------- expand chassis first (if needed) --------
-            if parent_chassis:
-                chassis_rx = self.nav_text_regex(parent_chassis)
+            # Target clickable SVG tile
+            tile = svg.locator(
+                f"path.gradient[data-id='{did}'], "
+                f"path.gradient.device[data-id='{did}'], "
+                f"path.in-chassis-gradient.device[data-id='{did}']"
+            ).first
 
-                chassis_node = map_root.locator("g.fix-node text.fix-node-name").filter(has_text=chassis_rx).first
+            if tile.count() == 0:
+                raise AssertionError(f"Map element with data-id='{did}' not found.")
 
-                if chassis_node.count() == 0:
-                    raise AssertionError(f"Chassis '{parent_chassis}' not found on map")
+            tile.scroll_into_view_if_needed()
+            tile.click(timeout=timeout, force=True)
 
-                chassis_node.scroll_into_view_if_needed()
-                expect(chassis_node).to_be_visible(timeout=timeout)
-                chassis_node.dblclick()
-
-            # -------- locate element on map --------
-            if is_ip:
-                element = map_root.locator(f"path[data-idkey='{target}']").first
-            else:
-                element_rx = self.nav_text_regex(target)
-                element = map_root.locator("g.fix-node text.fix-node-name, text.node-chassis-id").filter(has_text=element_rx).first
-
-            expect(element).to_be_visible(timeout=timeout)
-            element.scroll_into_view_if_needed()
-            element.click()
+            sleep(1)
             return True
 
         except Exception as e:
-            raise AssertionError(f"click_on_element_via_the_map('{element_name}') failed. Problem: {e}")
+            raise AssertionError(f"click_on_element_via_the_map(data_id={element_data_id}) failed. Problem: {e}")
+
+    # ✅
+    def get_number_of_elements_inside_chassis(self, data_id: str | int, timeout: int = 5000) -> int:
+        """
+        Return the number shown in the small badge near the chassis icon on the map.
+        This number represents the number of elements inside the chassis.
+        """
+        try:
+            sleep(3)
+            did = str(data_id).strip()
+            if not did:
+                raise ValueError("data_id is empty")
+
+            svg = self.page.locator("svg.svg-container").first
+
+            # Ensure chassis exists by its stable SVG data-id
+            chassis_tile = svg.locator(f"path.gradient[data-id='{did}']").first
+            if chassis_tile.count() == 0:
+                raise AssertionError(f"Chassis with data-id='{did}' not found on the map.")
+
+            # Locate the badge <text> inside the same node
+            badge_text = svg.locator(f"g.node:has(path.gradient[data-id='{did}']) g.events-counts text").first
+
+            if badge_text.count() == 0:
+                return 0
+
+            val = (badge_text.text_content(timeout=timeout) or "").strip()
+
+            # Sometimes the SVG text might include whitespace/newlines
+            val = re.sub(r"\s+", "", val)
+
+            if not val.isdigit():
+                raise AssertionError(f"Expected numeric badge value for chassis data-id='{did}', got '{val}'.")
+
+            return int(val)
+
+        except Exception as e:
+            raise AssertionError(f"get_number_of_elements_inside_chassis(data_id={data_id}) failed. Problem: {e}")
+
 
     # ==========================================================
     # Layer toggles
@@ -680,6 +758,8 @@ class ManagementMap:
             cls = self.navinfo_toggle().get_attribute("class") or ""
             if "collapsed" not in cls.split():
                 raise AssertionError(f"Expected 'collapsed' class after closing. Actual class: '{cls}'")
+            
+            sleep(0.5)
 
         except Exception as e:
             raise AssertionError(f"hide_navigation_info failed: navigation panel did not close. Problem: {e}")
@@ -735,6 +815,8 @@ class ManagementMap:
 
             self.wait_until(lambda: panel_title.count() > 0 or close_btn.count() > 0, timeout_ms=timeout,interval_ms=200)
 
+            sleep(0.5)
+
         except Exception as e:
             raise AssertionError(f"navigation_info_open_element_details('{element_name}') failed: {e}")
 
@@ -759,6 +841,7 @@ class ManagementMap:
 
         # assert closed
         expect(panel).to_be_hidden(timeout=timeout)
+        sleep(0.5)
 
     # ✅  
     def navigation_info_expand_element_byClick_on_arrow(self, element_name: str, timeout: int = 5000):
@@ -781,6 +864,8 @@ class ManagementMap:
 
             self.wait_until(lambda: collapse.get_attribute("aria-hidden") == "false", timeout_ms=timeout, interval_ms=200
             )
+
+            sleep(0.5)
 
         except Exception as e:
             raise AssertionError(f"navigation_info_open_element_details('{element_name}') failed: {e}") 
@@ -822,6 +907,8 @@ class ManagementMap:
             # Optional extra guard (display none)
             self.wait_until(lambda: "none" in ((collapse.get_attribute("style") or "").lower()), timeout_ms=timeout,interval_ms=200)
 
+            sleep(0.5)
+
         except Exception as e:
             raise AssertionError(f"navigation_info_shrink_element_byClick_on_arrow('{element_name}') failed: {e}")
         
@@ -858,6 +945,7 @@ class ManagementMap:
         try:
             self.wait_until(is_active, timeout_ms=timeout, interval_ms=200)
             expect(tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
+            sleep(0.5)
         except Exception as e:
             raise AssertionError(f"element_details_click_on_{label_text.lower()} failed: tab did not become active. Problem: {e}")
 
@@ -910,6 +998,7 @@ class ManagementMap:
         try:
             self.wait_until(is_active, timeout_ms=timeout, interval_ms=200)
             expect(alarms_tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
+            sleep(0.5)
         except Exception as e:
             raise AssertionError(f"element_details_faults_click_on_alarms failed: tab did not become active. Problem: {e}")
 
@@ -943,6 +1032,7 @@ class ManagementMap:
 
         try:
             self.wait_until(changed, timeout_ms=timeout, interval_ms=200)
+            sleep(0.5)
         except Exception as e:
             raise AssertionError(f"element_details_faults_view_all_alarms failed: click did not trigger any visible change. Problem: {e}")
 
@@ -985,6 +1075,8 @@ class ManagementMap:
                 }
             )
 
+        sleep(0.5)
+
         return out
 
     # ==========================================================
@@ -1020,6 +1112,7 @@ class ManagementMap:
         try:
             self.wait_until(is_active, timeout_ms=timeout, interval_ms=200)
             expect(events_tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
+            sleep(0.5)
         except Exception as e:
             raise AssertionError(f"element_details_faults_click_on_events failed: tab did not become active. Problem: {e}")
 
@@ -1052,6 +1145,7 @@ class ManagementMap:
 
         try:
             self.wait_until(changed, timeout_ms=timeout, interval_ms=200)
+            sleep(0.5)
         except Exception as e:
             raise AssertionError(f"element_details_faults_view_all_events failed: click did not trigger any visible change. Problem: {e}")
 
@@ -1107,5 +1201,7 @@ class ManagementMap:
                     "Event_Date_and_Time": event_date_and_time,
                 }
             )
+        
+        sleep(0.5)
 
         return out

@@ -5,6 +5,7 @@ Date: 26/01/2026
 
 
 from playwright.sync_api import Page, TimeoutError
+from time import sleep
 
 
 # ✅
@@ -18,6 +19,7 @@ def refresh_page(page: Page, timeout: int = 30_000) -> bool:
     """
     try:
         page.reload(wait_until="domcontentloaded", timeout=timeout)
+        sleep(5)
         return True
     except TimeoutError:
         return False
