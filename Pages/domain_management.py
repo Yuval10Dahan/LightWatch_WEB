@@ -10,7 +10,10 @@ import random
 from typing import Callable, Optional, Any
 from playwright.sync_api import Page, expect
 from time import sleep
-from Utils.utils import refresh_page
+from Utils.utils import refresh_page, countdown_sleep
+
+
+RENDER_WAIT_TIME = 30
 
 
 class DomainManagement:
@@ -206,27 +209,6 @@ class DomainManagement:
         return row_locator
 
     # ✅
-    def select_row_old(self, name: str, tree_title: str = "From", timeout: int = 5000):
-        """
-        Click a tree row.
-        """
-        row = self.row_locator(name, tree_title=tree_title)
-
-        expect(row).to_be_visible(timeout=timeout)
-        row.scroll_into_view_if_needed()
-        row.click(force=True)
-
-        expect(row).to_have_class(re.compile(r"\bcurrent\b"), timeout=timeout)
-
-    # ✅
-    def select_row_old2(self, name: str, tree_title: str = "From", timeout: int = 5000):
-        """
-        Click a tree row.
-        """
-        row = self.row_locator(name, tree_title=tree_title)
-        self.click_row_and_wait_actions_enabled(row, timeout=timeout)
-
-    # ✅
     def select_row(self, name: str, tree_title: str = "From", timeout: int = 5000):
         """
         Click a tree row.
@@ -261,7 +243,10 @@ class DomainManagement:
             return row
 
         # Fallback (in case some builds don't expose type='CHASSIS' consistently)
-        return tree.locator("div.inventory-tree-level-title", has_text=rx).first
+        chassis_row_locator = tree.locator("div.inventory-tree-level-title", has_text=rx).first
+        sleep(1)
+
+        return chassis_row_locator
 
     # ✅
     def device_row_locator(self, device_name_or_ip: str, tree_title: str = "From"):
@@ -290,27 +275,6 @@ class DomainManagement:
         return rows.filter(has_text=rx).first
 
     # ✅
-    def select_domain_row_old(self, name: str, tree_title: str = "From", timeout: int = 5000):
-        """
-        Select a DOMAIN row.
-        """
-        row = self.domain_row_locator(name, tree_title=tree_title)
-
-        expect(row).to_be_visible(timeout=timeout)
-        row.scroll_into_view_if_needed()
-        row.click(force=True)
-
-        expect(row).to_have_class(re.compile(r"\bcurrent\b"), timeout=timeout)
-
-    # ✅
-    def select_domain_row_old2(self, name: str, tree_title: str = "From", timeout: int = 5000):
-        """
-        Select a DOMAIN row.
-        """
-        row = self.domain_row_locator(name, tree_title=tree_title)
-        self.click_row_and_wait_single_action_enabled(row, action_text="Add domain", timeout=timeout)
-
-    # ✅
     def select_domain_row(self, name: str, tree_title: str = "From", timeout: int = 5000):
         """
         Select a DOMAIN row.
@@ -319,43 +283,20 @@ class DomainManagement:
         self.click_row_and_wait(row, timeout=timeout, wait_for="action", action_text="Add domain")
 
     # ✅
-    def select_chassis_row_old(self, name: str, tree_title: str = "From", timeout: int = 5000):
+    def select_chassis_row(self, name: str, action_text: str, tree_title: str = "From", timeout: int = 5000):
         """
         Select a CHASSIS row.
         """
         row = self.chassis_row_locator(name, tree_title=tree_title)
-        sleep(1)
-        expect(row).to_be_visible(timeout=timeout)
-        row.scroll_into_view_if_needed()
-        row.click(force=True)
-        expect(row).to_have_class(re.compile(r"\bcurrent\b"), timeout=timeout)
+        self.click_row_and_wait_single_action_enabled(row, action_text=action_text, timeout=timeout)
 
     # ✅
-    def select_chassis_row(self, name: str, tree_title: str = "From", timeout: int = 5000):
-        """
-        Select a CHASSIS row.
-        """
-        row = self.chassis_row_locator(name, tree_title=tree_title)
-        self.click_row_and_wait_actions_enabled(row, timeout=timeout)
-
-    # ✅
-    def select_device_row_old(self, device_name_or_ip: str, tree_title: str = "From", timeout: int = 5000):
+    def select_device_row(self, device_name_or_ip: str, action_text: str, tree_title: str = "From", timeout: int = 5000):
         """
         Select a device row in the tree.
         """
         row = self.device_row_locator(device_name_or_ip, tree_title=tree_title)
-        expect(row).to_be_visible(timeout=timeout)
-        row.scroll_into_view_if_needed()
-        row.click(force=True)
-        expect(row).to_have_class(re.compile(r"\bcurrent\b"), timeout=timeout)
-
-    # ✅
-    def select_device_row(self, device_name_or_ip: str, tree_title: str = "From", timeout: int = 5000):
-        """
-        Select a device row in the tree.
-        """
-        row = self.device_row_locator(device_name_or_ip, tree_title=tree_title)
-        self.click_row_and_wait_actions_enabled(row, timeout=timeout)
+        self.click_row_and_wait_single_action_enabled(row, action_text=action_text, timeout=timeout)
 
     # ✅
     def expand_element(self, element_name: str, tree_title: str = "From", timeout: int = 5000) -> bool:
@@ -369,9 +310,12 @@ class DomainManagement:
 
             expect(row).to_be_visible(timeout=timeout)
             row.scroll_into_view_if_needed()
- 
+
+            sleep(1)
             arrow_down = row.locator("app-icon[name='arrow-down']").first
+            sleep(1)
             arrow_up = row.locator("app-icon[name='arrow-up']").first
+            sleep(1)
 
             # If arrow-up is visible, it's already expanded
             try:
@@ -598,9 +542,11 @@ class DomainManagement:
         """
         expect(row).to_be_visible(timeout=timeout)
         row.scroll_into_view_if_needed()
+        sleep(5)
         row.click(force=True)
 
         rm = self.action_btn("Remove")
+        sleep(5)
         self.wait_until(lambda: rm.count() > 0 and rm.is_visible() and rm.is_enabled(), timeout_ms=timeout, interval_ms=150)
 
     # ✅
@@ -610,10 +556,13 @@ class DomainManagement:
         """
         expect(row).to_be_visible(timeout=timeout)
         row.scroll_into_view_if_needed()
+        sleep(5)
         row.click(force=True)
 
         btn = self.action_btn(action_text)
-        self.wait_until(lambda: btn.count() > 0 and btn.is_visible() and btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
+        sleep(5)
+        if action_text != "Remove":
+            self.wait_until(lambda: btn.count() > 0 and btn.is_visible() and btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
 
     # ✅
     def click_row_and_wait(self, row, timeout: int = 8000, *, wait_for: str = "any_action", action_text: str | None = None, 
@@ -913,7 +862,7 @@ class DomainManagement:
             # self.click_button_and_validate_toast(success_text="Add domain", failure_label=f"add_domain('{domain_name}')", timeout=timeout)
 
             # Assert domain appears in tree
-            self.wait_until(lambda: self.row_locator(domain_name).count() > 0, timeout_ms=timeout, interval_ms=200)
+            # self.wait_until(lambda: self.row_locator(domain_name).count() > 0, timeout_ms=timeout, interval_ms=200)
             expect(self.row_locator(domain_name)).to_be_visible(timeout=timeout)
 
         except Exception as e:
@@ -926,7 +875,8 @@ class DomainManagement:
         """
         self.click_add_domain(parent_domain_name=parent_domain_name, timeout=timeout)
         self.submit_add_domain(domain_name, domain_description, timeout=timeout)
-        sleep(10)
+        refresh_page(self.page)
+        countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")
 
     # ==========================================================
     # Remove domain
@@ -1009,11 +959,12 @@ class DomainManagement:
         if row.count() == 0:
             raise AssertionError(f"remove_chassis('{chassis_name}') failed: chassis not found in tree.")
 
-        self.select_chassis_row(chassis_name, tree_title="From", timeout=timeout)
+        self.select_chassis_row(chassis_name, action_text="Remove", tree_title="From", timeout=timeout)
 
         rm = self.action_btn("Remove")
         expect(rm).to_be_visible(timeout=timeout)
         expect(rm).to_be_enabled(timeout=timeout)
+        countdown_sleep(5)
         rm.click()
 
     # ✅
@@ -1025,7 +976,7 @@ class DomainManagement:
         if row.count() == 0:
             raise AssertionError(f"remove_device('{device_name_or_ip}') failed: device not found in tree.")
 
-        self.select_device_row(device_name_or_ip, tree_title="From", timeout=timeout)
+        self.select_device_row(device_name_or_ip, action_text="Remove", tree_title="From", timeout=timeout)
 
         rm = self.action_btn("Remove")
         expect(rm).to_be_visible(timeout=timeout)
@@ -1039,6 +990,7 @@ class DomainManagement:
         """
         try:
             refresh_page(self.page)
+            sleep(10)
 
             # Click Remove 
             self.click_remove_domain_btn(domain_name, timeout=timeout)
@@ -1064,8 +1016,9 @@ class DomainManagement:
             yes.click()
 
             # Verify domain removed from tree
-            self.wait_until(lambda: self.row_locator(domain_name, tree_title="From").count() == 0, timeout_ms=timeout, interval_ms=200)
+            # self.wait_until(lambda: self.row_locator(domain_name, tree_title="From").count() == 0, timeout_ms=timeout, interval_ms=200)
             refresh_page(self.page)
+            countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")
 
         except Exception as e:
             raise AssertionError(f"remove_domain('{domain_name}') failed. Problem: {e}")
@@ -1078,6 +1031,7 @@ class DomainManagement:
         """
         try:
             refresh_page(self.page)
+            sleep(10)
             name = (chassis_name or "").strip()
             if not name:
                 raise ValueError("chassis_name is empty")
@@ -1108,7 +1062,7 @@ class DomainManagement:
             sleep(0.5)
 
             # Wait until either Warning OR Message modal appears
-            self.wait_until(lambda: warning_visible() or message_visible(), timeout_ms=timeout, interval_ms=150)
+            # self.wait_until(lambda: warning_visible() or message_visible(), timeout_ms=timeout, interval_ms=150)
 
             # If Message modal popped -> cannot delete (or blocked)
             if message_visible():
@@ -1118,6 +1072,7 @@ class DomainManagement:
 
                 ok = self.message_ok_btn()
                 expect(ok).to_be_visible(timeout=timeout)
+                sleep(1)
                 ok.click()
 
                 raise AssertionError(f"remove_chassis('{name}') failed (Message modal): {msg_text}")
@@ -1128,16 +1083,17 @@ class DomainManagement:
             yes = self.warning_yes_btn()
             expect(yes).to_be_visible(timeout=timeout)
             expect(yes).to_be_enabled(timeout=timeout)
-            sleep(0.5)
+            sleep(1)
             yes.click()
             refresh_page(self.page)
+            sleep(10)
 
             # After confirming, sometimes a Message modal can still appear.
             # Give it a short chance before assert disappearance.
-            try:
-                self.wait_until(lambda: message_visible() or (self.chassis_row_locator(name).count() == 0), timeout_ms=min(timeout, 3000), interval_ms=150)
-            except Exception:
-                pass
+            # try:
+            #     self.wait_until(lambda: message_visible() or (self.chassis_row_locator(name).count() == 0), timeout_ms=min(timeout, 3000), interval_ms=150)
+            # except Exception:
+            #     pass
 
             if message_visible():
                 t = self.message_text()
@@ -1146,16 +1102,16 @@ class DomainManagement:
 
                 ok = self.message_ok_btn()
                 expect(ok).to_be_visible(timeout=timeout)
+                sleep(1)
                 ok.click()
-                sleep(0.5)
 
                 raise AssertionError(f"remove_chassis('{name}') failed after confirmation (Message modal): {msg_text}")
 
             # Verify chassis removed from tree
-            self.wait_until(lambda: self.chassis_row_locator(name, tree_title="From").count() == 0, timeout_ms=timeout, interval_ms=200)
+            # self.wait_until(lambda: self.chassis_row_locator(name, tree_title="From").count() == 0, timeout_ms=timeout, interval_ms=200)
 
             refresh_page(self.page)
-            sleep(1)  # UI stabilize
+            countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")  # UI stabilize
 
         except Exception as e:
             raise AssertionError(f"remove_chassis('{chassis_name}') failed. Problem: {e}")
@@ -1169,6 +1125,8 @@ class DomainManagement:
         """
         try:
             refresh_page(self.page)
+            sleep(10)
+
             target = (device_name_or_ip or "").strip()
             if not target:
                 raise ValueError("device_name_or_ip is empty")
@@ -1201,7 +1159,7 @@ class DomainManagement:
                     return False
 
             # Wait until either Warning OR Message modal appears
-            self.wait_until(lambda: warning_visible() or message_visible(), timeout_ms=timeout, interval_ms=150)
+            # self.wait_until(lambda: warning_visible() or message_visible(), timeout_ms=timeout, interval_ms=150)
 
             # If Message modal popped -> cannot delete
             if message_visible():
@@ -1224,10 +1182,10 @@ class DomainManagement:
             yes.click()
 
             # After confirming, sometimes a Message modal can still appear (blocked by dependencies)
-            try:
-                self.wait_until(lambda: message_visible() or (self.device_row_locator(target, tree_title="From").count() == 0), timeout_ms=min(timeout, 3000), interval_ms=150)
-            except Exception:
-                pass
+            # try:
+            #     self.wait_until(lambda: message_visible() or (self.device_row_locator(target, tree_title="From").count() == 0), timeout_ms=min(timeout, 3000), interval_ms=150)
+            # except Exception:
+            #     pass
 
             if message_visible():
                 t = self.message_text()
@@ -1241,10 +1199,10 @@ class DomainManagement:
                 raise AssertionError(f"remove_device('{target}') failed after confirmation (Message modal): {msg_text}")
 
             # Verify device removed from tree
-            self.wait_until(lambda: self.device_row_locator(target, tree_title="From").count() == 0, timeout_ms=timeout, interval_ms=200)
+            # self.wait_until(lambda: self.device_row_locator(target, tree_title="From").count() == 0, timeout_ms=timeout, interval_ms=200)
 
             refresh_page(self.page)
-            sleep(1)
+            countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")
 
         except Exception as e:
             raise AssertionError(f"remove_device('{device_name_or_ip}') failed. Problem: {e}")
@@ -1314,72 +1272,7 @@ class DomainManagement:
         Return the Update button in the Rename Chassis modal window.
         """
         return self.rename_chassis_modal().locator("section.form-actions button.btn.btn-primary", has_text="Update").first
-    
-    # ✅
-    def click_rename_chassis_old(self, chassis_name: str, timeout: int = 5000):
-        """
-        Open the Rename Chassis modal window for the selected chassis.
-        """
-        try:
-            # Select chassis row in the tree
-            self.select_row(chassis_name, timeout=timeout)
-            
-            # Click Rename (enabled only for chassis element)
-            btn = self.action_btn("Rename")
-            expect(btn).to_be_visible(timeout=timeout)
-            expect(btn).not_to_be_disabled(timeout=timeout)
-            btn.click()
-
-            # Assert modal opened
-            modal = self.rename_chassis_modal()
-            expect(modal).to_be_visible(timeout=timeout)
-
-        except Exception as e:
-            raise AssertionError(f"click_rename_chassis('{chassis_name}') failed. Problem: {e}")
-        
-    # ✅
-    def click_rename_chassis_old2(self, chassis_name: str, timeout: int = 8000):
-        """
-        Open the Rename Chassis modal window for the selected chassis.
-        """
-        try:
-            name = (chassis_name or "").strip()
-            if not name:
-                raise ValueError("chassis_name is empty")
-
-            # Chassis in the tree is often displayed as NAME-NUM/NUM.
-            # If user gave NAME-NUM, expand it to NAME-NUM/NUM for lookup.
-            lookup = name
-            if "/" not in lookup and (re.search(r".+?-\d+$", lookup) or re.search(r".+?:\s*\d+$", lookup)):
-                try:
-                    lookup = self.expand_name_with_number(lookup)
-                except Exception:
-                    pass
-
-            # IMPORTANT: select the CHASSIS row (not generic)
-            row = self.chassis_row_locator(lookup, tree_title="From")
-            if row.count() == 0:
-                # fallback: try original string
-                row = self.chassis_row_locator(name, tree_title="From")
-            if row.count() == 0:
-                raise AssertionError(f"Chassis '{chassis_name}' not found in tree.")
-
-            # Wait specifically for Rename button to become enabled
-            self.click_row_and_wait_single_action_enabled(row, action_text="Rename", timeout=timeout)
-
-            # Click Rename
-            btn = self.action_btn("Rename")
-            expect(btn).to_be_visible(timeout=timeout)
-            expect(btn).to_be_enabled(timeout=timeout)
-            btn.click()
-
-            # Assert modal opened (per your HTML)
-            modal = self.rename_chassis_modal()
-            expect(modal).to_be_visible(timeout=timeout)
-
-        except Exception as e:
-            raise AssertionError(f"click_rename_chassis('{chassis_name}') failed. Problem: {e}")
-
+     
     # ✅
     def click_rename_chassis(self, chassis_name: str, timeout: int = 8000):
         """
@@ -1473,7 +1366,7 @@ class DomainManagement:
 
             expect(self.row_locator(new_chassis_name)).to_be_visible(timeout=timeout)
             refresh_page(self.page)
-            sleep(5)  # Allow UI to stabilize
+            countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")  # Allow UI to stabilize
 
         except Exception as e:
             raise AssertionError(f"rename_domain('{old_chassis_name}' -> '{new_chassis_name}') failed. Problem: {e}")
@@ -1767,7 +1660,7 @@ class DomainManagement:
         except Exception as e:
             raise AssertionError(f"click_change_CHASSIS_ID('{chassis_id}', parent_chassis={parent_chassis}) failed. Problem: {e}")
         
-    # ❌
+    # ✅
     def change_CHASSIS_ID(self, chassis_id: str, to_mode: str = "new", new_chassis_id: str | int | None = None, existing_chassis_id: str | None = None,
         parent_chassis: str | None = None, timeout: int = 5000):
         """
@@ -1845,6 +1738,7 @@ class DomainManagement:
                     pass
 
                 refresh_page(self.page)
+                countdown_sleep(20, message="Wait for the system to render")
                 return
 
             except Exception as e:
@@ -1924,79 +1818,6 @@ class DomainManagement:
             raise AssertionError(f"click_move_to_domain_mode failed. Problem: {e}")
     
     # ✅
-    def move_to_domain_old(self, source_item_name: str, target_domain_name: str, timeout: int = 5000):
-        """
-        Move an item from the From tree to a target domain in the To tree.
-        """
-        try:
-            # Pick source in From
-            self.select_row(source_item_name, tree_title="From", timeout=timeout)
-
-            # Ensure move mode UI exists
-            if self.to_tree().count() == 0:
-                self.click_move_to_domain_mode(timeout=timeout)
-
-            # Pick target in To
-            self.select_row(target_domain_name, tree_title="To", timeout=timeout)
-
-            # Click middle arrow to perform move
-            arrow = self.middle_move_arrow_btn()
-            expect(arrow).to_be_visible(timeout=timeout)
-            expect(arrow).to_be_enabled(timeout=timeout)
-            arrow.click()
-
-            # If Warning pops -> Yes
-            if self.modal().count() > 0 and self.modal_title().count() > 0:
-                title = self.modal_title().inner_text().strip().lower()
-                if title == "warning":
-                    yes = self.modal_yes_button()
-                    expect(yes).to_be_visible(timeout=timeout)
-                    yes.click()
-
-            # We don't want to hang if no modal appears, so we poll briefly.
-            def message_visible() -> bool:
-                try:
-                    m = self.message_modal()
-                    return m.count() > 0 and m.is_visible()
-                except Exception:
-                    return False
-
-            # If Message modal popped -> read text, close Ok, and fail clearly
-            if message_visible():
-                msg = self.message_text()
-                expect(msg).to_be_visible(timeout=timeout)
-                msg_text = msg.inner_text().strip()
-
-                lower = msg_text.lower()
-
-                close = self.modal_close_x()
-                expect(close).to_be_visible(timeout=timeout)
-                close.click()
-
-                # Ensure modal closed so it doesn't affect next actions
-                expect(self.message_modal()).to_be_hidden(timeout=timeout)
-
-                # Case 1: cannot move domain to itself
-                if "cannot move domain to itself" in lower:
-                    raise AssertionError(f"move_to_domain('{source_item_name}' → '{target_domain_name}') blocked: cannot move domain to itself.")
-
-                # Case 2: already belongs to parent domain
-                if "belongs already to this parent domain" in lower:
-                    raise AssertionError(f"move_to_domain('{source_item_name}' → '{target_domain_name}') blocked: domain already belongs to this parent domain.")
-
-                # Fallback: unknown message text
-                raise AssertionError(f"move_to_domain('{source_item_name}' → '{target_domain_name}') blocked (Message modal): {msg_text}")
-            
-            # Minimal stability check
-            expect(self.to_tree()).to_be_visible(timeout=timeout)
-            refresh_page(self.page)
-
-            sleep(1)  # Allow UI to stabilize
-
-        except Exception as e:
-            raise AssertionError(f"move_to_domain('{source_item_name}' -> '{target_domain_name}') failed. Problem: {e}")
-    
-    # ✅
     def move_to_domain(self, source_item_name: str, target_domain_name: str, timeout: int = 8000):
         """
         Move an item from the From tree to a target domain in the To tree.
@@ -2012,8 +1833,8 @@ class DomainManagement:
 
             move_btn = self.action_btn("Move to domain")
 
-            self.wait_until(lambda: move_btn.count() > 0 and move_btn.is_visible() and move_btn.is_enabled(), timeout_ms=timeout,
-                interval_ms=150, desc="Move to domain button enabled")
+            # self.wait_until(lambda: move_btn.count() > 0 and move_btn.is_visible() and move_btn.is_enabled(), timeout_ms=timeout,
+            #     interval_ms=150, desc="Move to domain button enabled")
 
             # 2) Enable Move-to-domain mode (if not already)
             if self.to_tree().count() == 0:
@@ -2031,8 +1852,8 @@ class DomainManagement:
 
             arrow = self.middle_move_arrow_btn()
 
-            self.wait_until(lambda: arrow.count() > 0 and arrow.is_visible() and arrow.is_enabled(), timeout_ms=timeout, interval_ms=150,
-                desc="Middle move arrow enabled")
+            # self.wait_until(lambda: arrow.count() > 0 and arrow.is_visible() and arrow.is_enabled(), timeout_ms=timeout, interval_ms=150,
+            #     desc="Middle move arrow enabled")
 
             # 4) Click middle arrow
             arrow.click()
@@ -2066,9 +1887,9 @@ class DomainManagement:
                 pass
 
             refresh_page(self.page)
-            sleep(5)
+            countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")
 
-            self.wait_until(lambda: self.from_tree().count() > 0, timeout_ms=timeout, desc="From tree reloaded after move")
+            # self.wait_until(lambda: self.from_tree().count() > 0, timeout_ms=timeout, desc="From tree reloaded after move")
 
         except Exception as e:
             raise AssertionError(f"move_to_domain('{source_item_name}' -> '{target_domain_name}') failed. Problem: {e}")

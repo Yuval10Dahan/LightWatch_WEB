@@ -303,9 +303,12 @@ def test_alarms_and_events(page, left_panel):
 
         if alarms:
             first = alarms[0]
+            third = alarms[2]
+            print(first)
+            print(third)
             if not isinstance(first, dict):
                 raise AssertionError("get_all_alarms returned non-dict rows.")
-            print(f"Sample alarm row keys: {list(first.keys())}")
+            # print(f"Sample alarm row keys: {list(first.keys())}")
         else:
             print("No alarms found (table empty) – OK")
 

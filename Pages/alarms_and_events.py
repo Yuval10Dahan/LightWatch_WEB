@@ -4,7 +4,6 @@ Date: 04/02/2026
 """
 
 
-from bleach import clean
 from playwright.sync_api import Page, expect
 from typing import Callable
 import time
@@ -1257,10 +1256,12 @@ class AlarmsAndEvents:
         Return total number of pages in the Alarms/Events table pagination.
         """
         pagination = self.page.locator("div.simple-table-footer ul.pagination").first
+        sleep(1)
         expect(pagination).to_be_visible(timeout=timeout)
 
         # All page number links 
         page_links = pagination.locator("li.page-item a.page-link", has_not_text=re.compile(r"Previous|Next|\.\.\.", re.IGNORECASE))
+        sleep(1)
 
         count = page_links.count()
         if count == 0:
@@ -1412,8 +1413,170 @@ class AlarmsAndEvents:
             raise AssertionError(f"get_all_events failed. Problem: {e}")
 
     # ❌
-    def get_all_alarms(self) -> list[dict]:
-        pass
+    def get_all_alarms(self, timeout: int = 12000, verbose: bool = True) -> list[dict]:
+        """
+        Return all alarms currently shown in the Alarms table, across ALL pages.
+
+        verbose=True -> prints number of pages being iterated.
+        """
+
+        try:
+            def table_locator():
+                table_locator = self.page.locator("app-simple-table div.simple-table-container table").first
+                sleep(0.5)
+                return table_locator
+
+            def pagination_locator():
+                pagination_locator = self.page.locator("div.simple-table-footer ul.pagination").first
+                sleep(0.5)
+                return pagination_locator
+
+            def next_btn_locator():
+                pag = pagination_locator()
+                next_btn_locator = pag.locator("a.page-link[aria-label='Next']").first
+                sleep(0.5)
+                return next_btn_locator 
+
+            def prev_btn_locator():
+                pag = pagination_locator()
+                prev_btn_locator = pag.locator("a.page-link[aria-label='Previous']").first
+                sleep(0.5)
+                return prev_btn_locator
+
+            def is_disabled(el) -> bool:
+                try:
+                    li = el.locator("xpath=ancestor::li[contains(@class,'page-item')][1]").first
+                    sleep(0.5)
+                    if li.count() > 0:
+                        return "disabled" in (li.get_attribute("class") or "").lower()
+                    return el.is_disabled()
+                except Exception:
+                    return False
+
+            def get_rows():
+                table = table_locator()
+                expect(table).to_be_visible(timeout=timeout)
+                locator = table.locator("tbody tr")
+                sleep(0.5)
+                return locator
+
+            def service_affecting_value(row) -> bool:
+                try:
+                    label = row.locator("td.centered app-checkbox label.checkbox-container").first
+                    sleep(0.5)
+                    if label.count() == 0:
+                        return False
+
+                    classes = (label.get_attribute("class") or "").lower().split()
+                    return "checked" in classes
+
+                except Exception:
+                    return False
+
+            def parse_row(row) -> dict:
+                tds = row.locator("td")
+                sleep(0.5)
+
+                def td_text(i: int) -> str:
+                    if tds.count() <= i:
+                        return ""
+                    return (tds.nth(i).inner_text() or "").strip()
+
+                return {
+                    "message": td_text(1),
+                    "severity": td_text(2),
+                    "managed_device": td_text(3),
+                    "domain": td_text(4),
+                    "category": td_text(5),
+                    "source": td_text(6),
+                    "detection_timestamp": td_text(7),
+                    "creation_timestamp": td_text(8),
+                    "service_affecting": service_affecting_value(row),
+                    "device_type": td_text(10),
+                }
+
+            def page_signature() -> str:
+                rows = get_rows()
+                if rows.count() == 0:
+                    return "EMPTY"
+                first = rows.nth(0)
+                msg = first.locator("td").nth(0).inner_text()
+                sleep(0.5)
+                det = first.locator("td").nth(6).inner_text()
+                sleep(0.5)
+                return f"{msg}||{det}"
+
+            # --------------------------------------------------
+            # Detect total pages
+            # --------------------------------------------------
+            pag = pagination_locator()
+
+            total_pages = 1
+            if pag.count() > 0:
+                try:
+                    total_pages = self.get_pages_count(timeout=timeout)
+                except Exception:
+                    total_pages = 1
+
+            total_pages = min(total_pages, MAX_SCROLL_PAGES)
+
+            if verbose:
+                print(f"Go over {total_pages} pages...")
+
+            # --------------------------------------------------
+            # Ensure we start from page 1
+            # --------------------------------------------------
+            if pag.count() > 0:
+                prev = prev_btn_locator()
+                if prev.count() > 0:
+                    for _ in range(10):
+                        if is_disabled(prev):
+                            break
+                        prev.click(force=True)
+                        self.wait_until(lambda: True, timeout_ms=200)
+
+            # --------------------------------------------------
+            # Iterate pages
+            # --------------------------------------------------
+            results: list[dict] = []
+            seen: set[tuple] = set()
+
+            for page_idx in range(1, total_pages + 1):
+
+                rows = get_rows()
+                self.wait_until(lambda: rows.count() >= 0, timeout_ms=timeout)
+
+                for i in range(rows.count()):
+                    r = rows.nth(i)
+                    item = parse_row(r)
+
+                    key = (
+                        item["message"],
+                        item["detection_timestamp"],
+                        item["source"],
+                        item["managed_device"],
+                    )
+
+                    if key not in seen:
+                        seen.add(key)
+                        results.append(item)
+
+                # Move to next page
+                if page_idx < total_pages and pag.count() > 0:
+                    nxt = next_btn_locator()
+                    if nxt.count() == 0 or is_disabled(nxt):
+                        break
+
+                    before = page_signature()
+                    nxt.click(force=True)
+
+                    # self.wait_until(lambda: page_signature() != before or is_disabled(nxt), timeout_ms=timeout)
+
+            return results
+
+        except Exception as e:
+            raise AssertionError(f"get_all_alarms failed. Problem: {e}")
+
 
     # =========================
     # Pagination
@@ -1464,9 +1627,3 @@ class AlarmsAndEvents:
 
         # sleep(0.5)
         return True
-
-
-
-
-
-

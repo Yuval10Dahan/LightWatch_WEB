@@ -6,7 +6,6 @@ Date: 20/01/2026
 
 from time import sleep
 from playwright.sync_api import Page, expect
-import re
 from Utils.utils import refresh_page
 
 class LeftPanel:
