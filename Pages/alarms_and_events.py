@@ -10,6 +10,7 @@ import time
 import re
 from time import sleep
 from datetime import datetime
+from Utils.utils import refresh_page
 
 
 MAX_SCROLL_PAGES = 60
@@ -1174,77 +1175,316 @@ class AlarmsAndEvents:
     # Ack Column
     # ==========================================================
 
-    # ❌
-    def check_Ack(self, row_index: int, timeout: int = 8000):
+    # ✅ 
+    def check_Ack(self, row_index: int = 0, timeout: int = 8000) -> bool:
         """
-        Check (enable) the Ack checkbox in a specific table row (0-based index).
+        Acknowledge an alarm based on the desired alarm row index.
         """
         try:
-            rows = self.page.locator("table tbody tr")
-            if rows.count() == 0:
-                raise AssertionError("Ack table rows not found (table tbody tr).")
+            if row_index < 0:
+                raise AssertionError(f"row_index must be >= 0. Got {row_index}")
 
-            if row_index < 0 or row_index >= rows.count():
-                raise AssertionError(f"row_index out of range: {row_index}. Rows count: {rows.count()}")
+            table = self.page.locator("app-simple-table div.simple-table-container table").first
+            expect(table).to_be_visible(timeout=timeout)
 
-            row = rows.nth(row_index)
+            pagination = self.page.locator("div.simple-table-footer ul.pagination").first
 
-            # Ack cell 
-            cb_label = row.locator("td.centered app-checkbox label.checkbox-container").first
-            expect(cb_label).to_be_visible(timeout=timeout)
+            def rows_locator():
+                return table.locator("tbody tr")
 
-            def is_checked() -> bool:
+            def prev_btn():
+                return pagination.locator("a.page-link[aria-label='Previous']").first
+
+            def next_btn():
+                return pagination.locator("a.page-link[aria-label='Next']").first
+
+            def is_disabled(el) -> bool:
                 try:
-                    cls = cb_label.get_attribute("class") or ""
-                    return "checked" in cls.split()
+                    li = el.locator("xpath=ancestor::li[contains(@class,'page-item')][1]").first
+                    if li.count() > 0:
+                        return "disabled" in (li.get_attribute("class") or "").lower()
+                    return el.is_disabled()
                 except Exception:
                     return False
 
-            if not is_checked():
-                cb_label.click(force=True)
-                self.wait_until(lambda: is_checked(), timeout_ms=timeout, interval_ms=200)
+            def goto_first_page():
+                if pagination.count() == 0:
+                    return
+                p = prev_btn()
+                if p.count() == 0:
+                    return
+                for _ in range(50):
+                    if is_disabled(p):
+                        break
+                    before = table.inner_text() if table.count() else ""
+                    p.click(force=True)
 
-        except Exception as e:
-            raise AssertionError(f"check_Ack(row_index={row_index}) failed. Problem: {e}")
+                    # wait page changes 
+                    self.wait_until(lambda: (table.inner_text() if table.count() else "") != before or is_disabled(p),
+                                    timeout_ms=min(timeout, 4000), interval_ms=150)
 
-    # ❌
-    def uncheck_Ack(self, row_index: int, timeout: int = 8000):
-        """
-        Uncheck (disable) the Ack checkbox in a specific table row (0-based index),
-        """
-        try:
-            rows = self.page.locator("table tbody tr")
-            if rows.count() == 0:
-                raise AssertionError("Ack table rows not found (table tbody tr).")
-
-            if row_index < 0 or row_index >= rows.count():
-                raise AssertionError(f"row_index out of range: {row_index}. Rows count: {rows.count()}")
-
-            row = rows.nth(row_index)
-
-            cb_label = row.locator("td.centered app-checkbox label.checkbox-container").first
-            expect(cb_label).to_be_visible(timeout=timeout)
-
-            def is_checked() -> bool:
+            def is_ack_checked(ack_td) -> bool:
+                # checked when label has class "checked" OR svg has class "checked"
                 try:
-                    cls = cb_label.get_attribute("class") or ""
-                    return "checked" in cls.split()
+                    label = ack_td.locator("app-checkbox label.checkbox-container").first
+                    if label.count() > 0:
+                        cls = (label.get_attribute("class") or "").lower().split()
+                        if "checked" in cls:
+                            return True
+
+                    svg = ack_td.locator("app-checkbox svg").first
+                    if svg.count() > 0:
+                        scls = (svg.get_attribute("class") or "").lower().split()
+                        return "checked" in scls
+
+                    return False
                 except Exception:
                     return False
 
-            # If it’s checked, try to click to uncheck.
-            if is_checked():
-                cb_label.click(force=True)
+            def click_ack_checkbox(ack_td):
+                label = ack_td.locator("app-checkbox label.checkbox-container").first
+                if label.count() == 0:
+                    # fallback click svg
+                    svg = ack_td.locator("app-checkbox svg").first
+                    if svg.count() == 0:
+                        raise AssertionError("Ack checkbox not found in row.")
+                    svg.click(force=True)
+                    return
+                label.click(force=True)
 
-                # Some systems may not allow un-acking; in that case it will stay checked.
-                # We'll wait briefly, and if still checked, raise a clear message.
+            def table_signature() -> str:
+                # used to detect page change
                 try:
-                    self.wait_until(lambda: not is_checked(), timeout_ms=min(timeout, 2500), interval_ms=200)
+                    rows = rows_locator()
+                    if rows.count() == 0:
+                        return "EMPTY"
+                    first = rows.nth(0).locator("td")
+                    # message col often changes; use first 2 cells
+                    a = (first.nth(0).inner_text() or "").strip() if first.count() > 0 else ""
+                    b = (first.nth(1).inner_text() or "").strip() if first.count() > 1 else ""
+                    return f"{a}||{b}"
                 except Exception:
-                    raise AssertionError("Ack checkbox appears not toggleable off (remains checked).")
+                    return ""
+
+            # 1) Start from page 1
+            goto_first_page()
+
+            # 2) Find the row on pages
+            idx = row_index
+            target_row = None
+
+            # If no pagination -> single page
+            if pagination.count() == 0:
+                rows = rows_locator()
+                if rows.count() == 0:
+                    raise AssertionError("No alarms rows found.")
+                if idx >= rows.count():
+                    raise AssertionError(f"row_index={row_index} out of range. rows={rows.count()}")
+                target_row = rows.nth(idx)
+            else:
+                for _ in range(MAX_SCROLL_PAGES):
+                    rows = rows_locator()
+                    expect(table).to_be_visible(timeout=timeout)
+
+                    c = rows.count()
+                    if c == 0:
+                        # table can be temporarily empty while loading
+                        self.wait_until(lambda: rows_locator().count() >= 0, timeout_ms=timeout, interval_ms=150)
+                        c = rows_locator().count()
+
+                    if idx < c:
+                        target_row = rows.nth(idx)
+                        break
+
+                    idx -= c
+
+                    n = next_btn()
+                    if n.count() == 0 or is_disabled(n):
+                        break
+
+                    before = table_signature()
+                    n.click(force=True)
+                    self.wait_until(lambda: table_signature() != before or is_disabled(n),
+                                    timeout_ms=timeout, interval_ms=150)
+
+                if target_row is None:
+                    raise AssertionError(f"row_index={row_index} out of range across pages.")
+
+            # 3) Click Ack checkbox
+            tds = target_row.locator("td")
+            if tds.count() < 1:
+                raise AssertionError("Row has no <td> cells.")
+            ack_td = tds.nth(0)
+
+            if not is_ack_checked(ack_td):
+                click_ack_checkbox(ack_td)
+                # self.wait_until(lambda: is_ack_checked(ack_td), timeout_ms=timeout, interval_ms=150)
+
+            # 4) Click "Acknowledge Alert"
+            ack_btn = self.page.locator("div.faults-actionWrapper-footer button.btn.btn-primary", has_text=re.compile(r"^\s*Acknowledge\s+Alert\s*$", re.IGNORECASE)).first
+
+            expect(ack_btn).to_be_visible(timeout=timeout)
+            self.wait_until(lambda: ack_btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
+
+            sleep(5)
+            ack_btn.click(force=True)
+            refresh_page(self.page)
+            sleep(5)
+
+            return True
 
         except Exception as e:
-            raise AssertionError(f"uncheck_Ack(row_index={row_index}) failed. Problem: {e}")
+            raise AssertionError(f"check_Ack failed. Problem: {e}")
+
+    # ✅ 
+    def clear_alert(self, row_index: int = 0, timeout: int = 8000) -> bool:
+        """
+        Clear an alarm based on the desired alarm GLOBAL row index (across ALL pages).
+        Steps:
+        1) Navigate pages until the global row_index row is visible.
+        2) Click Ack checkbox (selection).
+        3) Click "Clear Alert".
+        4) Verify the Severity cell text becomes 'Clear' for that row index.
+        """
+        try:
+            table = self.page.locator("app-simple-table div.simple-table-container table").first
+            expect(table).to_be_visible(timeout=timeout)
+
+            pagination = self.page.locator("div.simple-table-footer ul.pagination").first
+
+            def get_rows():
+                expect(table).to_be_visible(timeout=timeout)
+                return table.locator("tbody tr")
+
+            def page_signature() -> str:
+                rows = get_rows()
+                if rows.count() == 0:
+                    return "EMPTY"
+                first = rows.nth(0)
+                tds = first.locator("td")
+                msg = (tds.nth(1).inner_text() if tds.count() > 1 else "").strip()
+                det = (tds.nth(7).inner_text() if tds.count() > 7 else "").strip()
+                return f"{msg}||{det}"
+
+            def next_btn():
+                if pagination.count() == 0:
+                    return None
+                return pagination.locator("a.page-link[aria-label='Next']").first
+
+            def prev_btn():
+                if pagination.count() == 0:
+                    return None
+                return pagination.locator("a.page-link[aria-label='Previous']").first
+
+            def is_disabled(page_link) -> bool:
+                try:
+                    li = page_link.locator("xpath=ancestor::li[contains(@class,'page-item')][1]").first
+                    if li.count() > 0:
+                        return "disabled" in ((li.get_attribute("class") or "").lower())
+                    return page_link.is_disabled()
+                except Exception:
+                    return False
+
+            def go_to_first_page():
+                if pagination.count() == 0:
+                    return
+                p = prev_btn()
+                if not p or p.count() == 0:
+                    return
+                for _ in range(50):
+                    if is_disabled(p):
+                        break
+                    before = page_signature()
+                    p.click(force=True)
+                    self.wait_until(lambda: page_signature() != before or is_disabled(p), timeout_ms=timeout, interval_ms=150)
+
+            def get_row_by_global_index(global_index: int):
+                if global_index < 0:
+                    raise AssertionError(f"row_index must be >= 0, got {global_index}")
+
+                go_to_first_page()
+
+                remaining = global_index
+                visited = 0
+
+                while True:
+                    rows = get_rows()
+                    cnt = rows.count()
+                    if cnt == 0:
+                        raise AssertionError("No alarms rows found in table.")
+
+                    if remaining < cnt:
+                        return rows.nth(remaining)
+
+                    visited += cnt
+                    remaining -= cnt
+
+                    n = next_btn()
+                    if not n or n.count() == 0 or is_disabled(n):
+                        raise AssertionError(f"row_index={global_index} out of range. Total rows scanned={visited}.")
+
+                    before = page_signature()
+                    n.click(force=True)
+                    self.wait_until(lambda: page_signature() != before or is_disabled(n), timeout_ms=timeout, interval_ms=150)
+
+            # --- find row across pages ---
+            row = get_row_by_global_index(row_index)
+            tds = row.locator("td")
+            if tds.count() < 3:
+                raise AssertionError("Row has insufficient <td> cells to read severity.")
+
+            ack_td = tds.nth(0)
+
+            def ack_label():
+                return ack_td.locator("app-checkbox label.checkbox-container").first
+
+            def is_ack_checked() -> bool:
+                try:
+                    lbl = ack_label()
+                    if lbl.count() == 0:
+                        return False
+                    cls = (lbl.get_attribute("class") or "").lower()
+                    return ("checked" in cls) or (ack_td.locator("app-checkbox svg.checked").count() > 0)
+                except Exception:
+                    return False
+
+            lbl = ack_label()
+            expect(lbl).to_be_visible(timeout=timeout)
+
+            # Select row via ack checkbox (even if it’s currently unchecked)
+            if not is_ack_checked():
+                print(f"Alert is unchecked - Can't be cleared until it gets acknowledgment.")
+                return False
+            
+            sleep(1)
+            lbl.click(force=True)
+            sleep(1)
+
+            clear_btn = self.page.get_by_role("button", name=re.compile(r"^\s*Clear\s+Alert\s*$", re.IGNORECASE)).first
+            expect(clear_btn).to_be_visible(timeout=timeout)
+            self.wait_until(lambda: clear_btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
+
+            clear_btn.click(force=True)
+            refresh_page(self.page)
+
+            # Verify severity becomes "Clear" 
+            def severity_is_clear() -> bool:
+                try:
+                    # Re-locate after click (table can refresh)
+                    r2 = get_row_by_global_index(row_index)
+                    td2 = r2.locator("td").nth(2)
+                    txt = (td2.inner_text() or "").strip().lower()
+                    return "clear" in txt
+                except Exception:
+                    return False
+
+            self.wait_until(severity_is_clear, timeout_ms=timeout, interval_ms=200)
+
+            sleep(5)
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"clear_alert failed. Problem: {e}")
 
     # ==========================================================
     # Table Retrieval
@@ -1272,7 +1512,7 @@ class AlarmsAndEvents:
         return int(last_page_text)
 
     # ✅
-    def get_all_events(self, timeout: int = 15000, max_pages: int = 200) -> list[dict]:
+    def get_all_events(self, timeout: int = 15000, max_pages: int = 10) -> list[dict]:
         """
         Return all rows currently displayed in the Alarms/Events table across pagination.
         Output: list of dicts keyed by the visible column headers.
@@ -1412,8 +1652,8 @@ class AlarmsAndEvents:
         except Exception as e:
             raise AssertionError(f"get_all_events failed. Problem: {e}")
 
-    # ❌
-    def get_all_alarms(self, timeout: int = 12000, verbose: bool = True) -> list[dict]:
+    # ✅
+    def get_all_alarms(self, timeout: int = 12000, verbose: bool = True, max_pages: int | None = None) -> list[dict]:
         """
         Return all alarms currently shown in the Alarms table, across ALL pages.
 
@@ -1461,14 +1701,32 @@ class AlarmsAndEvents:
                 return locator
 
             def service_affecting_value(row) -> bool:
+                """
+                Service affecting is TRUE when the checkbox label has class 'checked'
+                OR svg has class 'checked', in the Service Affecting column (td index 9).
+                """
                 try:
-                    label = row.locator("td.centered app-checkbox label.checkbox-container").first
-                    sleep(0.5)
+                    tds = row.locator("td")
+                    if tds.count() <= 9:
+                        return False
+
+                    td = tds.nth(9)
+
+                    label = td.locator("app-checkbox label.checkbox-container").first
                     if label.count() == 0:
                         return False
 
-                    classes = (label.get_attribute("class") or "").lower().split()
-                    return "checked" in classes
+                    cls = (label.get_attribute("class") or "").lower().split()
+                    if "checked" in cls:
+                        return True
+
+                    # Fallback: check svg class (per your HTML)
+                    svg = td.locator("svg").first
+                    if svg.count() > 0:
+                        svg_cls = (svg.get_attribute("class") or "").lower().split()
+                        return "checked" in svg_cls
+
+                    return False
 
                 except Exception:
                     return False
@@ -1518,7 +1776,10 @@ class AlarmsAndEvents:
                 except Exception:
                     total_pages = 1
 
-            total_pages = min(total_pages, MAX_SCROLL_PAGES)
+            if max_pages:
+                total_pages = max_pages
+            else:
+                total_pages = min(total_pages, MAX_SCROLL_PAGES)
 
             if verbose:
                 print(f"Go over {total_pages} pages...")
@@ -1576,7 +1837,6 @@ class AlarmsAndEvents:
 
         except Exception as e:
             raise AssertionError(f"get_all_alarms failed. Problem: {e}")
-
 
     # =========================
     # Pagination

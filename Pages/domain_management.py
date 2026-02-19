@@ -164,7 +164,10 @@ class DomainManagement:
         """
         Return the bottom action buttons container('Add domain', 'Remove', 'Rename', 'Change Chassis ID', 'Move to domain').
         """
-        return self.page.locator("section.domain-management-bottom-actions").first
+        bottom_actions = self.page.locator("section.domain-management-bottom-actions").first
+        sleep(1)
+        
+        return bottom_actions
 
     # ✅
     def action_btn(self, text: str):
@@ -536,21 +539,7 @@ class DomainManagement:
             raise AssertionError(f"expand_chassis_and_click_on_device('{device_id}' failed. Problem: {e}")
 
     # ✅
-    def click_row_and_wait_actions_enabled(self, row, timeout: int = 8000):
-        """
-        Click a row and wait until bottom actions react (button enabled).
-        """
-        expect(row).to_be_visible(timeout=timeout)
-        row.scroll_into_view_if_needed()
-        sleep(5)
-        row.click(force=True)
-
-        rm = self.action_btn("Remove")
-        sleep(5)
-        self.wait_until(lambda: rm.count() > 0 and rm.is_visible() and rm.is_enabled(), timeout_ms=timeout, interval_ms=150)
-
-    # ✅
-    def click_row_and_wait_single_action_enabled(self, row, action_text: str, timeout: int = 8000):
+    def click_row_and_wait_single_action_enabled_old(self, row, action_text: str, timeout: int = 8000):
         """
         Click a row and wait until a specific bottom action becomes enabled.
         """
@@ -563,6 +552,38 @@ class DomainManagement:
         sleep(5)
         if action_text != "Remove":
             self.wait_until(lambda: btn.count() > 0 and btn.is_visible() and btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
+    
+    # ✅
+    def click_row_and_wait_single_action_enabled(self, row, action_text: str, timeout: int = 8000):
+        """
+        Click a row and wait until a specific bottom action becomes visible + enabled.
+        Works for: Remove / Rename / Change Chassis ID / Move to domain / Add domain ...
+        """
+        expect(row).to_be_visible(timeout=timeout)
+        row.scroll_into_view_if_needed()
+
+        # Click the row (sometimes first click just focuses; do a small retry loop)
+        start = time.perf_counter()
+        last_err: Optional[Exception] = None
+
+        while (time.perf_counter() - start) * 1000 < timeout:
+            try:
+                row.click(force=True)
+
+                btn = self.action_btn(action_text)
+                # Wait until button is visible AND enabled
+                self.wait_until(lambda: btn.count() > 0 and btn.is_visible() and btn.is_enabled(), timeout_ms=1200, interval_ms=150, 
+                                desc=f"'{action_text}' button enabled after selecting row")
+                return
+            
+            except Exception as e:
+                last_err = e
+                # small delay handled inside wait_until jitter; just continue loop
+
+        raise AssertionError(
+            f"Row clicked but '{action_text}' did not become enabled within {timeout}ms. "
+            f"Last error: {last_err}"
+        )
 
     # ✅
     def click_row_and_wait(self, row, timeout: int = 8000, *, wait_for: str = "any_action", action_text: str | None = None, 
@@ -949,7 +970,7 @@ class DomainManagement:
         rm.click()
 
     # ✅
-    def click_remove_chassis_btn(self, chassis_name: str, timeout: int = 5000):
+    def click_remove_chassis_btn_old(self, chassis_name: str, timeout: int = 5000):
         """
         Select a chassis and click the Remove button.
         """
@@ -960,12 +981,35 @@ class DomainManagement:
             raise AssertionError(f"remove_chassis('{chassis_name}') failed: chassis not found in tree.")
 
         self.select_chassis_row(chassis_name, action_text="Remove", tree_title="From", timeout=timeout)
+        refresh_page(self.page)
+        sleep(10)
 
         rm = self.action_btn("Remove")
         expect(rm).to_be_visible(timeout=timeout)
         expect(rm).to_be_enabled(timeout=timeout)
         countdown_sleep(5)
         rm.click()
+
+    # ✅
+    def click_remove_chassis_btn(self, chassis_name: str, timeout: int = 8000):
+        """
+        Select a chassis and click the Remove button.
+        """
+        name = (chassis_name or "").strip()
+        if not name:
+            raise ValueError("chassis_name is empty")
+
+        row = self.chassis_row_locator(name, tree_title="From")
+        if row.count() == 0:
+            raise AssertionError(f"remove_chassis('{chassis_name}') failed: chassis not found in tree.")
+
+        # Wait until Remove is enabled for that row
+        self.click_row_and_wait_single_action_enabled(row, action_text="Remove", timeout=timeout)
+
+        rm = self.action_btn("Remove")
+        expect(rm).to_be_visible(timeout=timeout)
+        expect(rm).to_be_enabled(timeout=timeout)
+        rm.click(force=True)
 
     # ✅
     def click_remove_device_btn(self, device_name_or_ip: str, timeout: int = 5000):

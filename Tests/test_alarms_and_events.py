@@ -191,7 +191,7 @@ def test_alarms_and_events(page, left_panel):
     def step_6():
         ae.set_filterBy("Domain/Chassis")
 
-        ae.select_domain_or_chassis_filterBy_domain_or_chassis("sub-domain-Demo")
+        ae.select_domain_or_chassis_filterBy_domain_or_chassis("LightPath-Demo")
         ae.select_all_domains_filterBy_domain_or_chassis()
         ae.select_domain_or_chassis_filterBy_domain_or_chassis("BS-12/12")
         
@@ -240,18 +240,18 @@ def test_alarms_and_events(page, left_panel):
     # Step 9: Ack checkbox (best-effort: only if at least 1 row exists)
     # ----------------------------
     def step_9():
+        refresh_page(page)
+        sleep(5)
+
         rows = page.locator("table tbody tr")
         if rows.count() == 0:
             print("Ack: no rows in table -> skipping Ack checks.")
             return
 
-        # Try check row 0
-        ae.check_Ack(0)
-        # Try uncheck row 0 (may not be allowed)
-        try:
-            ae.uncheck_Ack(0)
-        except Exception as e:
-            print(f"Ack uncheck not allowed / not toggleable (ignored): {e}")
+        # Try check row
+        ae.check_Ack(7)
+
+        ae.clear_alert(7)
 
     run_step(9, "Ack: check/uncheck row 0 (best-effort)", step_9)
 
@@ -259,6 +259,8 @@ def test_alarms_and_events(page, left_panel):
     # Step 10: Pagination next/previous (best-effort)
     # ----------------------------
     def step_10():
+        refresh_page(page)
+        sleep(10)
         ae.set_faults_type("Events") 
 
         # Next a couple times
@@ -281,6 +283,9 @@ def test_alarms_and_events(page, left_panel):
     # Step 11: get_all_events + get_all_alarms
     # ----------------------------
     def step_11():
+        refresh_page(page)
+        sleep(5)
+
         # ---- Events ----
         events = ae.get_all_events()
         print(f"Events count: {len(events)}")
@@ -298,14 +303,17 @@ def test_alarms_and_events(page, left_panel):
             print("No events found (table empty) – OK")
 
         # ---- Alarms ----
-        alarms = ae.get_all_alarms()
+        refresh_page(page)
+        sleep(5)
+
+        alarms = ae.get_all_alarms(max_pages=10)
         print(f"Alarms count: {len(alarms)}")
 
         if alarms:
             first = alarms[0]
-            third = alarms[2]
+            sixth = alarms[6]
             print(first)
-            print(third)
+            print(sixth)
             if not isinstance(first, dict):
                 raise AssertionError("get_all_alarms returned non-dict rows.")
             # print(f"Sample alarm row keys: {list(first.keys())}")

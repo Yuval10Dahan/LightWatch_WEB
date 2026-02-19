@@ -1288,11 +1288,11 @@ class ServiceList:
             expect(tabset).to_be_hidden(timeout=timeout)
         except TimeoutError:
             self.wait_until(lambda: tabset.count() == 0, timeout_ms=timeout, interval_ms=200)
-
+ 
     # =========================
     # Column Editing
     # =========================
-
+ 
     # ✅
     def click_edit_columns(self):
         """

@@ -62,6 +62,8 @@ def test_domain_management(page, left_panel):
         print(f"Failed to open Domain Management ❌ | Error: {e}")
         return
 
+    refresh_page(page)
+    sleep(10)
 
     domain_a = f"DM_TEST_UNDER_INVENTORY"
     domain_b = f"DM_TEST_UNDER_SUB_DOMAIN_DEMO"
