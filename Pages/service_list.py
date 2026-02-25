@@ -1255,12 +1255,14 @@ class ServiceList:
 
         table = self.page.locator("section.faults-enabled app-simple-table table").first
         return self.read_all_pages_from_table(table, timeout=timeout)
-        
+    
+    # ✅
     def close_events_alarms(self, timeout: int = 5000):
         """
         Close (hide) the Events/Alarms panel if it's currently open.
         """
         tabset = self.page.locator("tabset.tab-container").first
+        sleep(0.5)
 
         # If already closed -> nothing to do
         if tabset.count() == 0:
@@ -1275,10 +1277,12 @@ class ServiceList:
 
         # Click the same toggle button used to open it
         btn = self.page.locator("div.service-actionWrapper-footer button:has(app-icon[name='alarm-events'])").first
+        sleep(0.5)
 
         if btn.count() == 0:
             # fallback by text (if icon selector changes)
             btn = self.page.locator("div.service-actionWrapper-footer button:has-text('Events/Alarms')").first
+            sleep(0.5)
 
         expect(btn).to_be_visible(timeout=timeout)
         btn.click(force=True)

@@ -76,6 +76,18 @@ def test_management_map(page, left_panel):
     # ----------------------------
     def step_3():
         management_map.show_navigation_info()
+
+        elements_list1 = management_map.get_navigation_info_elements_list(visible_only=True)
+        print(f"elements_list1: {elements_list1}")
+        elements_list2 = management_map.get_navigation_info_elements_list(visible_only=False)
+        print(f"elements_list2: {elements_list2}")
+
+        element_exist = management_map.is_element_exist_on_navigation_info_list("PL-2000ADS (172.16.30.15)")
+        # element_exist = management_map.is_element_exist_on_navigation_info_list("PL-2000ADS (172.16.30.19)")
+        print(f"element exist: {element_exist}")
+        if element_exist == False:
+            raise Exception("Element is not exist")
+
         management_map.hide_navigation_info()
 
         management_map.show_navigation_info()

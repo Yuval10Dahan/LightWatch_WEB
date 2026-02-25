@@ -33,12 +33,12 @@ PASSWORD = "administrator"
 # Helper
 # ================================================================
 
-def run_step(step_num: float, title: str, fn):
+def run_step(step_num: float, title: str, step_function):
     """
     Runs a step and prints consistent success/fail indication.
     """
     try:
-        fn()
+        step_function()
         print(f"Step {step_num} Success ✅")
         return True
     except Exception as e:

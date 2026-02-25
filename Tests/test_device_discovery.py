@@ -92,10 +92,18 @@ def test_device_discovery(page, left_panel):
     def step_1():
         ip = "172.16.10.1"
         dd.set_ip_address(ip)
+        valid = dd.is_ip_address_field_valid()
+        print(f"valid = {valid}")
         got = dd.get_ip_address()
         print(f"IP Address -> set: {ip} | got: {got}")
         if got != ip:
             raise AssertionError(f"IP mismatch. expected='{ip}' got='{got}'")
+        
+        dd.set_ip_address("256.1.1.1")
+        valid = dd.is_ip_address_field_valid()
+        print(f"valid = {valid}")
+        if valid == True:
+            raise Exception("Ip address is invalid")
 
     run_step(1, "Device Discovery: set/get IP address", step_1)
 
@@ -143,6 +151,7 @@ def test_device_discovery(page, left_panel):
         write_comm = "private"
         admin_comm = "admin"
         port = 161
+        wrong_port = 65536
 
         dd.set_SNMPv2_read_community(read_comm)
         got_read = dd.get_SNMPv2_read_community()
@@ -167,6 +176,13 @@ def test_device_discovery(page, left_panel):
         print(f"SNMPv2 Contact Port -> set: {port} | got: {got_port}")
         if got_port != str(port):
             raise AssertionError(f"SNMPv2 contactPort mismatch. expected='{port}' got='{got_port}'")
+        
+        dd.set_SNMPv2_contact_port(wrong_port)
+        valid = dd.is_contact_port_field_valid(SNMP_type="SNMPv2")
+        print(f"valid = {valid}")
+        if valid == True:
+            raise Exception("Ip address is invalid")
+
 
     run_step(4, "Device Discovery: SNMPv2 set/get fields", step_4)
 
@@ -176,6 +192,7 @@ def test_device_discovery(page, left_panel):
     def step_5():
         user = "snmpv3_user"
         port = 179
+        wrong_port = 4444444
 
         # Go to SNMPv3
         dd.click_SNMPv3()
@@ -251,6 +268,13 @@ def test_device_discovery(page, left_panel):
         if got_port != str(port):
             raise AssertionError(f"SNMPv3 contactPort mismatch. expected='{port}' got='{got_port}'")
 
+        # wrong Contact port
+        dd.set_SNMPv3_contact_port(wrong_port)
+        valid = dd.is_contact_port_field_valid(SNMP_type="SNMPv3")
+        print(f"valid = {valid}")
+        if valid == True:
+            raise Exception("Ip address is invalid")
+
 
     run_step(5, "Device Discovery: SNMPv3 entire process + auth/privacy set/get", step_5)
 
@@ -295,6 +319,8 @@ def test_device_discovery(page, left_panel):
         dd.set_ip_address("10.60.100.36")
         ip = dd.get_ip_address()
         print(f"ip = {ip}")
+        enabled = dd.is_start_discovery_btn_enabled()
+        print(f"enabled = {enabled}")
         dd.click_start_discovery() 
 
     run_step(8, "Device Discovery: click Start Discovery", step_8)

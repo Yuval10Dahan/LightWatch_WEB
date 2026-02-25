@@ -7,3 +7,13 @@ pip list:
 venv-python 3.14: py -3.14 -m pip list
 
 python 3.8: py -3.8 -m pip list
+
+
+
+
+==================================================
+run via CMD:
+
+1) .venv\Scripts\activate
+2) transfer the test file to be on front page (C:\Gitlab_y\automation\LightWatch_WEB)
+3) python .\{name of the file}.py

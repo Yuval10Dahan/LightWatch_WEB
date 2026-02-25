@@ -7,6 +7,7 @@ import re
 import time
 from time import sleep
 from typing import Callable
+from Utils.utils import refresh_page, countdown_sleep
 
 from playwright.sync_api import Page, expect
 
@@ -53,7 +54,7 @@ class DeviceDiscovery:
         Normalize whitespace and strip.
         """
         return re.sub(r"\s+", " ", (s or "").strip())
-
+    
     # ==========================================================
     # Base locators
     # ==========================================================
@@ -193,6 +194,47 @@ class DeviceDiscovery:
 
         except Exception as e:
             raise AssertionError(f"get_ip_address failed. Problem: {e}")
+    
+    # ✅
+    def is_ip_address_field_valid(self, timeout: int = 8000) -> bool:
+        """
+        Return True if the IP address field is valid.
+        Return False if invalid (red error state + '!' icon).
+        """
+        try:
+            ip = self.ip_app_input()
+            expect(ip).to_be_visible(timeout=timeout)
+
+            # Wrapper has class "error"
+            wrapper = ip.locator("div.input-wrapper").first
+            sleep(2)
+
+            if wrapper.count() > 0:
+                cls = (wrapper.get_attribute("class") or "").lower()
+                if "error" in cls:
+                    return False
+
+            # Explicit invalid icon exists/visible
+            invalid_icon = ip.locator("div.error-icon app-icon[name='input-field-invalid']").first
+            sleep(2)
+
+            if invalid_icon.count() > 0:
+                try:
+                    if invalid_icon.is_visible():
+                        return False
+                except Exception:
+                    # If visibility check fails but icon exists, treat as invalid (safer)
+                    return False
+
+            # Fallback: Angular invalid class on app-input itself (ng-invalid)
+            ip_cls = (ip.get_attribute("class") or "").lower()
+            if "ng-invalid" in ip_cls:
+                return False
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"is_ip_address_field_valid failed. Problem: {e}")
 
     # =========================
     # IP Range
@@ -650,6 +692,61 @@ class DeviceDiscovery:
         self.click_SNMPv2()
         return self.get_app_input_value("contactPort", timeout=timeout)
 
+    # ✅
+    def is_contact_port_field_valid(self, SNMP_type: str, timeout: int = 8000) -> bool:
+        """
+        Return True if Contact Port field is valid.
+        Return False if invalid (red error state + '!' icon).
+
+        SNMP Types:
+            - SNMPv2
+            - SNMPv3
+        """
+        try:
+            snmp = (SNMP_type or "").strip()
+
+            if snmp == "SNMPv2":
+                self.click_SNMPv2(timeout=timeout)
+                scope = self.container()  # v2 fields are fine from container
+            elif snmp == "SNMPv3":
+                self.click_SNMPv3(timeout=timeout)
+                scope = self.active_tab_pane()  # scope to active SNMPv3 tab pane
+            else:
+                raise AssertionError("SNMP_type is invalid ❌ (use 'SNMPv2' or 'SNMPv3')")
+
+            port = self.app_input("contactPort", scope=scope)
+            expect(port).to_be_visible(timeout=timeout)
+
+            # 1) Wrapper error class (RED FIELD)
+            wrapper = port.locator("div.input-wrapper").first
+            sleep(2)
+
+            if wrapper.count() > 0:
+                cls = (wrapper.get_attribute("class") or "").lower()
+                if "error" in cls:
+                    return False
+
+            # 2) Invalid "!" icon
+            invalid_icon = port.locator("div.error-icon app-icon[name='input-field-invalid']").first
+            sleep(2)
+
+            if invalid_icon.count() > 0:
+                try:
+                    if invalid_icon.is_visible():
+                        return False
+                except Exception:
+                    return False
+
+            # 3) Angular validation fallback
+            port_cls = (port.get_attribute("class") or "").lower()
+            if "ng-invalid" in port_cls:
+                return False
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"is_contact_port_field_valid('{SNMP_type}') failed. Problem: {e}")
+
     # ==========================================================
     # SNMPv3 fields
     # ==========================================================
@@ -1074,6 +1171,8 @@ class DeviceDiscovery:
             btn = self.reset_to_default_btn()
             expect(btn).to_be_visible(timeout=timeout)
             btn.click(force=True)
+            countdown_sleep(10, "Waiting that device discovery will reset to default")
+            refresh_page(self.page)
         except Exception as e:
             raise AssertionError(f"click_reset_to_default failed. Problem: {e}")
 
@@ -1148,6 +1247,27 @@ class DeviceDiscovery:
 
         except Exception as e:
             raise AssertionError(f"click_start_discovery failed. Problem: {e}")
+
+    # ✅
+    def is_start_discovery_btn_enabled(self, timeout: int = 8000) -> bool:
+        """
+        Return True if Start Discovery button is enabled.
+        Return False if disabled.
+        """
+        try:
+            btn = self.start_discovery_btn()
+            sleep(1)
+            expect(btn).to_be_visible(timeout=timeout)
+
+            disabled_attr = btn.get_attribute("disabled")
+
+            if disabled_attr is not None:
+                return False
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"is_start_discovery_btn_enabled failed. Problem: {e}")
 
     # ==========================================================
     # Close

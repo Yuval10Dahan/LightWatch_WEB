@@ -109,7 +109,7 @@ class ManagementMap:
         except Exception as e:
             print(f"is_edit_mode failed. Problem: {e}")
             return False
-        
+    
     # ==========================================================
     # Alarms visibility
     # ==========================================================    
@@ -701,7 +701,18 @@ class ManagementMap:
         # Prefer matching on the whole title element
         rx = self.nav_text_regex(element_name)
         return container.locator("div.inventory-tree-level-title", has_text=rx).first
-        
+    
+    # ✅
+    def normalize_nav_label(self, s: str) -> str:
+        """
+        Normalize UI text from Navigation Info rows:
+        - collapse whitespace
+        - tolerate spaces around '/'
+        """
+        txt = (s or "").strip()
+        txt = re.sub(r"\s+", " ", txt)           # collapse whitespace
+        txt = re.sub(r"\s*/\s*", "/", txt)       # normalize " / " -> "/"
+        return txt.strip()
 
     # ==========================================================
     # Navigation info
@@ -763,6 +774,88 @@ class ManagementMap:
 
         except Exception as e:
             raise AssertionError(f"hide_navigation_info failed: navigation panel did not close. Problem: {e}")
+
+    # ✅
+    def get_navigation_info_elements_list(self, timeout: int = 5000, visible_only: bool = False) -> list[str]:
+        """
+        Returns a list of all element titles currently present in the Navigation Info tree.
+
+        Notes:
+        - If visible_only=True, returns only rows that are currently visible (recommended).
+        """
+        try:
+            # Ensure panel is open 
+            self.show_navigation_info()
+
+            container = self.navigation_info_container()
+            expect(container).to_be_visible(timeout=timeout)
+
+            # Each row title container in the tree
+            rows = container.locator("div.inventory-tree-level-title")
+            count = rows.count()
+
+            elements: list[str] = []
+
+            for i in range(count):
+                row = rows.nth(i)
+
+                if visible_only:
+                    try:
+                        if not row.is_visible():
+                            continue
+                    except Exception:
+                        # If visibility check fails for any reason, skip safely
+                        continue
+
+                title = row.locator("div.inventory-tree-level-title-content").first
+                if title.count() == 0:
+                    continue
+
+                raw = (title.inner_text(timeout=timeout) or "").strip()
+                normalized = self.normalize_nav_label(raw)
+
+                if normalized:
+                    elements.append(normalized)
+
+            return elements
+
+        except Exception as e:
+            raise AssertionError(f"get_navigation_info_elements_list failed. Problem: {e}")
+
+    # ✅
+    def is_element_exist_on_navigation_info_list(self, element_name: str, timeout: int = 5000) -> bool:
+        """
+        Checks if a given element exists in the Navigation Info tree.
+        """
+        try:
+            target = (element_name or "").strip()
+            if not target:
+                raise ValueError("element_name is empty")
+
+            self.show_navigation_info()
+
+            container = self.navigation_info_container()
+            expect(container).to_be_visible(timeout=timeout)
+
+            rx = self.nav_text_regex(target)
+
+            # Search row titles
+            row = container.locator("div.inventory-tree-level-title", has_text=rx)
+            sleep(3)
+            if row.count() == 0:
+                return False
+
+            # If multiple matches exist, we still consider it found if any is visible
+            for i in range(row.count()):
+                if row.nth(i).is_visible():
+                    return True
+
+            # Found in DOM but not visible (collapsed/filtered)
+            return True
+
+        except Exception as e:
+            print(f"is_element_exist_on_navigation_info_list('{element_name}') failed. Problem: {e}")
+            return False
 
     # ✅
     def navigation_info_double_click_on_element(self, element_name: str, timeout: int = 10000):
@@ -911,7 +1004,7 @@ class ManagementMap:
 
         except Exception as e:
             raise AssertionError(f"navigation_info_shrink_element_byClick_on_arrow('{element_name}') failed: {e}")
-        
+    
 
     # ==========================================================
     # Element details
