@@ -1,0 +1,3 @@
+<td width="104" align="center" valign="middle">
+       <input type="image" src="/Brands/Main/Images/restart_factory.png" id="restart_factory" name="factory_restart" value="Restore to Factory Defaults" onclick="document.maint_box_form.whichButton.value='factory_restart'">
+	</td>

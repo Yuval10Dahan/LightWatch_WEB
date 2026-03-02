@@ -90,6 +90,7 @@ CONTACT_PORT = 161
 WAIT = 30
 
 LOGGER_ROOT_DIRECTORY = 'G:\\Python\\PacketLight Automation\\LightWatch_WEB\\Scripts\\SNMP\\LogFiles'
+LOGGER_DIRECTORY_NAME = "SNMPv2"
 LOG_FILE_NAME = 'SNMPv2.log'
 REPORT_PATH = None
 
@@ -612,7 +613,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
 
     with sync_playwright() as p:
-        logger = create_logger(LOGGER_ROOT_DIRECTORY, LOG_FILE_NAME)
+        logger = create_logger(LOGGER_ROOT_DIRECTORY, LOG_FILE_NAME, directory_name=LOGGER_DIRECTORY_NAME)
         report = open_report(path=REPORT_PATH)
 
         browser = p.chromium.launch(headless=False)

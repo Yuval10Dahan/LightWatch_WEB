@@ -1,0 +1,42 @@
+<div id="frame_general">
+  <table id="sys_restart_table" width="420" border="0" cellspacing="0" cellpadding="0">
+    <tbody><tr>
+    <td width="104" align="center" valign="middle"> 
+		<input type="image" src="/Brands/Main/Images/cold_restart.png" id="cold_restart" name="cold_restart" value="Cold Restart" onclick="document.maint_box_form.whichButton.value='cold_restart'">
+	</td>
+	
+    <td width="104" align="center" valign="middle">
+      <input type="image" src="/Brands/Main/Images/warm_restart.png" id="warm_restart" name="warm_restart" value="Warm Restart" onclick="document.maint_box_form.whichButton.value='warm_restart'">
+	</td>
+    
+	<td width="104" align="center" valign="middle">
+       <input type="image" src="/Brands/Main/Images/restart_factory.png" id="restart_factory" name="factory_restart" value="Restore to Factory Defaults" onclick="document.maint_box_form.whichButton.value='factory_restart'">
+	</td>
+	
+	<td width="104" align="center" valign="middle">
+       <input type="image" src="/Brands/Main/Images/shutdown.png" id="shutdown" name="shutdown" value="System Shutdown" onclick="document.maint_box_form.whichButton.value='shutdown'">
+	</td>
+	
+    </tr>
+	
+    <tr>
+      <td width="104" align="center" valign="middle" class="blu11">Cold <br>Restart</td>
+      <td width="104" align="center" valign="middle" class="blu11">Warm<br>Restart</td>
+      <td width="104" align="center" valign="middle" class="blu11">Restore to <br>Factory Defaults</td>
+      <td width="104" align="center" valign="middle" class="blu11">System<br>Shutdown</td>
+   </tr>
+  </tbody></table>
+<script>
+	document.getElementById('cold_restart').src = convertUrl('/Brands/Main/Images/cold_restart.png')
+	document.getElementById('warm_restart').src = convertUrl('/Brands/Main/Images/warm_restart.png')
+	document.getElementById('restart_factory').src = convertUrl('/Brands/Main/Images/restart_factory.png')
+	document.getElementById('shutdown').src = convertUrl('/Brands/Main/Images/shutdown.png')
+</script>
+  <input type="hidden" name="User" value="tech">
+  <input type="hidden" name="session" value="911">
+  <input type="hidden" name="whichButton">
+</div>
+
+
+
+<input type="image" src="/Brands/Main/Images/cold_restart.png" id="cold_restart" name="cold_restart" value="Cold Restart" onclick="document.maint_box_form.whichButton.value='cold_restart'">

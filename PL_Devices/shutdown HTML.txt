@@ -1,0 +1,3 @@
+<td width="104" align="center" valign="middle">
+       <input type="image" src="/Brands/Main/Images/shutdown.png" id="shutdown" name="shutdown" value="System Shutdown" onclick="document.maint_box_form.whichButton.value='shutdown'">
+	</td>

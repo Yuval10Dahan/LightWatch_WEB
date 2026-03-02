@@ -1,0 +1,4 @@
+<td width="104" align="center" valign="middle">
+      <input type="image" src="/Brands/Main/Images/warm_restart.png" id="warm_restart" name="warm_restart" value="Warm Restart" onclick="document.maint_box_form.whichButton.value='warm_restart'">
+	</td>
+

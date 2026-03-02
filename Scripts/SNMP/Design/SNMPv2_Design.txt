@@ -1,0 +1,103 @@
+Adjust the script 'SNMPv2.py' in Scripts -> SNMP,  by this steps:
+
+step 1: 
+click on 'Device Discovery'.
+
+step 2: 
+click on SNMPv2 and get the following values and store them: Read Community, Write Community, Admin Community, Contact Port.
+
+step 3: 
+fill new values under SNMPv2 section:
+IP - address = 172.16.20.113
+Read Community = 1
+Write Community = 1
+Admin Community = 1
+Contact Port = 1
+don't click on 'Start Discovery'
+
+step 4:
+click on 'Reset to Default' and after verify that all those values restored to be the values that stored on step 2.
+
+step 5:
+refresh the page.
+fill new values under SNMPv2 section:
+
+Read Community = read-only
+Write Community = read-write
+Admin Community = admin
+Contact Port = 161
+click on 'Save as Default'.
+logout from the GUI, login again, click on 'Device Discovery' and verify that
+Read Community = read-only
+Write Community = read-write
+Admin Community = admin
+Contact Port = 161
+By getting those values.
+
+step6:
+refresh the page
+fill new values under SNMPv2 section:
+IP - address = 172.16.20.113
+Read Community = admin
+Write Community = admin
+Admin Community = admin
+Contact Port = 161
+click on 'Start Discovery'
+refresh the page
+
+step 7:
+click on 'Management Map' page.
+show navigation info.
+check that 172.16.20.113 is inside navigation info.
+click on 172.16.20.113 element via the navigation info using 'navigation_info_open_element_details'. (it suppose to run smooth - if there is a problem it will raise from the function itself)
+
+
+step 8:
+login to the GUI of 172.16.20.113 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'
+verify that LW is in the SNMP_Traps table using the functions in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+
+step 9:
+refresh the page
+fill IP - address = 256.1.1.1
+check that it Invalid via 'is_ip_address_field_valid'
+
+step 10:
+refresh the page
+for loop on these values and check that these values are invalid via 'is_ip_address_field_valid'
+fill IP - address = a.1.1.1
+fill IP - address = 10.@.10.10
+fill IP - address = 10.10.&.10
+fill IP - address = 10.10.10.?
+
+step 11:
+refresh the page
+fill new values under SNMPv2 section:
+IP - address = 172.16.30.15
+Read Community = ! @  # $ % ^ &  *  (  )  +  = < > ? : " ; '
+Write Community = ! @  # $ % ^ &  *  (  )  +  = < > ? : " ; '
+Admin Community = ! @  # $ % ^ &  *  (  )  +  = < > ? : " ; '
+Contact Port = 161
+check that 'Start Discovery' is disabled via 'is_start_discovery_btn_enabled'
+
+
+step 12:
+refresh the page
+fill contact port = -1
+check that it Invalid via 'is_contact_port_field_valid'
+fill contact port = 65536
+check that it Invalid via 'is_contact_port_field_valid'
+
+step 13:
+refresh the page
+set the device 172.16.40.11 snmp protocol version to be "v3 only" using the function 'set_SNMP_protocol_version' in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+fill new values under SNMPv2 section:
+IP - address = 172.16.40.11
+Read Community = 1
+Write Community = 1
+Admin Community = 1
+Contact Port = 1
+click on 'Start Discovery'
+validate the device 172.16.40.11 is not in the SNMP Traps table in the 172.16.40.11 GUI, via 'manager_address_added_to_SNMP_traps' in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+
+
+collect if the each step passed, if one of them failed then say that the test failed, if all of them are pass then say that the test passed.
