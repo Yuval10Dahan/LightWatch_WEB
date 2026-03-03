@@ -8,6 +8,7 @@ from playwright.sync_api import Page, Frame, TimeoutError, expect
 import re
 from typing import List, Dict, Any, Optional
 from time import sleep, time
+from playwright.sync_api import Error as PlaywrightError
 
  
 class PL_SNMPPage:
@@ -76,6 +77,14 @@ class PL_SNMPPage:
 
         return False
     
+    def _safe_accept_dialog(self, d) -> None:
+        try:
+            d.accept()
+        except PlaywrightError:
+            # already handled by another handler -> ignore
+            pass
+        except Exception:
+            pass
     # ==========================================================
     # Actions
     # ==========================================================
@@ -192,7 +201,8 @@ class PL_SNMPPage:
                 # Selenium had: handle alert, else refresh screen and retry
                 # Playwright doesn't have the same exception class here, so we do best-effort:
                 try:
-                    self.page.on("dialog", lambda d: d.accept())
+                    # self.page.on("dialog", lambda d: d.accept())
+                    self.page.once("dialog", self._safe_accept_dialog)
                 except Exception:
                     pass
 
@@ -317,7 +327,8 @@ class PL_SNMPPage:
 
         def accept_any_dialog() -> None:
             try:
-                self.page.once("dialog", lambda d: d.accept())
+                # self.page.once("dialog", lambda d: d.accept())
+                self.page.once("dialog", self._safe_accept_dialog)
             except Exception:
                 pass
 
@@ -470,6 +481,282 @@ class PL_SNMPPage:
                 return True
         return False
     
+    # ✅
+    def Add_Trap_Manager(self, IP: str | None = None, SNMP_Version: str | None = None, V3_User: str | None = None,
+        Trap_Port: str | int | None = None, Negative_Test: bool = False, Action_Dismiss: bool = False,
+        Retries: int = 3, timeout: int = 10_000):
+        """
+        Add SNMP Trap Manager entry.
+
+        Returns:
+            - None                         -> invalid IP (only if Negative_Test=False)
+            - (success: bool, msg: str)    -> message is last dialog message captured (if any)
+
+        Notes:
+            - Uses the SNMP traps table form fields:
+              ip_address, snmp_version, community, trap_port, snmp_add
+        """
+
+        NON_FIPS = "You are enabling a non FIPS-compliant protocol!"
+        PRIV_WARN = "Not enough privileges"
+        CONFIRM = "Are you sure?"
+        DUPLICATE = "Duplicate Manager Entry"
+        ILLEGAL = "SNMP Illegal Port Number!"
+        SPECIAL = "is a special IP address and cannot be used here."
+        NOT_VALID = "is not a valid IP address."
+
+        ip_str = (IP or "").strip()
+        if not Negative_Test:
+            ip_ok = re.match(
+                r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+                ip_str,
+            )
+            if not ip_ok:
+                print("Invalid IP")
+                return None
+
+        def cfg_frame() -> Frame:
+            fr = self.page.frame(name="config_sys")
+            if fr is None:
+                raise AssertionError("config_sys frame not found (SNMP page not loaded)")
+            return fr
+
+        def drain_dialogs(max_dialogs: int = 4, per_dialog_timeout: int = 3000) -> list[str]:
+            """
+            Collect sequential JS dialogs (alerts/confirms).
+            Returns list of dialog messages in the order they appeared.
+            """
+            msgs: list[str] = []
+            for _ in range(max_dialogs):
+                try:
+                    d = self.page.wait_for_event("dialog", timeout=per_dialog_timeout)
+                except Exception:
+                    break
+
+                msg = (d.message or "").strip()
+                msgs.append(msg)
+
+                # --- behavior mapping (based on your Selenium logic) ---
+                if msg == NON_FIPS:
+                    d.accept()
+                    continue
+
+                if msg == PRIV_WARN:
+                    d.accept()
+                    # Selenium refreshed after this
+                    continue
+
+                if msg == ILLEGAL or (SPECIAL in msg) or (NOT_VALID in msg) or (msg == DUPLICATE):
+                    d.accept()
+                    continue
+
+                if msg == CONFIRM:
+                    if Action_Dismiss:
+                        d.dismiss()
+                    else:
+                        d.accept()
+                    continue
+
+                # default: accept to avoid blocking the run
+                try:
+                    d.accept()
+                except Exception:
+                    pass
+
+            return msgs
+
+        for _ in range(Retries):
+            try:
+                ok = self.open_SNMP_tab(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("open_SNMP_tab failed")
+
+                fr = cfg_frame()
+
+                table = fr.locator("table#snmp_trap_table").first
+                sleep(3)
+                expect(table).to_be_visible(timeout=timeout)
+
+                ip_field = fr.locator("input[name='ip_address']").first
+                sleep(3)
+                expect(ip_field).to_be_visible(timeout=timeout)
+                ip_field.fill(ip_str)
+
+                # Handle dialogs that might appear when changing SNMP version (e.g., NON_FIPS)
+                if SNMP_Version:
+                    ver_dd = fr.locator("select[name='snmp_version']").first
+                    sleep(3)
+                    expect(ver_dd).to_be_visible(timeout=timeout)
+
+                    # Attach version selection
+                    ver_dd.select_option(label=SNMP_Version)
+                    # If selecting v1 triggers NON_FIPS, it will appear as dialog
+                    _ = drain_dialogs(max_dialogs=1, per_dialog_timeout=1500)
+
+                # SNMP v3 user is in select[name='community'] (disabled unless v3 is selected)
+                if (SNMP_Version == "SNMP v3") and V3_User:
+                    v3_dd = fr.locator("select[name='community']").first
+                    sleep(3)
+                    expect(v3_dd).to_be_visible(timeout=timeout)
+                    # wait until enabled (not disabled)
+                    try:
+                        fr.wait_for_function(
+                            "() => { const el=document.querySelector(\"select[name='community']\"); return !!el && !el.disabled; }",
+                            timeout=timeout,
+                        )
+                    except Exception:
+                        # if still disabled, selection will fail and go to retry
+                        pass
+                    v3_dd.select_option(label=V3_User)
+
+                if Trap_Port is not None:
+                    port_field = fr.locator("input[name='trap_port']").first
+                    sleep(3)
+                    expect(port_field).to_be_visible(timeout=timeout)
+                    port_field.fill(str(Trap_Port))
+
+                add_btn = fr.locator("input[name='snmp_add'][type='submit']").first
+                sleep(3)
+                expect(add_btn).to_be_visible(timeout=timeout)
+
+                # Click Add -> triggers confirm/alerts
+                add_btn.click(force=True)
+
+                msgs = drain_dialogs(max_dialogs=4, per_dialog_timeout=4000)
+                last_msg = msgs[-1] if msgs else ""
+
+                # Decide success similar to your Selenium flow
+                success = False
+                if not msgs:
+                    # No dialogs => best-effort assume success (UI sometimes doesn't alert)
+                    success = True
+                else:
+                    # If privilege warning or illegal/invalid/duplicate => fail
+                    if any(m == PRIV_WARN for m in msgs):
+                        success = False
+                    elif any(m == ILLEGAL for m in msgs):
+                        success = False
+                    elif any(m == DUPLICATE for m in msgs):
+                        success = False
+                    elif any((SPECIAL in m) or (NOT_VALID in m) for m in msgs):
+                        success = False
+                    elif any(m == CONFIRM for m in msgs):
+                        # If dismissed -> Selenium considered it success=True
+                        if Action_Dismiss:
+                            success = True
+                        else:
+                            # confirmed and no duplicate after => success
+                            success = not any(m == DUPLICATE for m in msgs)
+                    else:
+                        # NON_FIPS only, or unknown => best effort
+                        success = True
+
+                # Refresh like your Selenium does
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    pass
+
+                return success, last_msg
+
+            except Exception:
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    pass
+                continue
+
+        return False, ""
+
+    # ✅
+    def Delete_Trap_Manager_eq_IP(self, IP: str, Retries: int = 5, timeout: int = 10_000) -> bool:
+        """
+        Delete a Trap Manager row where Manager Address == IP.
+
+        Returns:
+            True  -> deleted
+            False -> not found / failed
+        """
+        sleep(5)
+        target = (IP or "").strip()
+        if not target:
+            raise ValueError("IP is empty")
+
+        def cfg_frame() -> Frame:
+            fr = self.page.frame(name="config_sys")
+            if fr is None:
+                raise AssertionError("config_sys frame not found (SNMP page not loaded)")
+            return fr
+
+        def safe_accept_dialog(d) -> None:
+            try:
+                d.accept()
+            except PlaywrightError:
+                # Dialog already handled somewhere else
+                pass
+            except Exception:
+                pass
+
+        def wait_table_visible(fr: Frame) -> None:
+            table = fr.locator("table#snmp_trap_table").first
+            sleep(3)
+            expect(table).to_be_visible(timeout=timeout)
+
+        for _ in range(Retries):
+            try:
+                ok = self.open_SNMP_tab(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("open_SNMP_tab failed")
+
+                fr = cfg_frame()
+                wait_table_visible(fr)
+
+                # Find the row that has a td with exact text equal to target
+                row = fr.locator(f"table#snmp_trap_table tr:has(td:text-is('{target}'))").first
+                sleep(3)
+                if row.count() == 0:
+                    return False
+
+                del_btn = row.locator("input[name^='snmp_del'][value='Delete']").first
+                sleep(3)
+                expect(del_btn).to_be_visible(timeout=timeout)
+
+                # Prepare to accept confirm dialog (confirmManager())
+                self.page.once("dialog", safe_accept_dialog)
+
+                # Click delete (this submits the form inside the frame)
+                sleep(3)
+                del_btn.click(force=True)
+
+                # Wait for the frame content to stabilize again.
+                # Sometimes frame reloads / rerenders, so re-grab it and wait for the table.
+                fr = cfg_frame()
+                wait_table_visible(fr)
+
+                # Verify row is gone
+                sleep(3)
+                still_exists = fr.locator(
+                    f"table#snmp_trap_table tr:has(td:text-is('{target}'))"
+                ).count() > 0
+
+                # Optional: refresh via your helper
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    pass
+
+                return not still_exists
+
+            except Exception:
+                # On any flakiness, try refresh and retry
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    pass
+                continue
+
+        return False
+
     # ✅
     def click_reload_button(self) -> bool:
         """

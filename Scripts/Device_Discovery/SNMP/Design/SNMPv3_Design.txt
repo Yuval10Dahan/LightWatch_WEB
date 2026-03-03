@@ -1,0 +1,208 @@
+Adjust the script 'SNMPv3.py'by this steps:
+
+step 1: 
+click on 'Device Discovery'.
+
+step 2: 
+click on SNMPv3 and get the following values and store them: User Name, Security Level, Contact Port.
+
+step 3: 
+fill new values under SNMPv3 section:
+IP - address = 172.16.30.15
+User Name = Barca
+Security Level = Authentication, No Privacy
+Authentication Protocol: SHA-1
+Authentication Password: 1
+Contact Port = 1
+don't click on 'Start Discovery'
+
+step 4:
+click on 'Reset to Default' and after verify that all those values restored to be the values that stored on step 2.
+
+step 5:
+refresh the page.
+fill new values under SNMPv3 section:
+User Name = Barca
+Security Level = Authentication, No Privacy
+Authentication Protocol: SHA-1
+Authentication Password: 1
+Contact Port = 1
+click on 'Save as Default'.
+logout from the GUI, login again, click on 'Device Discovery' and verify that
+User Name = Barca
+Security Level = Authentication, No Privacy
+Authentication Protocol: SHA-1
+Authentication Password: 1
+Contact Port = 1
+By getting those values.
+
+
+================================
+
+***********************
+
+step6:
+refresh the page
+fill new values under SNMPv3 section:
+IP - address = 172.16.30.15
+User Name = admin
+Security Level = No Authentication, No Privacy
+Contact Port = 161
+click on 'Start Discovery'
+refresh the page
+
+
+step 7:
+click on 'Management Map' page.
+show navigation info.
+check that 172.16.30.15 is inside navigation info.
+click on 172.16.30.15 element via the navigation info using 'navigation_info_open_element_details'. (it suppose to run smooth - if there is a problem it will raise from the function itself)
+
+
+step 8:
+refresh the page
+login to the GUI of 172.16.30.15 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'
+verify that LW is in the SNMP_Traps table using the functions in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+
+
+step 9:
+refresh the page
+check the SNMPv3 parameters of 172.16.30.15 via 'return_user_parameters' in 'PL_Devices -> PL_Pages -> PL_security_page'.
+verify that they are:
+User Name = admin
+Permission = Administrator
+SNMPv3 Auth = No Auth
+SNMPv3 Priv = No Priv
+
+
+step 10:
+login to the GUI of 172.16.30.15 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'
+add new user via 'add_new_user' in 'PL_Devices -> PL_Pages -> PL_security_page' with the following parameters:
+user_name = Yuval
+permission = Administrator
+password = Z@qqaz$$2
+verify_password = Z@qqaz$$2
+snmpv3_auth = SHA1
+snmpv3_priv = No Priv
+
+***********************
+
+step 11:
+refresh the page
+fill new values under SNMPv3 section:
+IP - address = 172.16.20.113
+User Name = Yuval
+Security Level = Authentication, No Privacy
+Authentication Protocol = SHA-1
+Authentication Password = Z@qqaz$$2
+Contact Port = 161
+click on 'Start Discovery'
+refresh the page
+
+step 12:
+click on 'Management Map' page.
+show navigation info.
+check that 172.16.20.113 is inside navigation info.
+click on 172.16.20.113 element via the navigation info using 'navigation_info_open_element_details'. (it suppose to run smooth - if there is a problem it will raise from the function itself)
+
+
+step 13:
+refresh the page
+login to the GUI of 172.16.20.113 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'
+verify that LW is in the SNMP_Traps table using the functions in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+
+step 14:
+refresh the page
+check the SNMPv3 parameters of 172.16.20.113 via 'return_user_parameters' in 'PL_Devices -> PL_Pages -> PL_security_page'.
+verify that they are:
+User Name = Yuval
+Permission = Administrator
+SNMPv3 Auth = SHA1
+SNMPv3 Priv = No Priv
+
+step 15:
+login to the GUI of 172.16.40.21 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'
+add new user via 'add_new_user' in 'PL_Devices -> PL_Pages -> PL_security_page' with the following parameters:
+user_name = Alpha
+permission = Administrator
+password = Z@qqaz$$2
+verify_password = Z@qqaz$$2
+snmpv3_auth = SHA1
+snmpv3_priv = AES-128
+
+***********************
+
+step 16:
+refresh the page
+fill new values under SNMPv3 section:
+IP - address = 172.16.40.21
+User Name = Yuval
+Security Level = Authentication, Privacy
+Authentication Protocol = SHA-1
+Authentication Password = Z@qqaz$$2
+Privacy Protocol = AES-128
+Pryvacy Password = Z@qqaz$$2
+Contact Port = 161
+click on 'Start Discovery'
+refresh the page
+
+step 17:
+click on 'Management Map' page.
+show navigation info.
+check that 172.16.40.21 is inside navigation info.
+click on 172.16.40.21 element via the navigation info using 'navigation_info_open_element_details'. (it suppose to run smooth - if there is a problem it will raise from the function itself)
+
+
+step 18:
+refresh the page
+login to the GUI of 172.16.40.21 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'
+verify that LW is in the SNMP_Traps table using the functions in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+
+step 19:
+refresh the page
+check the SNMPv3 parameters of 172.16.40.21 via 'return_user_parameters' in 'PL_Devices -> PL_Pages -> PL_security_page'.
+verify that they are:
+User Name = Yuval
+Permission = Administrator
+SNMPv3 Auth = SHA-1
+SNMPv3 Priv = AES-128
+
+***********************
+
+step 20:
+remove devices 172.16.30.15, 172.16.20.113, 172.16.40.21, 172.16.20.111 from LW via domain_management.remove_device
+
+step 21:
+apply factory defaults to the devices: 172.16.30.15, 172.16.20.113, 172.16.40.21, 172.16.20.111 via 'SNMP_Modules' -> 'SNMP_Functions' -> 'SNMP_Device_Reset'.
+wait for each device to be up before you finish this step via 'Utilities' -> 'General_Utils' -> 'Device_Is_Up'.
+
+step 23:
+repeat on steps 16-19 on combinations from these lists:
+Authentication_Protocol = [SHA-1, SHA-256, SHA-384, SHA-512]
+Privacy_Protocol = [AES-128, AES-192, AES-256]
+pay attention that SHA-1 <-> AES-128 we already did in steps 16-19. (so it suppose to be 11 repeatiotions)
+each repeatition needs to go to different device, for example:
+rep 1: 172.16.30.15
+rep 2: 172.16.20.113
+rep 3: 172.16.40.21
+rep 4: 172.16.20.111
+step 20 again to reset all the devices.
+
+rep 5: 172.16.30.15
+rep 6: 172.16.20.113
+rep 7: 172.16.40.21
+rep 8: 172.16.20.111
+step 20 again to reset all the devices.
+
+rep 9: 172.16.30.15
+rep 10: 172.16.20.113
+rep 11: 172.16.40.21
+
+step 23:
+refresh the page
+click on SNMPv3.
+for loop on these values and check that these values are invalid via 'is_ip_address_field_valid'
+fill IP - address = a.1.1.1
+fill IP - address = 10.@.10.10
+fill IP - address = 10.10.&.10
+fill IP - address = 10.10.10.?

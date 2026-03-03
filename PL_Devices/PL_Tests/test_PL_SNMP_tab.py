@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright, expect
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_SNMP_page import PL_SNMPPage
 
+
 # NOTE: adjust to your device / environment
 SERVER_HOST_IP = "172.16.30.15"
 BASE_URL = f"http://{SERVER_HOST_IP}/"
@@ -88,6 +89,17 @@ def test_PL_SNMP_tab(page):
         print(f"Address found: {ok}")
 
     run_step(5, "PL SNMP: open SNMP tab (idempotent)", step_5)
+
+    # ---------------------------------------
+    # Step 6: Add SNMP Trap and delete it
+    # ---------------------------------------
+    def step_6():
+        success, last_msg = snmp.Add_Trap_Manager("172.16.10.22", "SNMP v2c")
+        print(f"success: {success}, last_msg: {last_msg}")
+        is_deleted = snmp.Delete_Trap_Manager_eq_IP("172.16.10.22")
+        print(f"Deleted: {is_deleted}")
+
+    run_step(6, "PL SNMP: open SNMP tab (idempotent)", step_6)
 
     # Cleanup: logout (best-effort)
     try:

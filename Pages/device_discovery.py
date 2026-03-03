@@ -65,6 +65,7 @@ class DeviceDiscovery:
         Return the device discovery container.
         """
         container = self.page.locator("div.device-discovery-container").first
+        sleep(3)
         if container.count() == 0:
             raise AssertionError("DeviceDiscovery: container not found (div.device-discovery-container).")
         return container
@@ -408,6 +409,7 @@ class DeviceDiscovery:
         """
         ts = self.protocol_tabset()
         pane = ts.locator("div.tab-content tab.active.tab-pane").first
+        sleep(3)
         if pane.count() == 0:
             raise AssertionError("DeviceDiscovery: active tab pane not found.")
         return pane
@@ -719,7 +721,7 @@ class DeviceDiscovery:
 
             # 1) Wrapper error class (RED FIELD)
             wrapper = port.locator("div.input-wrapper").first
-            sleep(2)
+            sleep(3)
 
             if wrapper.count() > 0:
                 cls = (wrapper.get_attribute("class") or "").lower()
@@ -728,7 +730,7 @@ class DeviceDiscovery:
 
             # 2) Invalid "!" icon
             invalid_icon = port.locator("div.error-icon app-icon[name='input-field-invalid']").first
-            sleep(2)
+            sleep(3)
 
             if invalid_icon.count() > 0:
                 try:

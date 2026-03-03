@@ -1,0 +1,14 @@
+    {
+    'LW_SERVER_HOST_IP': '172.16.10.22:8080',
+    'LW_USERNAME': 'administrator',
+    'LW_PASSWORD': 'administrator',
+    'DEVICE_IP': '172.16.20.113',
+    'DEVICE_IP_USER': 'tech',
+    'DEVICE_IP_PASS': 'packetlight',
+    'BLOCKED_DEVICE_IP': '172.16.40.11',
+    'TEST_DEVICE_IP': '172.16.30.15',
+    'INVALID_IP_ADDRESS': '256.1.1.1',
+    'READ_COMMUNITY': 'read-only',
+    'WRITE_COMMUNITY': 'read-write',
+    'ADMIN_COMMUNITY': 'admin'
+     }

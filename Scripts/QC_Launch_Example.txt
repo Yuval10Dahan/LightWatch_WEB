@@ -1,0 +1,209 @@
+# Parameters:
+
+
+G:\Python\PacketLight Automation\LightWatch_WEB\Scripts\SNMP\ParametersFiles\SNMPv2_Parameters.txt
+
+
+
+# VBScript for QC TEST SCRIPT:
+
+' vb [VBScript]
+' Created by Ticomsoft
+' 07/2018
+' ====================================================
+
+
+' ----------------------------------------------------
+' Main Test Function
+' Debug - Boolean. Equals to false if running in [Test Mode] : reporting to Quality Center
+' CurrentTestSet - [OTA COM Library].TestSet.
+' CurrentTSTest - [OTA COM Library].TSTest.
+' CurrentRun - [OTA COM Library].Run.
+' ----------------------------------------------------
+Sub Test_Main(Debug, CurrentTestSet, CurrentTSTest, CurrentRun)
+  ' *** VBScript Limitation ! ***
+  ' "On Error Resume Next" statement suppresses run-time script errors.
+  ' To handle run-time error in a right way, you need to put "If Err.Number <> 0 Then"
+  ' after each line of code that can cause such a run-time error.
+  On Error Resume Next
+
+  ' variable pythonPath holds the path to the python script to execute
+  ' NOTE! make sure to change the path for each test
+ pythonPath = "G:\Python\PacketLight Automation\LightWatch_WEB\Scripts\SNMP\PythonScripts\SNMPv2.py"
+  'parameterFilePath = "G:\Python\PacketLight Automation\Test_Cases\General Tests\APS Tests\Parameters Files\SwitchCommandTestsG412_PL2000ADS.txt"
+  parameterFilePath =  CurrentTSTest.Field("TC_USER_02")
+
+  ' clear output window
+  TDOutput.Clear
+  TDOutput.Print "Starting run of Python script VAPI wrapper"
+
+  ' delete the attachments folder (%temp%\TD_80\PythonAttachments)
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  attachmentsPath = fso.GetSpecialFolder(2) & "\TD_80\PythonAttachments"
+  if fso.FolderExists(attachmentsPath) then
+    fso.DeleteFolder attachmentsPath, true
+  end if
+
+  TDOutput.Print "Running python script " & pythonPath
+
+  ' Running the python script
+  projectRoot = "G:\Python\PacketLight Automation\LightWatch_WEB"
+  pythonExe   = "G:\Python\.venv_LW_QC_launch\Scripts\python.exe"
+  cmd = "cmd /c cd /d """ & projectRoot & """ && """ & pythonExe & """ """ & pythonPath & """ """ & parameterFilePath & """"
+  result = XTools.run ("cmd.exe", cmd)
+  'result = XTools.run ("py.exe", """" & pythonPath & """")
+  If Err.Number <> 0 Then
+    ' Script failed to run. Mark run as failed
+    TDOutput.Print "Run-time error when running python script [" & Err.Number & "] : " & Err.Description
+    If Not Debug Then
+      CurrentRun.Status = "Failed"
+      CurrentTSTest.Status = "Failed"
+    End If
+    exit sub
+  end if
+
+  TDOutput.Print "Return value of python script is " & result
+  If result <> 0 Then
+    ' script returned an error code. Write script output to run comments and mark it failed
+    TDOutput.Print "Python script ended with errors!"
+    If Not Debug Then
+
+      CurrentRun.Status = "Failed"
+      CurrentTSTest.Status = "Failed"
+      CurrentRun.Field("RN_COMMENTS") = "<html><body>This is an automatic run of Python script " & _
+        pythonPath & "<br/>Error executing script, return value: " & result & _
+        "<br/>" & TDOutput.Text & "</body></html>"
+    End If
+    exit sub
+  end if
+
+  ' Script succeeded. First put in run comments script path information
+  if not Debug then
+    CurrentRun.Field("RN_COMMENTS") = "This is an automatic run of Python script " & pythonPath
+  end if
+
+  ' Open script result file (%temp%\TD_80\output.txt)
+  set resFile = fso.OpenTextFile(fso.GetSpecialFolder(2) & "\TD_80\output.txt")
+  If Err.Number <> 0 Then
+    ' Reading result file failed. Write error information to run comments
+    errorStr = "Run-time error reading result file [" & Err.Number & "] : " & Err.Description
+    TDOutput.Print errorStr
+    If Not Debug Then
+      CurrentRun.Status = "Failed"
+      CurrentTSTest.Status = "Failed"
+      CurrentRun.Field("RN_COMMENTS") = "<html><body>" & CurrentRun.Field("RN_COMMENTS") & _
+        "<br/>" & errorStr & "</body></html>"
+    End If
+    exit sub
+  end if
+
+  if not Debug then
+    ' Get all steps from run (run steps were copied from test plan module)
+    set allSteps = CurrentRun.StepFactory.NewList ("")
+    TDOutput.Print "Found " & allSteps.Count & " steps in this test"
+    If Err.Number <> 0 Then
+          ' Failed to get run steps
+      TDOutput.Print "Run-time error reading run steps [" & Err.Number & "] : " & Err.Description
+      If Not Debug Then
+        CurrentRun.Status = "Failed"
+        CurrentTSTest.Status = "Failed"
+      End If
+      exit sub
+    end if
+  else
+    ' In debug run print result file content to output
+    TDOutput.Print "Result file content is:"
+    do until resFile.AtEndOfStream
+      TDOutput.Print resFile.Readline
+    loop
+    exit sub
+  end if
+
+  i = 1
+  for each myStep in allSteps
+    if resFile.AtEndOfStream then
+          ' There are more steps in run than lines in result file
+      TDOutput.Print "Result file does not contain result line for step " & i
+      lineParts = ""
+    else
+      line = resFile.Readline
+      lineParts = Split(line, ";")
+    end if
+    if ubound(lineParts) > -1 then
+          ' Update run step status according to value in result file
+      myStep.Status = lineParts(0)
+      TDOutput.Print "Updating step "  & i & " with status " & lineParts(0)
+      if ubound(lineParts) > 0 then
+            ' Update run step actual value according to result file
+        TDOutput.Print "Updating actual value " & lineParts(1)
+        myStep.Field("ST_ACTUAL") = lineParts(1)
+      else
+        TDOutput.Print "No actual value found for this step"
+      end if
+    else
+       TDOutput.Print "No results found for this step"
+    end if
+    myStep.Post
+
+    i = i + 1
+  next
+
+  if not resFile.AtEndOfStream then
+    ' There are more lines in result file than steps in run
+    TDOutput.Print "Found more result lines than run steps. Following data NOT updated to run"
+    if not debug then
+          ' Update the redundant lines to run comments
+      commentsStr = "<html><body>" & CurrentRun.Field("RN_COMMENTS") & _
+          "<br/>Result file contains the following redundant lines:<br/>"
+    end if
+    do until resFile.AtEndOfStream
+      line = resFile.Readline
+      TDOutput.Print line
+      if not debug then
+        commentsStr = commentsStr & line & "<br/>"
+      end if
+    loop
+    commentsStr = commentsStr & "</body></html>"
+    CurrentRun.Field("RN_COMMENTS") = commentsStr
+  end if
+
+  resFile.close
+
+  If Not Debug Then
+    CurrentRun.Post
+  End If
+
+  ' handle run-time errors
+  If Err.Number <> 0 Then
+    TDOutput.Print "Run-time error [" & Err.Number & "] : " & Err.Description
+    ' update execution status in "Test" mode
+    If Not Debug Then
+      CurrentRun.Status = "Failed"
+      CurrentTSTest.Status = "Failed"
+    End If
+  End If
+
+  ' Upload attachments from script attachments folder to the run
+  if fso.FolderExists(attachmentsPath) then
+          set attFact = CurrentRun.Attachments
+          set attFolder = fso.GetFolder(attachmentsPath)
+          set folderFiles = attFolder.Files
+          for each attFile in folderFiles
+                TDOutput.Print "adding attachment " & attFile.Name
+                set newAtt = attFact.AddItem( null )
+                newAtt.FileName = attFile.Path
+                newAtt.Type = 1
+                newAtt.Post
+                If Err.Number <> 0 Then
+                        ' Failed to get run steps
+                        errorStr = "Run-time error uploading attachment [" & Err.Number & "] : " & Err.Description
+                        TDOutput.Print errorStr
+                        CurrentRun.Field("RN_COMMENTS") = "<html><body>" & CurrentRun.Field("RN_COMMENTS") & _
+                                "<br/>" & errorStr & "</body></html>"
+                        CurrentRun.Post
+                        exit sub
+                end if
+          next
+  End If
+
+End Sub

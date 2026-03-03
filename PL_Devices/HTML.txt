@@ -1,166 +1,61 @@
-<html xmlns="http://www.w3.org/1999/xhtml" style="--bg_02: url(/Brands/Main/Images/bg_02.jpg); --bg_box: url(/Brands/Main/Images/bg_box.png); --bg_box1: url(/Brands/Main/Images/bg_box1.png); --bg_box_4000m: url(/Brands/Main/Images/bg_box_4000m.png); --bg_box_4000m_qsfpdd: url(/Brands/Main/Images/bg_box_4000m_qsfpdd.png); --frame_config: url(/Brands/Main/Images/frame_config.png); --frame_general: url(/Brands/Main/Images/frame_general.png); --bg_vertical_menu: url(/Brands/Main/Images/bg_vertical_menu.png); --bg_vertical_menu_active: url(/Brands/Main/Images/bg_vertical_menu_active.png); --bg_logout: url(/Brands/Main/Images/bg_logout.png); --bg_GeneralButton: url(/Brands/Main/Images/bg_GeneralButton.png); --bg_GeneralButton_disabled: url(/Brands/Main/Images/bg_GeneralButton_disabled.png); --bg_GeneralButton_active: url(/Brands/Main/Images/bg_GeneralButton_active.png); --bg_ALL: url(/Brands/Main/Images/bg_ALL.png); --bg_ALL_disabled: url(/Brands/Main/Images/bg_ALL_disabled.png); --bg_ALL_active: url(/Brands/Main/Images/bg_ALL_active.png); --bg_Ethernet: url(/Brands/Main/Images/bg_Ethernet.png); --bg_Ethernet_disabled: url(/Brands/Main/Images/bg_Ethernet_disabled.png); --bg_Ethernet_active: url(/Brands/Main/Images/bg_Ethernet_active.png); --bg_ExtendedButton: url(/Brands/Main/Images/bg_ExtendedButton.png); --bg_ExtendedButton_disabled: url(/Brands/Main/Images/bg_ExtendedButton_disabled.png); --bg_ExtendedButton_active: url(/Brands/Main/Images/bg_ExtendedButton_active.png); --bg_PortButton: url(/Brands/Main/Images/bg_PortButton.png); --bg_PortButton_disabled: url(/Brands/Main/Images/bg_PortButton_disabled.png); --bg_PortButton_active: url(/Brands/Main/Images/bg_PortButton_active.png); --bg_PannelButton: url(/Brands/Main/Images/bg_PannelButton.png); --bg_PannelButton_disabled: url(/Brands/Main/Images/bg_PannelButton_disabled.png); --bg_PannelButton_active: url(/Brands/Main/Images/bg_PannelButton_active.png); --bg_tab_02: url(/Brands/Main/Images/bg_tab_02.png); --bg_tab_01: url(/Brands/Main/Images/bg_tab_01.jpg); --bg_aps: url(/Brands/Main/Images/bg_aps.png); --but_aplly: url(/Brands/Main/Images/but_aplly.png); --bg_button_prov: url(/Brands/Main/Images/bg_button_prov.png); --restart_bg_bottom: url(/Brands/Main/Images/restart_bg_bottom.png); --bg_delete: url(/Brands/Main/Images/bg_delete.png); --bg_tr_line: url(/Brands/Main/Images/bg_tr_line.jpg); --bg_title_44h: url(/Brands/Main/Images/bg_title_44h.png); --border_table: url(/Brands/Main/Images/border_table.png); --bg_tab_04: url(/Brands/Main/Images/bg_tab_04.png); --bg_tab_04-04: url(/Brands/Main/Images/bg_tab_04-04.png); --frame_grey: url(/Brands/Main/Images/frame_grey.png); --frame_grey_large: url(/Brands/Main/Images/frame_grey_large.png); --frame_333_239: url(/Brands/Main/Images/frame_333_239.png); --frame_333_284: url(/Brands/Main/Images/frame_333_284.png); --frame_cfp_comp: url(/Brands/Main/Images/frame_cfp_comp.png); --frame_333_130: url(/Brands/Main/Images/frame_333_130.png); --frame_333_35: url(/Brands/Main/Images/frame_333_35.png); --version_down_title: url(/Brands/Main/Images/version_down_title.png); --version_down: url(/Brands/Main/Images/version_down.png); --refresh_stop: url(/Brands/Main/Images/refresh_stop.png); --bg_green_but: url(/Brands/Main/Images/bg_green_but.png); --bg_but_grey_59: url(/Brands/Main/Images/bg_but_grey_59.png); --refresh_start: url(/Brands/Main/Images/refresh_start.png); --bg_date: url(/Brands/Main/Images/bg_date.png);"><head><style>body {transition: opacity ease-in 0.2s; } 
-body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
-</style>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" type="text/css" href="/Brands/Main/Main.css">
-
-<script>var db_authorization='admin';var db_user='tech';var db_cookie='-goahead-session-=::webs.session::c2bc79ea4ef39bcf9664af3f6cfe804f'</script>
-<script>
-function parseUrl() 
-{
-     // Get the query string
-     href = location.href.split('#')[0]
-     location.url = /\?.+/.exec(href)
-
-     // create the url array
-     location.url = location.url?(location.url[0].substring(1).split('&')):[];
-
-     // loop over the tag pairs
-     for (var i=0,len=location.url.length;i<len;i++)
-	 {
-	 	if(unescape(location.url[i]).indexOf('<') != -1 || unescape(location.url[i]).indexOf('>') != -1)
-	 		continue;	// CSRF prevention
-	 	if(unescape(location.url[i]).indexOf('(') != -1 || unescape(location.url[i]).indexOf(')') != -1)
-	 		continue;	// CSRF prevention
-       var nameValuePair = location.url[i].split(/=(.*)/);
-       location.url[nameValuePair[0]]=unescape(nameValuePair[1]);
-       // document.write(nameValuePair[0]+' '+nameValuePair[1]+'<br>'); 
-    }
-}
-
-function convertUrl(url)
-{
-	parseUrl()
-	if(location.url.wlUserLabel == undefined) return url
-	if(url.indexOf('?') == -1)
-		url = url + '?'
-	else
-		url = url + '&'
-	return url + 'wlUserLabel=' + location.url.wlUserLabel + '&wlCookie=' + location.url.wlCookie + '&wlneCookie=' + db_cookie
-}
-
-function loadScript(url)
-{
-	url += '?v=181125'
-	document.write('\x3Cscript src=' + convertUrl(url) + '>\x3C/script>')
-}
-
-loadScript('/Scripts/cookie.js')
-loadScript('/Scripts/defs.js')
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-</script><script src="/Scripts/cookie.js?v=181125"></script><script src="/Scripts/defs.js?v=181125"></script><script src="/Scripts/defs2.js?v=181125"></script>
-
-
-<script>
-
-/* set active style sheet according to OEM */
-DB_set("db_oem", "0")
-setActiveStyle();
-overrideActiveStyle()
-
-if(true) {	
-	DB_set('refreshPressed',  false)
-
-	window.addEventListener('beforeunload', function (e) {
-		var refreshPressed = DB_get('refreshPressed') == 'true'
-//		console.log('beforeunload',refreshPressed)
-		if(!e) e = window.event
-		if(!refreshPressed) {
-	        // e.preventDefault()			// needed for firefox
-	        // e.stopPropagation()
-	        // e.returnValue = null		// comment out so no dialog in chrome
-	        postLogout()
-	        // make some stupid delay so logout is done
-	        for(i=0; i<1000000; i++) document.write(i)
-	    }
-	    return null //  false
-	}, {capture: true});    
-}
-
-function load()
-{
-	sysObjectId = "1.3.6.1.4.1.4515.100.1.2400.3"
-	setEnv(sysObjectId, 0)
+<form name="snmpConfig" method="POST" action="goform/formSnmpConfig" onsubmit="return checkLogin() &amp;&amp; confirmManager()"><input type="hidden" name="CSRF" value="eEfUGx@M1kCwXXZEQE2zydFkORg=">
+  <table id="snmp_trap_table" width="520" border="0" cellpadding="0" cellspacing="0" bordercolor="#959996">
+    <tbody><tr class="title_tr">
+      <td height="27" class="tr_border3 tr_border2">Manager Address</td>
+      <td height="27" class="tr_border2 tr_border3">SNMP Version</td>
+  <script>
+  	if(encryptionCapability)
+      document.write('<td height="27" class="tr_border2 tr_border3">v3 User</td>')
+  </script><td height="27" class="tr_border2 tr_border3">v3 User</td>
+      <td height="27" class="tr_border2 tr_border3">Trap Port</td>
+      <td height="27" class="tr_border2 tr_border3 tr_border1">Action</td>
+    </tr>
 	
-	document.title = slEntPhysicalDescr("PL-2000ADS")+ ": " + location.hostname;
-	var slmSysChassisId = "14"
-	if(slmSysChassisId != 0)
-		document.title += ' Ch. ' + slmSysChassisId
-	var slChassisInfoNodeSlotId = "0"
-	if(slChassisInfoNodeSlotId != 0)
-		document.title += '/' + slChassisInfoNodeSlotId
+	<script>slmTrapDestEntry("10.30.2.20##2#162#1$172.16.10.2##2#162#1$172.16.10.22##2#162#1$")</script><tr><td align="center" class="tr_border2 tr_border3 blu12">10.30.2.20</td><td align="center" class="tr_border2 tr_border3 blu12">SNMP v2c</td><td align="center" class="tr_border2 tr_border3 blu12"></td><td align="center" class="tr_border2 tr_border3 blu12">162</td><td align="center" class="tr_border2 tr_border3 tr_border1 blu12"><div align="center"><input type="submit" name="snmp_del0" value="Delete" onclick="delDest(&quot;10.30.2.20&quot;)" class="delete"></div></td></tr><tr><td align="center" class="tr_border2 tr_border3 blu12">172.16.10.2</td><td align="center" class="tr_border2 tr_border3 blu12">SNMP v2c</td><td align="center" class="tr_border2 tr_border3 blu12"></td><td align="center" class="tr_border2 tr_border3 blu12">162</td><td align="center" class="tr_border2 tr_border3 tr_border1 blu12"><div align="center"><input type="submit" name="snmp_del1" value="Delete" onclick="delDest(&quot;172.16.10.2&quot;)" class="delete"></div></td></tr><tr><td align="center" class="tr_border2 tr_border3 blu12">172.16.10.22</td><td align="center" class="tr_border2 tr_border3 blu12">SNMP v2c</td><td align="center" class="tr_border2 tr_border3 blu12"></td><td align="center" class="tr_border2 tr_border3 blu12">162</td><td align="center" class="tr_border2 tr_border3 tr_border1 blu12"><div align="center"><input type="submit" name="snmp_del2" value="Delete" onclick="delDest(&quot;172.16.10.22&quot;)" class="delete"></div></td></tr>
 	
-	updateBoots(909,4320)
-//	if (!checkLogin()) return
-	
-	DB_set("db_uplinkSpeed", "ERROR")
-	DB_set("db_sonetSdh", "5")
-	DB_set("mapping", "0")
-	DB_set("piggy_exist", "1")	
-	DB_set("db_slmSysMode", "100")
-	DB_set('db_login', '')
-	
-//	history.replaceState(null, null, "/")
-}
-
-</script><link rel="icon" href="/Brands/Main/Images/favicon.ico">
-<title>PL-2000ADS: 172.16.30.15 Ch. 14</title></head>
-
-<body id="main_bg" onload="load()">
-
-<div id="main_bg_light">
-  <div id="main_960">
-    <iframe name="logo" src="logo.asp" scrolling="no" height="163" width="151" frameborder="0" id="header" allowtransparency="true"></iframe>
-    <iframe name="horizontal_menu_frame" src="horizontal_menu_frame.asp" scrolling="no" height="163" frameborder="0" id="box_menu" allowtransparency="true"></iframe>
-    <iframe name="vertical_menu_frame" src="vertical_menu_frame.asp" scrolling="no" height="333" width="151" frameborder="0" id="main_menu" allowtransparency="true"></iframe>
-    <iframe name="main_page" src="" scrolling="no" height="650" width="802" frameborder="0" id="main_body" allowtransparency="true"></iframe>
-  </div>
-</div>
-
-<script>
-	document.getElementById('header').src = convertUrl('logo.asp')
-	document.getElementById('box_menu').src = convertUrl('horizontal_menu_frame.asp')
-	document.getElementById('main_menu').src = convertUrl('vertical_menu_frame.asp')
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<veepn-lock-screen><style>@font-face{font-family:FigtreeVF;src:url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2 supports variations"),url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2-variations");font-weight:100 1000;font-display:swap}</style></veepn-lock-screen></body></html>
-
-
-
-
-
-<body id="main_bg" onload="load()">
-
-<div id="main_bg_light">
-  <div id="main_960">
-    <iframe name="logo" src="logo.asp" scrolling="no" height="163" width="151" frameborder="0" id="header" allowtransparency="true"></iframe>
-    <iframe name="horizontal_menu_frame" src="horizontal_menu_frame.asp" scrolling="no" height="163" frameborder="0" id="box_menu" allowtransparency="true"></iframe>
-    <iframe name="vertical_menu_frame" src="vertical_menu_frame.asp" scrolling="no" height="333" width="151" frameborder="0" id="main_menu" allowtransparency="true"></iframe>
-    <iframe name="main_page" src="" scrolling="no" height="650" width="802" frameborder="0" id="main_body" allowtransparency="true"></iframe>
-  </div>
-</div>
-
-<script>
-	document.getElementById('header').src = convertUrl('logo.asp')
-	document.getElementById('box_menu').src = convertUrl('horizontal_menu_frame.asp')
-	document.getElementById('main_menu').src = convertUrl('vertical_menu_frame.asp')
-</script>
+    <tr>
+      <td align="center" class="tr_border tr_border2 tr_border3">
+	  <span>
+        <input type="text" name="ip_address" onkeypress="return event.keyCode!=13" class="textfield width_82">
+      </span>
+	  </td>
+	  
+      <td align="center" class="tr_border tr_border2 tr_border3">
+		<select name="snmp_version" class="select" style="width:110px" onchange="trapVersionSelect()">
+			<!-- option selected value=0>No Traps</option-->
+			<option value="1">SNMP v1</option>
+			<option selected="" value="2">SNMP v2c</option>
+	  <script>
+	  	if(encryptionCapability)
+			document.write('<option value=3>SNMP v3</option>')
+	  </script><option value="3">SNMP v3</option>
+        </select>      
+	  </td>
+	  
+   <script>
+  	if(encryptionCapability) {
+      document.write('<td align="center" class="tr_border tr_border2 tr_border3">')
+		// <!--input type="text" name=community onkeypress="return event.keyCode!=13" size="32" MAXLENGTH=32 class="textfield width_82" disabled-->
+		document.write('<select name=community class="select" disabled>')
+		snmpUsers()
+		document.write('</select>')
+	  document.write('</td>')
+	 }
+	</script><td align="center" class="tr_border tr_border2 tr_border3"><select name="community" class="select" disabled=""><option value="admin">admin</option></select></td> 
+      <td align="center" class="tr_border tr_border2 tr_border3">
+		<input name="trap_port" value="162" onkeypress="return event.keyCode!=13" type="text" class="textfield width_46">
+	  </td>
+	  
+      <td class="tr_border tr_border2 tr_border3 tr_border1">
+       <center><input name="snmp_add" type="submit" class="apply" value="Add" onclick="delDest(&quot;&quot;)"></center>
+      </td>
+    </tr>
+  </tbody></table>
+<input type="hidden" name="returnTo" value="/Config_System_SNMP.asp?p=undefined">
+<input type="hidden" name="session" value="913">
+<input type="hidden" name="toDelete">
+<input type="hidden" name="User" value="tech">
+</form>
 
 
 
@@ -169,9 +64,6 @@ function load()
 
 
 
+specific part of delete button:
 
-
-
-
-
-<veepn-lock-screen><style>@font-face{font-family:FigtreeVF;src:url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2 supports variations"),url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2-variations");font-weight:100 1000;font-display:swap}</style></veepn-lock-screen></body>
+<td align="center" class="tr_border2 tr_border3 tr_border1 blu12"><div align="center"><input type="submit" name="snmp_del2" value="Delete" onclick="delDest(&quot;172.16.10.22&quot;)" class="delete"></div></td>
