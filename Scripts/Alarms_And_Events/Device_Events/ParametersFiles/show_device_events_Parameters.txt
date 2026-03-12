@@ -1,0 +1,14 @@
+    {
+    'LW_SERVER_HOST_IP': '172.16.10.22:8080',
+    'LW_USERNAME': 'administrator',
+    'LW_PASSWORD': 'administrator',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': ''
+     }

@@ -1,3 +1,9 @@
+'''
+Created by: Yuval Dahan
+Date: 03/03/2026
+'''
+
+
 from playwright.sync_api import Page, expect
 from typing import Optional, Tuple
 
@@ -272,7 +278,7 @@ class PL_Main_Screen_POM:
                 return True, dlg_txt
 
             except Exception as e:
-                print(f"[DBG] device_restart attempt {attempt + 1} failed: {e}")
+                # print(f"[DBG] device_restart attempt {attempt + 1} failed: {e}")
                 try:
                     self.page.reload(wait_until="domcontentloaded")
                 except Exception:

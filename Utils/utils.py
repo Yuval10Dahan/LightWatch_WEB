@@ -12,6 +12,8 @@ from typing import Tuple, Optional
 from ipaddress import ip_address
 from datetime import timedelta
 from time import perf_counter
+import time, requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 # ✅
@@ -388,6 +390,28 @@ def http_ping(page: Page, url: str, timeout_ms: int = 2000) -> bool:
         return True
     except Exception:
         return False
+
+def devices_are_up(ips, wait_time):
+    def wait_device_http(ip, timeout_s=600, interval_s=2):
+            url = f"http://{ip}/"
+            start = time.perf_counter()
+            while time.perf_counter() - start < timeout_s:
+                try:
+                    r = requests.get(url, timeout=3)
+                    if r.status_code < 600:  # any real response means "up enough"
+                        return ip, (time.perf_counter() - start)
+                except Exception:
+                    pass
+                time.sleep(interval_s)
+            raise TimeoutError(f"{ip} did not come up within {timeout_s}s")
+        
+    print(f"Waiting for devices to come back up after reset: {ips}")
+    sleep(wait_time)
+    with ThreadPoolExecutor(max_workers=len(ips)) as ex:
+        futures = [ex.submit(wait_device_http, ip) for ip in ips]
+        for f in as_completed(futures):
+            ip, restart_time = f.result()
+            print(f"{ip}: device is UP after {restart_time:.1f} seconds")
 
 def Device_Is_Up(
     page: Page,

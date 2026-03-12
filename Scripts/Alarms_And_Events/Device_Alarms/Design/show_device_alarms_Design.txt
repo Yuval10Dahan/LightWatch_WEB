@@ -1,0 +1,38 @@
+Adjust the script 'show_device_alarms.py' in Scripts -> SNMP --> Alarms_And_Events --> Device_Alarms --> PythonScripts, by this steps:
+
+step 1: 
+
+step 2: 
+
+step 3: 
+
+step 4:
+
+step 5:
+refresh the page.
+
+step6:
+refresh the page
+
+step 7:
+
+step 8:
+
+step 9:
+refresh the page
+
+step 10:
+refresh the page
+
+step 11:
+refresh the page
+
+step 12:
+refresh the page
+
+step 13:
+refresh the page
+
+
+
+collect if the each step passed, if one of them failed then say that the test failed, if all of them are pass then say that the test passed.

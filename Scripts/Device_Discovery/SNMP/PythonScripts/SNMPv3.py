@@ -11,19 +11,18 @@ Tests the SNMPv3 tab inside Device Discovery.
 """ 
 
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from playwright.sync_api import sync_playwright
 
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
-from Pages.device_discovery import DeviceDiscovery
+from Pages.device_discovery import DeviceDiscovery 
 from Pages.management_map import ManagementMap
 from Pages.domain_management import DomainManagement
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_SNMP_page import PL_SNMPPage
 from PL_Devices.PL_Pages.PL_security_page import PL_SecurityPage
 from PL_Devices.PL_Pages.PL_main_screen_POM import PL_Main_Screen_POM
-from Utils.utils import refresh_page, countdown_sleep, Device_Is_Up
+from Utils.utils import refresh_page, countdown_sleep, devices_are_up
 import time
 from time import sleep
 from Utils.Logger import create_logger
@@ -125,10 +124,27 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     results = {}
     stored_defaults = {}
 
-    ##################################
-    # Step 1 – Open Device Discovery #
-    ##################################
+    ###################################################
+    # Step 1 – Facrory default reset for all devices. #
+    # Open Device Discovery.                          #
+    ###################################################
     def step_1():
+        ips_to_reset = [DEVICE_IP_1, DEVICE_IP_2, DEVICE_IP_3, DEVICE_IP_4]
+        for ip in ips_to_reset:
+            device_page = page.context.new_page()
+            pl_login = PL_LoginPage(device_page)
+            pl_login.goto(f"http://{ip}/")
+            pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            sleep(1)
+
+            pl_main_screen_POM = PL_Main_Screen_POM(device_page)
+            pl_main_screen_POM.device_restart("factory")
+            sleep(5)
+            device_page.close()
+
+        # Wait for devices to come back up after factory default reset
+        devices_are_up(ips_to_reset, wait_time=WAIT)
+
         open_device_discovery(left_panel)
         assert device_discovery.container().is_visible(), "Device Discovery container is not visible."
 
@@ -627,28 +643,15 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
             pl_login = PL_LoginPage(device_page)
             pl_login.goto(f"http://{ip}/")
             pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            sleep(1)
 
             pl_main_screen_POM = PL_Main_Screen_POM(device_page)
             pl_main_screen_POM.device_restart("factory")
             sleep(5)
             device_page.close()
 
-        def wait_device(ip):
-            restart_time = Device_Is_Up(page, ip, wait4ever=True)
-            return ip, restart_time
-        
-        max_workers = min(10, len(ips_to_reset))  
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(wait_device, ip) for ip in ips_to_reset]
-
-            for f in as_completed(futures):
-                ip, restart_time = f.result()
-                print(f"{ip}: device is UP after {restart_time:.1f} seconds")
-        
-        # # Wait for all devices to be up
-        # for ip in ips_to_reset:
-        #     restart_time = Device_Is_Up(ip, wait4ever=True)
-        #     print(f"{ip}: device is UP after {restart_time} seconds")
+        # Wait for devices to come back up after factory default reset
+        devices_are_up(ips_to_reset, wait_time=WAIT)
 
     results[21] = run_step(21, step_21, logger, report)
 

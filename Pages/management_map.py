@@ -781,7 +781,7 @@ class ManagementMap:
         Returns a list of all element titles currently present in the Navigation Info tree.
 
         Notes:
-        - If visible_only=True, returns only rows that are currently visible (recommended).
+        - If visible_only=True, returns only rows that are currently visible.
         """
         try:
             # Ensure panel is open 

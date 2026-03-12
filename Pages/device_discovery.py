@@ -6,7 +6,8 @@ Date: 28/01/2026
 import re
 import time
 from time import sleep
-from typing import Callable
+from typing import Union, Callable
+
 from Utils.utils import refresh_page, countdown_sleep
 
 from playwright.sync_api import Page, expect
@@ -236,7 +237,7 @@ class DeviceDiscovery:
 
         except Exception as e:
             raise AssertionError(f"is_ip_address_field_valid failed. Problem: {e}")
-
+    
     # =========================
     # IP Range
     # =========================
@@ -340,6 +341,65 @@ class DeviceDiscovery:
         except Exception as e:
             raise AssertionError(f"get_range_end_ip failed. Problem: {e}")
 
+    # ✅
+    def is_range_start_ip_field_valid(self, timeout: int = 8000) -> bool:
+        """
+        Return True if the Range Start IP field is valid.
+        Return False if invalid (red error state + 'ng-invalid').
+        """
+        try:
+            ip = self.app_input("startIP")
+            expect(ip).to_be_visible(timeout=timeout)
+
+            # Wrapper error class
+            wrapper = ip.locator("div.input-wrapper").first
+            self.page.wait_for_timeout(200)
+
+            if wrapper.count() > 0:
+                cls = (wrapper.get_attribute("class") or "").lower()
+                if "error" in cls:
+                    return False
+
+            # Angular invalid class on app-input
+            ip_cls = (ip.get_attribute("class") or "").lower()
+            if "ng-invalid" in ip_cls:
+                return False
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"is_range_start_ip_field_valid failed. Problem: {e}")
+
+    # ✅
+    def is_range_end_ip_field_valid(self, timeout: int = 8000) -> bool:
+        """
+        Return True if the Range End IP field is valid.
+        Return False if invalid (red error state + 'ng-invalid').
+        """
+        try:
+            ip = self.app_input("endIP")
+            expect(ip).to_be_visible(timeout=timeout)
+
+            # Wrapper error class
+            wrapper = ip.locator("div.input-wrapper").first
+            self.page.wait_for_timeout(200)
+
+            if wrapper.count() > 0:
+                cls = (wrapper.get_attribute("class") or "").lower()
+                if "error" in cls:
+                    return False
+
+            # Angular invalid class on app-input
+            ip_cls = (ip.get_attribute("class") or "").lower()
+            if "ng-invalid" in ip_cls:
+                return False
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"is_range_end_ip_field_valid failed. Problem: {e}")
+
+
     # ==========================================================
     # Protocol tabs (ICMP / SNMPv2 / SNMPv3)
     # ==========================================================
@@ -430,7 +490,9 @@ class DeviceDiscovery:
         """
         Return <input> inside app-input.
         """
-        return self.app_input(formcontrolname, scope=scope).locator("input").first
+        app_input = self.app_input(formcontrolname, scope=scope).locator("input").first
+        sleep(0.5)
+        return app_input
 
     # ✅
     def set_app_input_value(self, formcontrolname: str, value: str, timeout: int = 8000, scope=None):
@@ -442,6 +504,7 @@ class DeviceDiscovery:
             expect(inp).to_be_visible(timeout=timeout)
             inp.click(force=True)
             inp.fill("")
+            sleep(3)
             inp.type(str(value), delay=5)
         except Exception as e:
             raise AssertionError(f"set_app_input_value('{formcontrolname}', '{value}') failed. Problem: {e}")
