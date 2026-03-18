@@ -310,19 +310,103 @@ class UpperPanel:
     # Sub-domain / Domain
     # =========================
 
-    # ❌
-    def click_on_sub_domains_dropdown(self):
+    # ✅
+    def click_on_sub_domains_dropdown(self, timeout: int = 8000):
         """
         Open the sub-domains dropdown.
         """
-        pass
+        try:
+            sleep(0.5)
 
-    # ❌
-    def select_sub_domain(self, sub_domain: str):
+            dd = self.page.locator("app-header-dropdown", has=self.page.locator("button.header-dropdown-button",
+                    has_text=re.compile(r"sub[\s-]*domain", re.IGNORECASE))).first
+            sleep(1)
+
+            expect(dd).to_be_visible(timeout=timeout)
+
+            btn = dd.locator("button.header-dropdown-button").first
+            sleep(1)
+            expect(btn).to_be_visible(timeout=timeout)
+            expect(btn).to_be_enabled(timeout=timeout)
+
+            menu = dd.locator("div.dropdown-menu.header-dropdown-menu").first
+            sleep(1)
+
+            # If already open -> do nothing
+            if menu.count() > 0 and menu.is_visible():
+                return
+
+            btn.click(force=True)
+
+            # Wait until menu is visible
+            self.wait_until(lambda: menu.count() > 0 and menu.is_visible(), timeout_ms=timeout, interval_ms=150)
+
+        except Exception as e:
+            raise AssertionError(f"click_on_sub_domains_dropdown failed. Problem: {e}")
+
+    # ✅
+    def select_sub_domain(self, sub_domain: str, timeout: int = 8000):
         """
-        Select a sub-domain from the dropdown.
+        Select a sub-domain from the Sub-domains dropdown.
         """
-        pass
+        try:
+            sub_domain = (sub_domain or "").strip()
+            if not sub_domain:
+                raise ValueError("sub_domain is empty")
+
+            self.click_on_sub_domains_dropdown(timeout=timeout)
+
+            dd = self.page.locator("app-header-dropdown", has=self.page.locator("button.header-dropdown-button",
+                    has_text=re.compile(r"sub[\s-]*domain", re.IGNORECASE))).first
+            sleep(1)
+
+            expect(dd).to_be_visible(timeout=timeout)
+
+            menu = dd.locator("div.dropdown-menu.header-dropdown-menu").first
+            sleep(1)
+            expect(menu).to_be_visible(timeout=timeout)
+
+            exact_rx = re.compile(rf"^\s*{re.escape(sub_domain)}\s*$", re.IGNORECASE)
+
+            # First find the text span
+            text_span = menu.locator("div.inventory-tree-level-title span", has_text=exact_rx).first
+            sleep(1)
+            expect(text_span).to_be_visible(timeout=timeout)
+
+            # Then click the clickable parent row/container
+            option = text_span.locator("xpath=ancestor::div[contains(@class,'inventory-tree-level-title')]").first
+            sleep(1)
+            expect(option).to_be_visible(timeout=timeout)
+
+            option.scroll_into_view_if_needed()
+
+            try:
+                option.click(force=True)
+            except Exception:
+                text_span.click(force=True)
+
+            sleep(0.5)
+
+        except Exception as e:
+            raise AssertionError(f"select_sub_domain('{sub_domain}') failed. Problem: {e}")
+
+    # ✅
+    def click_back_to_sub_domain_map(self, timeout: int = 8000):
+        """
+        Click the 'Back to Sub Domain Map' button if it exists.
+        """
+        try:
+            btn = self.page.locator("div.main-controls-top-center button", 
+                has_text=re.compile(r"^\s*Back\s+to\s+Sub\s+Domain\s+Map\s*$", re.IGNORECASE)).first
+
+            expect(btn).to_be_visible(timeout=timeout)
+            expect(btn).to_be_enabled(timeout=timeout)
+
+            btn.scroll_into_view_if_needed()
+            btn.click(force=True)
+
+        except Exception as e:
+            raise AssertionError(f"click_back_to_sub_domain_map failed. Problem: {e}")
 
     # ✅
     def click_on_domains_dropdown(self, timeout: int = 8000):

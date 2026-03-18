@@ -1,3 +1,0 @@
-<input name="System" id="System" type="button" value="System" class="GeneralButton" onclick="SelectFrame('System')" style="display: inline;">
-
-<input name="ALL" id="ALL" type="button" value="ALL" class="ALLButton ALLButton_active" onclick="SelectFrame('ALL')" style="display: inline;">

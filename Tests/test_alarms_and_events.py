@@ -204,9 +204,26 @@ def test_alarms_and_events(page, left_panel):
     run_step(6, "Filter By Domain/Chassis: select all domains + get selected", step_6)
 
     # ----------------------------
-    # Step 7: Date range (from/to) set/get
+    # Step 7: Filter By Device type (select all + get)
     # ----------------------------
     def step_7():
+        ae.set_filterBy("Device type")
+
+        ae.select_devices_type_filterBy_device_type("PL-2000ADS")
+        ae.select_all_devices_type_filterBy_device_type()
+        
+        selected = ae.get_selected_devices_type_filterBy_device_type()
+        print(f"Device type selected: {selected}")
+
+        if not selected:
+            raise AssertionError("Device type selection is empty after select_all_devices_type_filterBy_device_type().")
+
+    run_step(7, "Filter By Device type: select all + get", step_7)
+
+    # ----------------------------
+    # Step 8: Date range (from/to) set/get
+    # ----------------------------
+    def step_8():
         # Use supported input format: 'YYYY-MM-DD HH:MM[:SS]'
         from_dt = "2026-02-01 00:00:00"
         to_dt = "2026-02-04 23:59:00"
@@ -223,23 +240,23 @@ def test_alarms_and_events(page, left_panel):
         if not got_to:
             raise AssertionError("To date is empty after set_to_date().")
 
-    run_step(7, "Date range: set/get From + set/get To", step_7)
+    run_step(8, "Date range: set/get From + set/get To", step_8)
 
     # ----------------------------
-    # Step 8: Message filter + exact match toggle on/off
+    # Step 9: Message filter + exact match toggle on/off
     # ----------------------------
-    def step_8():
+    def step_9():
         ae.set_message("Ethernet")
         ae.message_check_exact_match_only()
         ae.message_uncheck_exact_match_only()
         ae.set_message("")  # clear
 
-    run_step(8, "Message: set/clear + exact match toggle on/off", step_8)
+    run_step(9, "Message: set/clear + exact match toggle on/off", step_9)
 
     # ----------------------------
-    # Step 9: Ack checkbox (best-effort: only if at least 1 row exists)
+    # Step 10: Ack checkbox (best-effort: only if at least 1 row exists)
     # ----------------------------
-    def step_9():
+    def step_10():
         refresh_page(page)
         sleep(5)
 
@@ -253,12 +270,12 @@ def test_alarms_and_events(page, left_panel):
 
         ae.clear_alert(7)
 
-    run_step(9, "Ack: check/uncheck row 0 (best-effort)", step_9)
+    run_step(10, "Ack: check/uncheck row 0 (best-effort)", step_10)
 
     # ----------------------------
-    # Step 10: Pagination next/previous (best-effort)
+    # Step 11: Pagination next/previous (best-effort)
     # ----------------------------
-    def step_10():
+    def step_11():
         refresh_page(page)
         sleep(10)
         ae.set_faults_type("Events") 
@@ -277,12 +294,12 @@ def test_alarms_and_events(page, left_panel):
             if not ok:
                 break
 
-    run_step(10, "Pagination: next/previous (best-effort)", step_10)
+    run_step(11, "Pagination: next/previous (best-effort)", step_11)
 
     # ----------------------------
-    # Step 11: get_all_events + get_all_alarms
+    # Step 12: get_all_events + get_all_alarms
     # ----------------------------
-    def step_11():
+    def step_12():
         refresh_page(page)
         sleep(5)
 
@@ -321,7 +338,7 @@ def test_alarms_and_events(page, left_panel):
             print("No alarms found (table empty) – OK")
 
 
-    run_step(11, "Alarms & Events: get_all_events + get_all_alarms", step_11)
+    run_step(12, "Alarms & Events: get_all_events + get_all_alarms", step_12)
 
     print("Test Finished ✅")
 

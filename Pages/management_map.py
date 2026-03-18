@@ -297,7 +297,7 @@ class ManagementMap:
             raise AssertionError(f"discard_and_lock failed: did not exit edit mode after Discard & Lock. Problem: {e}")
 
     # ✅
-    def double_click_on_element_via_the_map(self, element_data_id: str | int, timeout: int = 12000) -> bool:
+    def double_click_on_element_via_the_map_by_data_id(self, element_data_id: str | int, timeout: int = 12000) -> bool:
         """
         Double-click an element on the map using its SVG data-id.
         data-id is the ONLY supported selector (most stable).
@@ -352,6 +352,8 @@ class ManagementMap:
             refresh_page(self.page)
             sleep(2)
             tile.dblclick(timeout=timeout, force=True)
+            sleep(2)
+            tile.dblclick(timeout=timeout, force=True)
             sleep(5)
 
             return True
@@ -360,7 +362,7 @@ class ManagementMap:
             raise AssertionError(f"double_click_on_element_via_the_map(data_id={element_data_id}) failed. Problem: {e}")
 
     # ✅
-    def click_on_element_via_the_map(self, element_data_id: str | int, timeout: int = 12000) -> bool:
+    def click_on_element_via_the_map_by_data_id(self, element_data_id: str | int, timeout: int = 12000) -> bool:
         """
         Click an element on the map using its SVG data-id.
         data-id is the ONLY supported selector (most stable).
@@ -418,6 +420,145 @@ class ManagementMap:
             raise AssertionError(f"click_on_element_via_the_map(data_id={element_data_id}) failed. Problem: {e}")
 
     # ✅
+    def double_click_on_element_via_the_map(self, element_name: str | None = None, element_ip: str | None = None, timeout: int = 12000) -> bool:
+        """
+        Double-click an element on the map.
+
+        Supported search methods:
+        - By element name   (example: "Chassis: 17" or "PL-2000T")
+        - By device IP      (example: "172.16.30.17")
+
+        Notes:
+        - If more than one identifier is provided, priority is:
+            element_ip -> element_name
+        - Double-clicking a chassis typically expands it to show elements inside.
+        - Double-clicking a device may open its PacketLight GUI in another tab.
+        """
+
+        try:
+            svg = self.page.locator("svg.svg-container").first
+            tile = None
+
+            # 1) Search by IP 
+            if element_ip is not None and str(element_ip).strip():
+                ip = str(element_ip).strip()
+
+                node = svg.locator(f"g.node:has(text.node-device-ip:has-text('({ip})'))").first
+
+                if node.count() == 0:
+                    raise AssertionError(f"Map element with IP '{ip}' not found.")
+
+                tile = node.locator("path.gradient, path.gradient.device, path.in-chassis-gradient.device").first
+
+                if tile.count() == 0:
+                    raise AssertionError(f"Map node with IP '{ip}' does not contain a clickable path element.")
+
+            # 2) Search by name
+            elif element_name is not None and str(element_name).strip():
+                name = str(element_name).strip()
+
+                node = svg.locator(
+                    f"g.node:has(text.node-user-name:has-text('{name}')), "
+                    f"g.node:has(text.node-name:has-text('{name}'))"
+                ).first
+
+                if node.count() == 0:
+                    raise AssertionError(f"Map element with name '{name}' not found.")
+
+                tile = node.locator("path.gradient, path.gradient.device, path.in-chassis-gradient.device").first
+
+                if tile.count() == 0:
+                    raise AssertionError(f"Map node with name '{name}' does not contain a clickable path element.")
+
+            else:
+                raise ValueError("Provide at least one of: element_name, element_ip.")
+
+            tile.scroll_into_view_if_needed()
+            refresh_page(self.page)
+            sleep(2)
+            tile.dblclick(timeout=timeout, force=True)
+            sleep(2)
+            tile.dblclick(timeout=timeout, force=True)
+            sleep(5)
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(
+                f"double_click_on_element_via_the_map("
+                f"element_name={element_name}, element_ip={element_ip}"
+                f") failed. Problem: {e}"
+            )
+
+    # ✅
+    def click_on_element_via_the_map(self, element_name: str | None = None, element_ip: str | None = None, timeout: int = 12000) -> bool:
+        """
+        Click an element on the map.
+
+        Supported search methods:
+        - By element name   (example: "Chassis: 17" or "PL-2000T")
+        - By device IP      (example: "172.16.30.17")
+
+        Notes:
+        - If more than one identifier is provided, priority is:
+            element_ip -> element_name
+        """
+
+        try:
+            sleep(3)
+            svg = self.page.locator("svg.svg-container").first
+            sleep(1)
+
+            tile = None
+
+            # 1) Search by IP
+            if element_ip is not None and str(element_ip).strip():
+                ip = str(element_ip).strip()
+
+                node = svg.locator(f"g.node:has(text.node-device-ip:has-text('({ip})'))").first
+
+                if node.count() == 0:
+                    raise AssertionError(f"Map element with IP '{ip}' not found.")
+
+                tile = node.locator("path.gradient, path.gradient.device, path.in-chassis-gradient.device").first
+
+                if tile.count() == 0:
+                    raise AssertionError(f"Map node with IP '{ip}' does not contain a clickable path element.")
+
+            # 2) Search by name
+            elif element_name is not None and str(element_name).strip():
+                name = str(element_name).strip()
+
+                node = svg.locator(
+                    f"g.node:has(text.node-user-name:has-text('{name}')), "
+                    f"g.node:has(text.node-name:has-text('{name}'))"
+                ).first
+
+                if node.count() == 0:
+                    raise AssertionError(f"Map element with name '{name}' not found.")
+
+                tile = node.locator("path.gradient, path.gradient.device, path.in-chassis-gradient.device").first
+
+                if tile.count() == 0:
+                    raise AssertionError(f"Map node with name '{name}' does not contain a clickable path element.")
+
+            else:
+                raise ValueError("Provide at least one of: element_name, element_ip.")
+
+            tile.scroll_into_view_if_needed()
+            tile.click(timeout=timeout, force=True)
+
+            sleep(1)
+            return True
+
+        except Exception as e:
+            raise AssertionError(
+                f"click_on_element_via_the_map("
+                f"element_name={element_name}, element_ip={element_ip}"
+                f") failed. Problem: {e}"
+            )
+
+    # ✅
     def get_number_of_elements_inside_chassis(self, data_id: str | int, timeout: int = 5000) -> int:
         """
         Return the number shown in the small badge near the chassis icon on the map.
@@ -455,6 +596,84 @@ class ManagementMap:
         except Exception as e:
             raise AssertionError(f"get_number_of_elements_inside_chassis(data_id={data_id}) failed. Problem: {e}")
 
+    # ✅
+    def get_map_element_color(self, element_name: str | None = None, element_ip: str | None = None) -> tuple[str, str]:
+        """
+        Returns 2 values for a map element (Device / Chassis / Domain):
+
+        1. logical color state: "fault" / "warning" / "positive" / "neutral" or the raw gradient name if unknown.
+        2. human-readable color string: "red" / "orange" / "green" / "gray" or "unknown".
+
+        Search logic:
+        - For chassis/domain/etc. -> use element_name, for example: "Chassis: 17"
+        - For device -> use element_ip, for example: "172.16.30.17"
+
+        Notes:
+        - Provide either element_name or element_ip
+        - If both are provided, element_ip is preferred
+        """
+
+        try:
+            svg = self.page.locator("svg.svg-container").first
+
+            node = None
+
+            # Prefer searching by IP if provided
+            if element_ip is not None and str(element_ip).strip():
+                ip = str(element_ip).strip()
+
+                node = svg.locator(f"g.node:has(text.node-device-ip:has-text('({ip})'))").first
+
+                if node.count() == 0:
+                    raise AssertionError(f"Map element with IP '{ip}' not found.")
+
+            elif element_name is not None and str(element_name).strip():
+                name = str(element_name).strip()
+
+                node = svg.locator(
+                    f"g.node:has(text.node-user-name:has-text('{name}')), "
+                    f"g.node:has(text.node-name:has-text('{name}'))"
+                ).first
+
+                if node.count() == 0:
+                    raise AssertionError(f"Map element with name '{name}' not found.")
+
+            else:
+                raise ValueError("Either element_name or element_ip must be provided.")
+
+            # Read the colored path inside the located node
+            element = node.locator("path.gradient, path.gradient.device, path.in-chassis-gradient.device").first
+
+            if element.count() == 0:
+                raise AssertionError("Located map node does not contain a color path element.")
+
+            fill_value = element.get_attribute("fill")
+            if fill_value is None:
+                raise AssertionError("Located map element has no fill attribute.")
+
+            match = re.search(r"url\(#(.*?)\)", fill_value)
+            if not match:
+                return fill_value, "unknown"
+
+            gradient = match.group(1).strip()
+            gradient_lower = gradient.lower()
+
+            if "fault" in gradient_lower:
+                return "fault", "red"
+
+            if "warning" in gradient_lower:
+                return "warning", "orange"
+
+            if "positive" in gradient_lower:
+                return "positive", "green"
+
+            if "neutral" in gradient_lower:
+                return "neutral", "gray"
+
+            return gradient, "unknown"
+
+        except Exception as e:
+            raise AssertionError(f"get_map_element_color_by_name_or_ip(element_name={element_name}, element_ip={element_ip}) failed. Problem: {e}")
 
     # ==========================================================
     # Layer toggles

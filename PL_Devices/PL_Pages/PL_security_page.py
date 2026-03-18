@@ -316,6 +316,7 @@ class PL_SecurityPage:
 
         return []
 
+    # ✅
     def is_user_located_in_users_table(self, user_name: str, users_table: List[List[str]], retries: int = 5, timeout: int = 10_000) -> bool:
         """
         Return True if the given user exists in the Users table.
@@ -351,6 +352,7 @@ class PL_SecurityPage:
 
         return False
 
+    # ✅
     def return_user_parameters(self, user_name: str, users_table: List[List[str]], retries: int = 5, timeout: int = 10_000) -> Optional[List[str]]:
         """
         Return the user parameters: User Name, Permission, SNMPv3 Auth, SNMPv3 Priv.

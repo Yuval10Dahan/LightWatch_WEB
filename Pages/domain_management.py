@@ -1621,7 +1621,7 @@ class DomainManagement:
             raise AssertionError(f"select_chassis_ID('{chassis_id_to_select}') failed. Problem: {e}")
 
     # ✅
-    def click_change_CHASSIS_ID(self, chassis_id: str, parent_chassis: str | None = None, timeout: int = 8000) -> bool:
+    def click_change_CHASSIS_ID(self, element_name: str, parent_chassis: str | None = None, timeout: int = 8000) -> bool:
         """
         Click 'Change Chassis ID' ONLY for a device row.
         If the device is under a collapsed "Chassis: X/X" node, pass parent_chassis to expand it first.
@@ -1629,13 +1629,13 @@ class DomainManagement:
         """
         try:
             sleep(1)
-            target = (chassis_id or "").strip()
+            target = (element_name or "").strip()
             if not target:
-                raise ValueError("chassis_id is empty")
+                raise ValueError("element_name is empty")
 
             tree = self.from_tree()
 
-            device_types = ("ROADM", "TRANSPONDER", "MUXPONDER")
+            device_types = ("ROADM", "TRANSPONDER", "MUXPONDER", "DEVICE")
 
             is_ip_only = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
             if is_ip_only:
@@ -1702,10 +1702,10 @@ class DomainManagement:
             return True
 
         except Exception as e:
-            raise AssertionError(f"click_change_CHASSIS_ID('{chassis_id}', parent_chassis={parent_chassis}) failed. Problem: {e}")
-        
+            raise AssertionError(f"click_change_CHASSIS_ID('{element_name}', parent_chassis={parent_chassis}) failed. Problem: {e}")
+         
     # ✅
-    def change_CHASSIS_ID(self, chassis_id: str, to_mode: str = "new", new_chassis_id: str | int | None = None, existing_chassis_id: str | None = None,
+    def change_CHASSIS_ID(self, element_name: str, to_mode: str = "new", new_chassis_id: str | int | None = None, existing_chassis_id: str | None = None,
         parent_chassis: str | None = None, timeout: int = 5000):
         """
         Full Change Chassis ID flow.
@@ -1721,9 +1721,9 @@ class DomainManagement:
 
                 # 1) Open the Change Chassis ID modal
                 if parent_chassis:
-                    self.click_change_CHASSIS_ID(chassis_id, parent_chassis, timeout=timeout)
+                    self.click_change_CHASSIS_ID(element_name, parent_chassis, timeout=timeout)
                 else:
-                    self.click_change_CHASSIS_ID(chassis_id, timeout=timeout)
+                    self.click_change_CHASSIS_ID(element_name, timeout=timeout)
 
                 modal = self.change_CHASSIS_ID_modal()
                 expect(modal).to_be_visible(timeout=timeout)
@@ -1793,9 +1793,9 @@ class DomainManagement:
                 except Exception:
                     pass
 
-                raise AssertionError(f"change_CHASSIS_ID('{chassis_id}', to_mode='{to_mode}') failed. Problem: {e}")
+                raise AssertionError(f"change_CHASSIS_ID('{element_name}', to_mode='{to_mode}') failed. Problem: {e}")
             
-        raise AssertionError(f"change_CHASSIS_ID('{chassis_id}', to_mode='{to_mode}') failed after 3 attempts. ")
+        raise AssertionError(f"change_CHASSIS_ID('{element_name}', to_mode='{to_mode}') failed after 3 attempts. ")
 
     # ==========================================================
     # Move to domain
@@ -1834,6 +1834,33 @@ class DomainManagement:
             raise AssertionError("Failed to handle message modal.")
 
     # ✅
+    def handle_message_modal_with_x_if_present(self, timeout: int = 5000) -> str | None:
+        """
+        Handles Message modal that only has an 'X' close button.
+        """
+
+        try:
+            modal = self.message_modal()
+
+            if modal.count() == 0 or not modal.is_visible():
+                return None
+
+            expect(modal).to_be_visible(timeout=timeout)
+
+            message_text = (self.message_text().text_content() or "").strip()
+
+            close_btn = self.modal_close_x()
+            expect(close_btn).to_be_visible(timeout=timeout)
+            close_btn.click()
+
+            expect(modal).not_to_be_visible(timeout=timeout)
+
+            return message_text
+
+        except Exception as e:
+            raise AssertionError(f"handle_message_modal_with_x_if_present failed. Problem: {e}")
+
+    # ✅
     def middle_move_arrow_btn(self):
         """
         Return the middle arrow button used to move items between trees.
@@ -1862,78 +1889,91 @@ class DomainManagement:
             raise AssertionError(f"click_move_to_domain_mode failed. Problem: {e}")
     
     # ✅
-    def move_to_domain(self, source_item_name: str, target_domain_name: str, timeout: int = 8000):
+    def move_to_domain(self, source_item_name: str, target_domain_name: str, timeout: int = 8000) -> bool:
         """
         Move an item from the From tree to a target domain in the To tree.
         """
         try:
-            # 1) Select SOURCE in "From" tree
-            # Wait until "Move to domain" button becomes enabled
-            src_row = self.row_locator(source_item_name, tree_title="From")
+            source_item_name = (source_item_name or "").strip()
+            target_domain_name = (target_domain_name or "").strip()
 
+            if not source_item_name:
+                raise ValueError("source_item_name is empty")
+            if not target_domain_name:
+                raise ValueError("target_domain_name is empty")
+
+            # 1) Select SOURCE in "From" tree
+            src_row = self.row_locator(source_item_name, tree_title="From")
             expect(src_row).to_be_visible(timeout=timeout)
             src_row.scroll_into_view_if_needed()
-            src_row.click(force=True)
+            self.click_row_and_wait(
+                src_row,
+                timeout=timeout,
+                wait_for="action",
+                action_text="Move to domain",
+                desc=f"'Move to domain' enabled after selecting source '{source_item_name}'"
+            )
 
-            move_btn = self.action_btn("Move to domain")
-
-            # self.wait_until(lambda: move_btn.count() > 0 and move_btn.is_visible() and move_btn.is_enabled(), timeout_ms=timeout,
-            #     interval_ms=150, desc="Move to domain button enabled")
-
-            # 2) Enable Move-to-domain mode (if not already)
-            if self.to_tree().count() == 0:
-                move_btn.click()
-                expect(self.to_tree()).to_be_visible(timeout=timeout)
-
+            # 2) Enable Move-to-domain mode
+            if self.to_tree().count() == 0 or not self.to_tree().is_visible():
+                self.click_move_to_domain_mode(timeout=timeout)
+            else:
+                move_btn = self.action_btn("Move to domain")
+                if move_btn.count() > 0 and move_btn.is_visible() and move_btn.is_enabled():
+                    move_btn.click()
+                    expect(self.to_tree()).to_be_visible(timeout=timeout)
 
             # 3) Select TARGET in "To" tree
-            # Wait until middle arrow becomes enabled
             tgt_row = self.row_locator(target_domain_name, tree_title="To")
-
             expect(tgt_row).to_be_visible(timeout=timeout)
             tgt_row.scroll_into_view_if_needed()
-            tgt_row.click(force=True)
-
-            arrow = self.middle_move_arrow_btn()
-
-            # self.wait_until(lambda: arrow.count() > 0 and arrow.is_visible() and arrow.is_enabled(), timeout_ms=timeout, interval_ms=150,
-            #     desc="Middle move arrow enabled")
+            self.click_row_and_wait(
+                tgt_row,
+                timeout=timeout,
+                wait_for="middle_arrow",
+                desc=f"middle move arrow enabled after selecting target '{target_domain_name}'"
+            )
 
             # 4) Click middle arrow
+            arrow = self.middle_move_arrow_btn()
+            expect(arrow).to_be_visible(timeout=timeout)
+            expect(arrow).to_be_enabled(timeout=timeout)
             arrow.click()
 
-            # 5) Handle Warning modal (if appears)
+            # 5) Handle Warning modal if it appears
             try:
                 warn = self.warning_remove_modal()
                 if warn.count() > 0 and warn.is_visible():
                     yes = self.warning_yes_btn()
                     expect(yes).to_be_visible(timeout=timeout)
+                    expect(yes).to_be_enabled(timeout=timeout)
                     yes.click()
             except Exception:
                 pass
 
-            # 6) Handle Message modal (blocking cases)
-            try:
-                msg = self.message_modal()
-                if msg.count() > 0 and msg.is_visible():
-                    text_el = self.message_text()
-                    expect(text_el).to_be_visible(timeout=timeout)
-                    msg_text = text_el.inner_text().strip()
+            # 6) Handle Message modal
+            msg_text = self.handle_message_modal_with_x_if_present(timeout=timeout)
 
-                    ok = self.message_ok_btn()
-                    expect(ok).to_be_visible(timeout=timeout)
-                    ok.click()
+            if msg_text:
+                normalized = " ".join(msg_text.lower().split())
 
-                    raise AssertionError(f"move_to_domain('{source_item_name}' → '{target_domain_name}') blocked: {msg_text}")
-            except AssertionError:
-                raise
-            except Exception:
-                pass
+                # This is the special case from your screenshot:
+                # "Domain belongs already to this parent domain"
+                if "belongs already to this parent domain" in normalized:
+                    # print(
+                    #     f"move_to_domain('{source_item_name}' -> '{target_domain_name}'): "
+                    #     f"item already belongs to the requested parent domain."
+                    # )
+                    return True
+
+                raise AssertionError(
+                    f"move_to_domain('{source_item_name}' -> '{target_domain_name}') "
+                    f"failed (Message modal): {msg_text}"
+                )
 
             refresh_page(self.page)
             countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")
-
-            # self.wait_until(lambda: self.from_tree().count() > 0, timeout_ms=timeout, desc="From tree reloaded after move")
+            return True
 
         except Exception as e:
             raise AssertionError(f"move_to_domain('{source_item_name}' -> '{target_domain_name}') failed. Problem: {e}")

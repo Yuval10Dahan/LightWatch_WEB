@@ -268,7 +268,7 @@ class AlarmsAndEvents:
         self.set_category("All")
 
     # ==========================================================
-    # Filter By (Devices / Domain / Chassis)
+    # Filter By ("Devices" / "Domain/Chassis" / "Device type")
     # ==========================================================
 
     # ✅
@@ -943,6 +943,66 @@ class AlarmsAndEvents:
         Select the 'All Domains' item in the Domain/Chassis tree dropdown.
         """
         self.select_domain_or_chassis_filterBy_domain_or_chassis("All Domains")
+
+    # ==========================================================
+    # Filter By: Device type
+    # ==========================================================
+
+    # ✅
+    def select_devices_type_filterBy_device_type(self, device_type: str, timeout: int = 8000):
+        """
+        Select a specific value from the 'Devices Type' dropdown
+        when 'Filter by' is set to 'Device type'.
+        """
+        try:
+            target = self._clean(device_type)
+            if not target:
+                raise ValueError("device_type is empty")
+
+            # Make sure the correct filter mode is active
+            self.set_filterBy("Device type", timeout=timeout)
+
+            # If already selected, do nothing
+            try:
+                current = self.get_selected_devices_type_filterBy_device_type(timeout=min(timeout, 3000))
+                if self._clean(current).lower() == target.lower():
+                    return
+            except Exception:
+                pass
+
+            self.dropdown_pick("Devices Type", target, timeout=timeout)
+
+            self.wait_until(lambda: self.get_selected_devices_type_filterBy_device_type(timeout=min(timeout, 2000)).lower() == target.lower(),
+                timeout_ms=timeout, interval_ms=150)
+
+            sleep(1)
+
+        except Exception as e:
+            raise AssertionError(f"select_devices_type_filterBy_device_type('{device_type}') failed. Problem: {e}")
+
+    # ✅
+    def get_selected_devices_type_filterBy_device_type(self, timeout: int = 5000) -> str:
+        """
+        Return the currently selected value in the 'Devices Type' dropdown
+        when 'Filter by' is set to 'Device type'.
+        """
+        try:
+            self.set_filterBy("Device type", timeout=timeout)
+            return self.dropdown_selected_text("Devices Type", timeout=timeout)
+
+        except Exception as e:
+            raise AssertionError(f"get_selected_devices_type_filterBy_device_type failed. Problem: {e}")
+
+    # ✅
+    def select_all_devices_type_filterBy_device_type(self, timeout: int = 8000):
+        """
+        Select 'All' in the 'Devices Type' dropdown
+        when 'Filter by' is set to 'Device type'.
+        """
+        try:
+            self.select_devices_type_filterBy_device_type("All", timeout=timeout)
+        except Exception as e:
+            raise AssertionError(f"select_all_devices_type_filterBy_device_type failed. Problem: {e}")
 
     # ==========================================================
     # Date Range

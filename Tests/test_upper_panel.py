@@ -89,12 +89,29 @@ def test_upper_panel(page):
         # Open (function under test)
         up.click_on_domains_dropdown()
 
-        domain_to_select = "sub-domain-Demo"
+        domain_to_select = "Script_Domain"
         print(f"Selecting domain: {domain_to_select}")
 
         up.select_domain(domain_to_select)
 
     run_step(4, "Upper Panel: domains dropdown + select first domain", step_4)
+
+    # ----------------------------
+    # Step 5: Sub Domains dropdown open + select a sub- domain (best-effort)
+    # Tests:
+    # click_on_sub_domains_dropdown, select_sub_domain
+    # ----------------------------
+    def step_5():
+        # Open (function under test)
+        up.click_on_sub_domains_dropdown()
+
+        sub_domain_to_select = "Script_Sub_Domain"
+        print(f"Selecting sub-domain: {sub_domain_to_select}")
+
+        up.select_sub_domain(sub_domain_to_select)
+        up.click_back_to_sub_domain_map()
+
+    run_step(5, "Upper Panel: sub-domains dropdown + select first sub-domain", step_5)
 
     print("Test Finished ✅")
 

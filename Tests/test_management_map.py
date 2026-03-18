@@ -126,13 +126,29 @@ def test_management_map(page, left_panel):
     # ----------------------------
     def step_4():
         refresh_page(page)
-        management_map.click_on_element_via_the_map(element_data_id="7") # DR-13
+        state, color = management_map.get_map_element_color(element_ip="172.16.30.17")
+        print(f"device color state: {state}, color: {color}") 
+
+        state, color = management_map.get_map_element_color(element_name="Chassis: 35")
+        print(f"Chassis color state: {state}, color: {color}") 
+
+        management_map.click_on_element_via_the_map(element_ip="172.16.30.17") 
         management_map.navigation_info_close_element_details()
-        management_map.click_on_element_via_the_map(element_data_id="45") # 10.60.100.100
+        management_map.click_on_element_via_the_map(element_name="Chassis: 17") 
         management_map.navigation_info_close_element_details()
 
-        management_map.double_click_on_element_via_the_map(element_data_id="7") # DR-13
-        management_map.click_on_element_via_the_map(element_data_id="27") # PL-1000GRO 10.60.100.34
+        management_map.double_click_on_element_via_the_map(element_name="Chassis: 17") 
+        management_map.click_on_element_via_the_map(element_ip="10.60.100.19") 
+        management_map.navigation_info_close_element_details()
+        refresh_page(page)
+
+        management_map.click_on_element_via_the_map_by_data_id(element_data_id="7") # DR-13
+        management_map.navigation_info_close_element_details()
+        management_map.click_on_element_via_the_map_by_data_id(element_data_id="45") # 10.60.100.100
+        management_map.navigation_info_close_element_details()
+
+        management_map.double_click_on_element_via_the_map_by_data_id(element_data_id="7") # DR-13
+        management_map.click_on_element_via_the_map_by_data_id(element_data_id="27") # PL-1000GRO 10.60.100.34
         management_map.navigation_info_close_element_details()
         refresh_page(page)
 

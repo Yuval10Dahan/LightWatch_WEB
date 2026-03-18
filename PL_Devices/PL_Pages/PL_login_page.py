@@ -5,6 +5,7 @@ Date: 22/02/2026
 
 from __future__ import annotations
 from playwright.sync_api import Page, expect
+from time import sleep
 
 
 class PL_LoginPage:
@@ -183,8 +184,17 @@ class PL_LoginPage:
     # ==========================================================
     # Logout Action
     # ==========================================================
+
     # ✅
-    def logout(self) -> bool:
+    def horizontal_menu_frame(self):
+        return self.page.frame_locator("iframe[name='horizontal_menu_frame'], frame[name='horizontal_menu_frame']")
+
+    # ✅
+    def upper_panel_frame(self):
+        return self.horizontal_menu_frame().frame_locator("iframe[name='box_menu'], frame[name='box_menu']")
+
+    # ✅
+    def logout(self, retries: int = 5, timeout: int = 10_000) -> bool: 
         """
         Logout from PacketLight GUI.
 
@@ -193,32 +203,24 @@ class PL_LoginPage:
             False -> logout failed
         """
 
-        def is_on_login() -> bool:
+        for attempt in range(retries):
             try:
-                return self.login_root.is_visible()
-            except Exception:
-                return False
+                logout_btn = self.upper_panel_frame().locator("#Logout").first
+                sleep(3)
+                expect(logout_btn).to_be_visible(timeout=timeout)
+                logout_btn.scroll_into_view_if_needed()
+                self.click_reload_button()  # Ensure we're on the latest page state before clicking logout
+                logout_btn.click(force=True, timeout=timeout)
+                return True
 
-        # Already logged out
-        if is_on_login():
-            return True
+            except Exception as e:
+                print(f"Logout button not found/clickable at attempt {attempt + 1}: {e}")
+                try:
+                    self.page.reload(wait_until="domcontentloaded")
+                except Exception:
+                    pass
 
-        # Inside frames 
-        try:
-            for frame in self.page.frames:
-                if frame == self.page.main_frame:
-                    continue
-
-                btn = frame.locator("form[name='logout_form'] input#Logout").first
-
-                if btn.count() > 0 and btn.is_visible():
-                    btn.click(force=True)
-                    # print(f"frame:{frame}")
-
-                    expect(self.login_root).to_be_visible(timeout=12_000)
-                    return True
-        except Exception:
-            return False
+        return False
 
     # ==========================================================
     # Reload Action

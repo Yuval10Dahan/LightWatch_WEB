@@ -77,6 +77,7 @@ class PL_SNMPPage:
 
         return False
     
+    # ✅
     def _safe_accept_dialog(self, d) -> None:
         try:
             d.accept()

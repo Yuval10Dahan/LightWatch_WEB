@@ -106,7 +106,6 @@ def run_step(step_num, step_function, logger, report) -> bool:
     """
     try:
         step_function()
-
         print(f"Step {step_num} – Pass ✅")
         logger.info(f"Step {step_num} – Pass.")
         step_passed(report, f"Step {step_num} – Pass.")

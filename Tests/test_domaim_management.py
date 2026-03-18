@@ -133,7 +133,7 @@ def test_domain_management(page, left_panel):
 
         # 1) Open Change Chassis ID modal (NEW mode, but we won't save)
         dm.change_CHASSIS_ID(
-            chassis_id=chassis_name_transponder,
+            element_name=chassis_name_transponder,
             to_mode="existing",
             new_chassis_id=None, 
             existing_chassis_id="BS-12/12",
@@ -142,7 +142,7 @@ def test_domain_management(page, left_panel):
         print("finished change number 1")
 
         dm.change_CHASSIS_ID(
-            chassis_id=chassis_name_transponder,
+            element_name=chassis_name_transponder,
             to_mode="existing",
             new_chassis_id=None, 
             existing_chassis_id="DC-14",
@@ -151,7 +151,7 @@ def test_domain_management(page, left_panel):
         print("finished change number 2")
 
         dm.change_CHASSIS_ID(
-            chassis_id=chassis_name_roadm,
+            element_name=chassis_name_roadm,
             to_mode="new",
             new_chassis_id="99", 
             existing_chassis_id=None,
@@ -160,7 +160,7 @@ def test_domain_management(page, left_panel):
         print("finished change number 3")
 
         dm.change_CHASSIS_ID(
-            chassis_id=chassis_name_roadm,
+            element_name=chassis_name_roadm,
             to_mode="existing",
             new_chassis_id=None, 
             existing_chassis_id="BS-12/12",
