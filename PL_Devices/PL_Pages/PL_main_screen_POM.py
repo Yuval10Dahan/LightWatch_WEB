@@ -7,6 +7,9 @@ Date: 03/03/2026
 from playwright.sync_api import Page, expect
 from typing import Optional, Tuple
 from PL_Devices.PL_Pages.PL_upper_panel import PL_Upper_Panel
+from time import sleep
+import re
+
 
 class PL_Main_Screen_POM:
     def __init__(self, page: Page):
@@ -19,15 +22,21 @@ class PL_Main_Screen_POM:
 
     # ✅
     def horizontal_menu_frame(self):
-        return self.page.frame_locator("iframe[name='horizontal_menu_frame'], frame[name='horizontal_menu_frame']")
+        frame_loc = self.page.frame_locator("iframe[name='horizontal_menu_frame'], frame[name='horizontal_menu_frame']")
+        sleep(1)
+        return frame_loc
 
     # ✅
     def vertical_menu_frame(self):
-        return self.page.frame_locator("iframe[name='vertical_menu_frame'], frame[name='vertical_menu_frame']")
+        frame_loc = self.page.frame_locator("iframe[name='vertical_menu_frame'], frame[name='vertical_menu_frame']")
+        sleep(1)
+        return frame_loc
 
     # ✅
     def main_page_frame(self):
-        return self.page.frame_locator("iframe[name='main_page'], iframe#main_body")
+        frame_loc = self.page.frame_locator("iframe[name='main_page'], iframe#main_body")
+        sleep(1)
+        return frame_loc
 
     # ✅
     def security_frame(self):
@@ -35,7 +44,9 @@ class PL_Main_Screen_POM:
 
     # ✅
     def maintenance_frame(self):
-        return self.main_page_frame().frame_locator("iframe[name='maint_sys'], iframe#maint_sys")
+        frame_loc = self.main_page_frame().frame_locator("iframe[name='maint_sys'], iframe#maint_sys")
+        sleep(1)
+        return frame_loc
 
     # ==========================================================
     # Navigation Buttons 
@@ -72,7 +83,9 @@ class PL_Main_Screen_POM:
         for attempt in range(retries):
             try:
                 left_fl = self.page.frame_locator("iframe[name='vertical_menu_frame'], frame[name='vertical_menu_frame']")
+                sleep(1)
                 btn = left_fl.locator("#Configuration").first
+                sleep(1)
 
                 expect(btn).to_be_visible(timeout=timeout)
 
@@ -144,7 +157,7 @@ class PL_Main_Screen_POM:
                     pass
 
         return False
-
+ 
     # ✅
     def click_maintenance(self, retries: int = 3, timeout: int = 20_000) -> bool:
         """
@@ -288,15 +301,17 @@ class PL_Main_Screen_POM:
             ]
         """
         self.click_Alarms(retries=retries, timeout=timeout)
+        sleep(0.5)
 
         for attempt in range(retries):
             try:
-                fault_table = (
-                    self.main_page_frame().frame_locator("iframe[name='faults'], iframe#faults").locator("#faultTab"))
+                fault_table = (self.main_page_frame().frame_locator("iframe[name='faults'], iframe#faults").locator("#faultTab"))
+                sleep(0.5)
 
                 expect(fault_table).to_be_visible(timeout=timeout)
 
                 rows = fault_table.locator("tbody tr")
+                sleep(0.5)
                 row_count = rows.count()
 
                 alarms_table = []
@@ -304,6 +319,7 @@ class PL_Main_Screen_POM:
                 for i in range(row_count):
                     row = rows.nth(i)
                     cells = row.locator("td")
+                    sleep(0.5)
                     cell_count = cells.count()
 
                     row_data = []
@@ -336,6 +352,9 @@ class PL_Main_Screen_POM:
         Returns:
             List of rows, where each row is a list of cell texts.
         """
+        self.click_Fault(timeout=timeout)
+        sleep(0.5)
+
         if isinstance(button_or_port, str):
             btn = button_or_port.strip().lower()
             if btn == "system":
@@ -353,6 +372,8 @@ class PL_Main_Screen_POM:
         else:
             print(f"Invalid type for button_or_port: {type(button_or_port)}")
             return []
+        
+        sleep(0.5)
 
         # After clicking, get the alarms table
         return self.alarms_table(retries=retries, timeout=timeout)
@@ -360,7 +381,169 @@ class PL_Main_Screen_POM:
     # ==========================================================
     # Configuration Tab
     # ==========================================================
-    
+
+    # ✅
+    def click_time(self, retries: int = 3, timeout: int = 20_000) -> bool:
+        """
+        Click the Time tab under Configuration -> System.
+
+        Returns:
+            True on success, False otherwise.
+        """
+
+        for attempt in range(retries):
+            try:
+                if not self.click_Configuration(timeout=timeout):
+                    raise Exception("click_Configuration failed")
+
+                if not self.upper_panel.click_system(timeout=timeout):
+                    raise Exception("upper_panel.click_system failed")
+
+                self.page.wait_for_timeout(500)
+
+                main_fl = self.main_page_frame()
+
+                btn = main_fl.locator("#tab_time").first
+                expect(btn).to_be_visible(timeout=timeout)
+
+                cls = (btn.get_attribute("class") or "").strip()
+                if cls != "tab tabactive":
+                    btn.scroll_into_view_if_needed()
+                    btn.click(force=True, timeout=timeout)
+
+                expect(btn).to_have_attribute("class", "tab tabactive", timeout=timeout)
+
+                return True
+
+            except Exception as e:
+                print(f"click_time failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return False
+
+    def set_chassis_id(self, chassis_id, retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
+        """
+        Set the Chassis ID under Configuration -> System -> General.
+
+        Args:
+            chassis_id:
+                Integer/string value between 0 and 10000.
+
+        Returns:
+            tuple[bool, str]:
+                (success, alert_text)
+
+                success:
+                    True  -> operation completed successfully
+                    False -> operation failed
+
+                alert_text:
+                    Browser alert text if an alert appeared, otherwise "".
+        """
+
+        try:
+            if chassis_id is None:
+                chassis_id = ""
+
+            if chassis_id == "" or chassis_id == " ":
+                chassis_id = "0"
+
+            chassis_id_str = str(chassis_id).strip()
+            chassis_id_int = int(chassis_id_str)
+            if chassis_id_int < 0 or chassis_id_int > 10000:
+                return False, "Please specify chassis Id between 1 and 10000, or 0 for non multi-chassis"
+        except Exception:
+            return False, "Please specify chassis Id between 1 and 10000, or 0 for non multi-chassis"
+
+        def config_system_frame():
+            fr = self.page.frame(name="config_sys")
+            if fr is None:
+                raise AssertionError("config_sys frame not found")
+            return fr
+
+        def arm_dialog_capture_once(holder: dict):
+            def _handler(d):
+                try:
+                    holder["text"] = (d.message or "").strip()
+                except Exception:
+                    holder["text"] = ""
+
+                try:
+                    d.accept()
+                except Exception:
+                    pass
+
+            try:
+                self.page.once("dialog", _handler)
+            except Exception:
+                pass
+
+        def wait_for_dialog_text(holder: dict, ms: int = 3000) -> str:
+            step = 50
+            loops = max(1, ms // step)
+            for _ in range(loops):
+                if holder.get("text") is not None:
+                    return holder.get("text") or ""
+                self.page.wait_for_timeout(step)
+            return holder.get("text") or ""
+
+        for attempt in range(retries):
+            try:
+                if not self.click_Configuration(timeout=timeout):
+                    raise Exception("click_Configuration failed")
+
+                if not self.upper_panel.click_system(timeout=timeout):
+                    raise Exception("upper_panel.click_system failed")
+
+                self.page.wait_for_timeout(500)
+
+                cfg = config_system_frame()
+
+                chassis_input = cfg.locator("input[name='slmSysChassisId']").first
+                expect(chassis_input).to_be_visible(timeout=timeout)
+
+                current_value = (chassis_input.input_value() or "").strip()
+                if current_value == chassis_id_str:
+                    return True, ""
+
+                chassis_input.fill(chassis_id_str)
+
+                apply_btn = cfg.locator("#gen_sys_apply").first
+                expect(apply_btn).to_be_visible(timeout=timeout)
+                expect(apply_btn).to_be_enabled(timeout=timeout)
+
+                dlg_holder = {"text": None}
+                arm_dialog_capture_once(dlg_holder)
+
+                apply_btn.click(force=True, timeout=timeout)
+
+                self.page.wait_for_timeout(500)
+                alert_text = wait_for_dialog_text(dlg_holder, ms=3000)
+
+                if alert_text:
+                    return False, alert_text
+
+                # verify value stayed applied
+                self.page.wait_for_timeout(1000)
+                new_value = (cfg.locator("input[name='slmSysChassisId']").first.input_value() or "").strip()
+
+                if new_value == chassis_id_str:
+                    return True, ""
+
+                return False, ""
+
+            except Exception as e:
+                print(f"set_chassis_id failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return False, ""
+
     # ✅
     def get_system_product_name(self, retries: int = 5, timeout: int = 10000):
         """
@@ -436,11 +619,17 @@ class PL_Main_Screen_POM:
             port_lower = str(port_number).lower()
 
             if "com" in port_lower:
-                return main_fl().frame_locator("iframe[name='config_com'], frame[name='config_com']")
+                com_locator = main_fl().frame_locator("iframe[name='config_com'], frame[name='config_com']")
+                sleep(1)
+                return com_locator
+            
             elif "eth" in port_lower or "edfa" in port_lower:
                 return main_fl()
+            
             else:
-                return main_fl().frame_locator("iframe[name='config_port'], frame[name='config_port']")
+                config_locator = main_fl().frame_locator("iframe[name='config_port'], frame[name='config_port']")
+                sleep(1)
+                return config_locator
 
         def arm_dialog_capture_once(holder: dict):
             def _handler(d):
@@ -477,6 +666,7 @@ class PL_Main_Screen_POM:
             for _ in range(25):
                 try:
                     modal = self.page.locator("#modalWait").first
+                    sleep(1)
                     modal.wait_for(state="hidden", timeout=1000)
                     return
                 except Exception:
@@ -484,6 +674,7 @@ class PL_Main_Screen_POM:
 
         def get_current_admin_status(ctx) -> str:
             status_cell = ctx.locator("#AdminStatus").first
+            sleep(1)
             expect(status_cell).to_be_visible(timeout=timeout)
             return (status_cell.inner_text() or "").strip().lower()
 
@@ -528,7 +719,7 @@ class PL_Main_Screen_POM:
 
                 current_status = get_current_admin_status(ctx)
                 if current_status == desired_status:
-                    print(f"Admin {desired_status.title()} already active - nothing to do")
+                    # print(f"Admin {desired_status.title()} already active - nothing to do")
                     success = True
                     actual_alert_message = ""
                     break
@@ -545,7 +736,9 @@ class PL_Main_Screen_POM:
                 arm_dialog_capture_once(dlg_holder)
 
                 btn.scroll_into_view_if_needed()
+                sleep(0.5)
                 btn.click(force=True, timeout=timeout)
+                sleep(0.5)
 
                 self.page.wait_for_timeout(1000)
                 actual_alert_message = wait_for_dialog_text(dlg_holder, ms=5000)
@@ -578,6 +771,288 @@ class PL_Main_Screen_POM:
         self.reload()
 
         return success, actual_alert_message
+
+    # ✅
+    def add_sntp_server(self, ip: str, protocol: str = "SNTP", key_id=None, key_value=None, retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
+        """
+        Add a time server (SNTP/NTP) with optional symmetric key authentication.
+
+        Args:
+            ip:
+                IPv4 address as string.
+
+            protocol:
+                "SNTP" or "NTP" (case-insensitive).
+
+            key_id:
+                Optional Key ID. If None/empty -> left blank.
+
+            key_value:
+                Optional Key Value. If None/empty -> left blank.
+
+        Returns:
+            tuple[bool, str]:
+                (success, alert_text)
+
+                success:
+                    True  -> server was added successfully
+                    False -> operation failed
+
+                alert_text:
+                    Browser alert text if an alert appeared, otherwise "".
+        """
+        # ---- Validation ----
+        if not ip or not re.match(r"^((25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(25[0-5]|2[0-4]\d|1?\d?\d)$", ip):
+            return False, "Invalid IP Address (requires numeric IPv4)"
+
+        protocol = (protocol or "SNTP").strip().upper()
+        if protocol not in {"SNTP", "NTP"}:
+            return False, f"Invalid protocol '{protocol}' (use SNTP or NTP)"
+
+        PRIV_WARN_SUB = "Not enough privileges"
+        IP_WARN_SUB = "valid IP address"
+
+        def time_config_frame():
+            return self.main_page_frame().frame_locator("iframe[name='config_sys'], iframe#config_sys")
+        
+        def arm_dialog_capture_once(holder: dict):
+            def _handler(d):
+                try:
+                    holder["text"] = (d.message or "").strip()
+                except Exception:
+                    holder["text"] = ""
+
+                try:
+                    d.accept()
+                except Exception:
+                    pass
+
+            try:
+                self.page.once("dialog", _handler)
+            except Exception:
+                pass
+
+        def wait_for_dialog_text(holder: dict, ms: int = 5000) -> str:
+            step = 50
+            loops = max(1, ms // step)
+            for _ in range(loops):
+                if holder.get("text") is not None:
+                    return holder.get("text") or ""
+                self.page.wait_for_timeout(step)
+            return holder.get("text") or ""
+
+        for attempt in range(retries):
+            try:
+                if not self.click_time(timeout=timeout):
+                    raise Exception("click_time failed")
+
+                self.page.wait_for_timeout(500)
+
+                cfg = time_config_frame()
+                sleep(0.5)
+
+                # ---- Locate the add row by the IP input ----
+                ip_field = cfg.locator("input[name='ip_address']").first
+                sleep(0.5)
+                expect(ip_field).to_be_visible(timeout=timeout)
+
+                row = ip_field.locator("xpath=./ancestor::tr[1]")
+                sleep(0.5)
+
+                # IP
+                ip_field.fill(ip)
+
+                # Protocol
+                protocol_select = row.locator("xpath=./td[position()=2]//select").first
+                sleep(0.5)
+                expect(protocol_select).to_be_visible(timeout=timeout)
+                protocol_select.select_option(label=protocol)
+
+                # Key ID
+                if key_id not in (None, ""):
+                    key_id_el = row.locator("xpath=./td[position()=3]//input[not(@type='hidden')]").first
+                    sleep(0.5)
+                    expect(key_id_el).to_be_visible(timeout=timeout)
+                    key_id_el.fill(str(key_id))
+
+                # Key Value
+                if key_value not in (None, ""):
+                    key_value_el = row.locator("xpath=./td[position()=4]//input[not(@type='hidden')]").first
+                    sleep(0.5)
+                    expect(key_value_el).to_be_visible(timeout=timeout)
+                    key_value_el.fill(str(key_value))
+
+                # ---- Click Add ----
+                add_btn = row.locator(
+                    "xpath=./td[last()]//input[@name='sntp_add' or @type='button' or @type='submit']"
+                ).first
+                sleep(0.5)
+                expect(add_btn).to_be_visible(timeout=timeout)
+                expect(add_btn).to_be_enabled(timeout=timeout)
+
+                dlg_holder = {"text": None}
+                arm_dialog_capture_once(dlg_holder)
+                sleep(0.5)
+
+                add_btn.click(force=True, timeout=timeout)
+
+                # ---- Handle possible alert ----
+                self.page.wait_for_timeout(500)
+                alert_text = wait_for_dialog_text(dlg_holder, ms=4000)
+
+                if alert_text:
+                    if PRIV_WARN_SUB.lower() in alert_text.lower():
+                        return False, alert_text
+                    if IP_WARN_SUB.lower() in alert_text.lower():
+                        return False, alert_text
+                    return False, alert_text
+
+                # ---- No alert = success path ----
+                return True, ""
+
+            except Exception as e:
+                print(f"add_sntp_server failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                    self.reload()
+                except Exception:
+                    pass
+
+        return False, ""
+
+    # ✅
+    def set_sntp_configuration(self, status: str, gmt: Optional[str] = None, daylight_save: Optional[str] = None,
+        retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
+        """
+        Set the SNTP/NTP configuration under Configuration -> System -> Time.
+
+        Args:
+            status:
+                Supported values:
+                    "Enable", "Enabled", "Disable", "Disabled"
+
+            gmt:
+                Optional timezone text as shown in the GUI, for example:
+                    "GMT+2"
+
+            daylight_save:
+                Optional daylight saving value as shown in the GUI, for example:
+                    "Enabled" / "Disabled"
+
+        Returns:
+            tuple[bool, str]:
+                (success, alert_text)
+
+                success:
+                    True  -> operation completed successfully
+                    False -> operation failed
+
+                alert_text:
+                    Browser alert text if an alert appeared, otherwise "".
+        """
+
+        PRIV_WARN_SUB = "Not enough privileges"
+        WARN_SUB = "Add at least one server first"
+
+        normalized_status = (status or "").strip().lower()
+        if normalized_status in {"enable", "enabled"}:
+            status_value = "Enabled"
+        elif normalized_status in {"disable", "disabled"}:
+            status_value = "Disabled"
+        else:
+            return False, f"Invalid status '{status}'"
+
+        def time_config_frame():
+            return self.main_page_frame().frame_locator("iframe[name='config_sys'], iframe#config_sys")
+
+        def arm_dialog_capture_once(holder: dict):
+            def _handler(d):
+                try:
+                    holder["text"] = (d.message or "").strip()
+                except Exception:
+                    holder["text"] = ""
+
+                try:
+                    d.accept()
+                except Exception:
+                    pass
+
+            try:
+                self.page.once("dialog", _handler)
+            except Exception:
+                pass
+
+        def wait_for_dialog_text(holder: dict, ms: int = 3000) -> str:
+            step = 50
+            loops = max(1, ms // step)
+            for _ in range(loops):
+                if holder.get("text") is not None:
+                    return holder.get("text") or ""
+                self.page.wait_for_timeout(step)
+            return holder.get("text") or ""
+
+        for attempt in range(retries):
+            try:
+                if not self.click_time(timeout=timeout):
+                    raise Exception("click_time failed")
+
+                self.page.wait_for_timeout(500)
+
+                cfg = time_config_frame()
+
+                # Enable / Disable
+                sntp_enable_sel = cfg.locator("#sntp_enable_sel").first
+                expect(sntp_enable_sel).to_be_visible(timeout=timeout)
+                sntp_enable_sel.select_option(label=status_value)
+
+                # GMT / Time zone
+                if gmt not in (None, ""):
+                    sntp_tz_sel = cfg.locator("#sntp_tz_sel").first
+                    expect(sntp_tz_sel).to_be_visible(timeout=timeout)
+                    sntp_tz_sel.select_option(label=str(gmt).strip())
+
+                # Daylight Saving
+                if daylight_save not in (None, ""):
+                    daylight_sel = cfg.locator("#daylight_save_sel, #sntp_daylight_sel, #sntp_dst_sel").first
+                    expect(daylight_sel).to_be_visible(timeout=timeout)
+                    daylight_sel.select_option(label=str(daylight_save).strip())
+
+                # Apply
+                apply_btn = cfg.locator("#sntp_apply").first
+                expect(apply_btn).to_be_visible(timeout=timeout)
+                expect(apply_btn).to_be_enabled(timeout=timeout)
+
+                dlg_holder = {"text": None}
+                arm_dialog_capture_once(dlg_holder)
+
+                apply_btn.click(force=True, timeout=timeout)
+                sleep(2)
+
+                self.page.wait_for_timeout(500)
+                alert_text = wait_for_dialog_text(dlg_holder, ms=3000)
+
+                # No alert = success path
+                if not alert_text:
+                    return True, ""
+
+                # Known alerts
+                if PRIV_WARN_SUB.lower() in alert_text.lower():
+                    return False, alert_text
+
+                if WARN_SUB.lower() in alert_text.lower():
+                    return False, alert_text
+
+                # Unknown alert -> return it as failure
+                return False, alert_text
+
+            except Exception as e:
+                print(f"set_sntp_configuration failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return False, ""
 
     # ==========================================================
     # Maintenance Tab

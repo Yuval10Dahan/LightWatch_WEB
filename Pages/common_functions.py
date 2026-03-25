@@ -7,6 +7,8 @@ Date: 20/01/2026
 
 from playwright.sync_api import Page, expect
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+from Utils.utils import refresh_page, countdown_sleep
+from time import sleep
 
 
 class CommonFunctionsPage:
@@ -39,6 +41,8 @@ class CommonFunctionsPage:
         failure_message = "Polling Restart"
         self.polling_restart_btn.click()
         self.click_button(success_message, failure_message)
+        refresh_page(self.page)
+        countdown_sleep(15, "Waiting for polling to finish")
 
     # ✅
     def click_polling_restart_backup(self) -> bool:

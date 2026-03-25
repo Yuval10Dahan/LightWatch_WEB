@@ -77,6 +77,7 @@ def countdown_sleep(total_seconds: int, message: str = "Waiting", update_every: 
     sys.stdout.write(f"\r{message}: 00:00 {end_message}\n")
     sys.stdout.flush()
 
+# ✅
 def click_system_btn(self, retries: int = 5, timeout: int = 10_000) -> bool:
     """
     Playwright version of Click_System_Btn of PacketLight GUI.
@@ -115,6 +116,7 @@ def click_system_btn(self, retries: int = 5, timeout: int = 10_000) -> bool:
 
     return False
 
+# ✅
 def click_maintenance(self, retries: int = 3, timeout: int = 20_000) -> bool:
     """
     Playwright version of Click_Maintenance of PacketLight GUI.
@@ -157,6 +159,7 @@ def click_maintenance(self, retries: int = 3, timeout: int = 20_000) -> bool:
 
     return False
 
+# ✅
 def device_restart(self, restart_type: str, action_dismiss: bool = False, retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
     """
     Playwright version of Device_Restart of PacketLight GUI.
@@ -304,6 +307,7 @@ def device_restart(self, restart_type: str, action_dismiss: bool = False, retrie
 
     return success, actual_alert_message
 
+# ✅
 def normalize_url_for_device(url: str) -> str:
     """
     - Ensures scheme exists (defaults to http://)
@@ -330,6 +334,7 @@ def normalize_url_for_device(url: str) -> str:
 
     return url
 
+# ✅
 def countdown_timer(
     page: Page,
     *,
@@ -370,6 +375,7 @@ def countdown_timer(
         else:
             print(" " * 79, end="\r")
 
+# ✅
 def http_ping(page: Page, url: str, timeout_ms: int = 2000) -> bool:
     """
     Playwright equivalent of HTTP_Ping:
@@ -391,6 +397,7 @@ def http_ping(page: Page, url: str, timeout_ms: int = 2000) -> bool:
     except Exception:
         return False
 
+# ✅
 def devices_are_up(ips, wait_time):
     def wait_device_http(ip, timeout_s=600, interval_s=2):
             url = f"http://{ip}/"
@@ -413,6 +420,7 @@ def devices_are_up(ips, wait_time):
             ip, restart_time = f.result()
             print(f"{ip}: device is UP after {restart_time:.1f} seconds")
 
+# ✅
 def Device_Is_Up(
     page: Page,
     URL: str,

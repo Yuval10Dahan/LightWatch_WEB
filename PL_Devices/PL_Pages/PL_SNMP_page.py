@@ -483,7 +483,7 @@ class PL_SNMPPage:
         return False
     
     # ✅
-    def Add_Trap_Manager(self, IP: str | None = None, SNMP_Version: str | None = None, V3_User: str | None = None,
+    def Add_Trap_Manager_old(self, IP: str | None = None, SNMP_Version: str | None = None, V3_User: str | None = None,
         Trap_Port: str | int | None = None, Negative_Test: bool = False, Action_Dismiss: bool = False,
         Retries: int = 3, timeout: int = 10_000):
         """
@@ -661,6 +661,181 @@ class PL_SNMPPage:
                 return success, last_msg
 
             except Exception:
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    pass
+                continue
+
+        return False, ""
+    
+    def Add_Trap_Manager(self, IP: str | None = None, SNMP_Version: str | None = None, V3_User: str | None = None,
+        Trap_Port: str | int | None = None, Negative_Test: bool = False, Action_Dismiss: bool = False,
+        Retries: int = 3, timeout: int = 10_000):
+        """
+        Add SNMP Trap Manager entry.
+
+        Returns:
+            - None                         -> invalid IP (only if Negative_Test=False)
+            - (success: bool, msg: str)    -> message is the last dialog / status message captured
+
+        Notes:
+            - Prevents duplicate add attempts by checking the traps table before clicking Add.
+            - Still handles GUI duplicate alert as fallback.
+        """
+
+        NON_FIPS = "You are enabling a non FIPS-compliant protocol!"
+        PRIV_WARN = "Not enough privileges"
+        NO_ADMIN = "No Admin Privileges"
+        CONFIRM = "Are you sure?"
+        DUPLICATE = "Duplicate Manager Entry"
+        ILLEGAL = "SNMP Illegal Port Number!"
+        SPECIAL = "is a special IP address and cannot be used here."
+        NOT_VALID = "is not a valid IP address."
+
+        ip_str = (IP or "").strip()
+
+        if not Negative_Test:
+            ip_ok = re.match(
+                r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+                ip_str,
+            )
+            if not ip_ok:
+                print("Invalid IP")
+                return None
+
+        def cfg_frame() -> Frame:
+            fr = self.page.frame(name="config_sys")
+            if fr is None:
+                raise AssertionError("config_sys frame not found (SNMP page not loaded)")
+            return fr
+
+        def wait_table_visible(fr: Frame) -> None:
+            table = fr.locator("table#snmp_trap_table").first
+            expect(table).to_be_visible(timeout=timeout)
+
+        def manager_row_locator(fr: Frame, ip: str):
+            # Existing rows have exact manager IP in first td
+            return fr.locator(f"table#snmp_trap_table tr:has(td:text-is('{ip}'))")
+
+        def manager_exists(fr: Frame, ip: str) -> bool:
+            try:
+                return manager_row_locator(fr, ip).count() > 0
+            except Exception:
+                return False
+
+        def drain_dialogs(max_dialogs: int = 4, per_dialog_timeout: int = 3000) -> list[str]:
+            """
+            Collect sequential JS dialogs (alerts/confirms).
+            Returns list of dialog messages in the order they appeared.
+            """
+            msgs: list[str] = []
+
+            for _ in range(max_dialogs):
+                try:
+                    d = self.page.wait_for_event("dialog", timeout=per_dialog_timeout)
+                except Exception:
+                    break
+
+                msg = (d.message or "").strip()
+                msgs.append(msg)
+
+                if msg == CONFIRM:
+                    try:
+                        if Action_Dismiss:
+                            d.dismiss()
+                        else:
+                            d.accept()
+                    except Exception:
+                        pass
+                    continue
+
+                # all other alerts -> accept
+                try:
+                    d.accept()
+                except Exception:
+                    pass
+
+            return msgs
+
+        for _ in range(Retries):
+            try:
+                ok = self.open_SNMP_tab(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("open_SNMP_tab failed")
+
+                fr = cfg_frame()
+                wait_table_visible(fr)
+
+                # 1) Pre-check duplicate before filling/clicking Add
+                if manager_exists(fr, ip_str):
+                    return True, DUPLICATE
+
+                ip_field = fr.locator("input[name='ip_address']").first
+                expect(ip_field).to_be_visible(timeout=timeout)
+                ip_field.fill(ip_str)
+
+                if SNMP_Version:
+                    ver_dd = fr.locator("select[name='snmp_version']").first
+                    expect(ver_dd).to_be_visible(timeout=timeout)
+                    ver_dd.select_option(label=SNMP_Version)
+
+                    # if SNMP v1 triggers NON_FIPS, consume it here
+                    _ = drain_dialogs(max_dialogs=1, per_dialog_timeout=1500)
+
+                if (SNMP_Version == "SNMP v3") and V3_User:
+                    v3_dd = fr.locator("select[name='community']").first
+                    expect(v3_dd).to_be_visible(timeout=timeout)
+
+                    try:
+                        fr.wait_for_function("() => { const el=document.querySelector(\"select[name='community']\"); return !!el && !el.disabled; }",
+                            timeout=timeout)
+                    except Exception:
+                        pass
+
+                    v3_dd.select_option(label=V3_User)
+
+                if Trap_Port is not None:
+                    port_field = fr.locator("input[name='trap_port']").first
+                    expect(port_field).to_be_visible(timeout=timeout)
+                    port_field.fill(str(Trap_Port))
+
+                add_btn = fr.locator("input[name='snmp_add'][type='submit']").first
+                expect(add_btn).to_be_visible(timeout=timeout)
+
+                add_btn.click(force=True)
+
+                msgs = drain_dialogs(max_dialogs=4, per_dialog_timeout=4000)
+                last_msg = msgs[-1] if msgs else ""
+
+                # 2) Explicit failure dialogs
+                if any(m in {PRIV_WARN, NO_ADMIN, ILLEGAL, DUPLICATE} for m in msgs):
+                    return False, last_msg
+
+                if any((SPECIAL in m) or (NOT_VALID in m) for m in msgs):
+                    return False, last_msg
+
+                # Confirm was dismissed intentionally -> operation cancelled
+                if Action_Dismiss and any(m == CONFIRM for m in msgs):
+                    return True, last_msg
+
+                # 3) Verify result from table after submit
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+                fr = cfg_frame()
+                wait_table_visible(fr)
+
+                if manager_exists(fr, ip_str):
+                    return True, last_msg
+
+                # No row appeared after add -> fail
+                return False, last_msg
+
+            except Exception as e:
+                print(f"Add_Trap_Manager failed: {e}")
                 try:
                     self.click_reload_button()
                 except Exception:

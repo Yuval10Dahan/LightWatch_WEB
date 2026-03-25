@@ -44,7 +44,8 @@ go to Alarm & Events page on LW server.
 set Faults type to "Alarms".
 set filter by to "Domain/Chassis" via 'set_filterBy' in 'Pages -> alarms_and_events'
 select the chassis "Chassis: 67/67" via 'select_domain_or_chassis_filterBy_domain_or_chassis' in 'Pages -> alarms_and_events'
-compare between the alarms of both the Ip's you stored to the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+compare between the alarms of both the Ip's you stored (pl_alarms_stored) to the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+compare via 'compare_device_and_lw_alarms'.
 if the alarms of both the ip's is not as the alarms in the LW server, fail the step and continue to the next step.
 refresh the page
  
@@ -130,7 +131,7 @@ refresh the page
 login to the GUI of 172.16.30.15 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
 for 'Message' in MESSAGES_LIST:
  put comment on this part for now until i will write the right functions:
- Generate an alarm that relate to 'category'.
+ Generate an alarm that relate to 'Message'.
  store the alarm table of the ip via 'get_alarms_table("ALL")' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
  go to Alarm & Events page on LW server.
  set Faults type to "Alarms".
