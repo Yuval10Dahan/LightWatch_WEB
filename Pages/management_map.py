@@ -615,6 +615,7 @@ class ManagementMap:
 
         try:
             svg = self.page.locator("svg.svg-container").first
+            sleep(1)
 
             node = None
 
@@ -623,6 +624,7 @@ class ManagementMap:
                 ip = str(element_ip).strip()
 
                 node = svg.locator(f"g.node:has(text.node-device-ip:has-text('({ip})'))").first
+                sleep(1)
 
                 if node.count() == 0:
                     raise AssertionError(f"Map element with IP '{ip}' not found.")
@@ -634,6 +636,7 @@ class ManagementMap:
                     f"g.node:has(text.node-user-name:has-text('{name}')), "
                     f"g.node:has(text.node-name:has-text('{name}'))"
                 ).first
+                sleep(1)
 
                 if node.count() == 0:
                     raise AssertionError(f"Map element with name '{name}' not found.")
@@ -643,6 +646,7 @@ class ManagementMap:
 
             # Read the colored path inside the located node
             element = node.locator("path.gradient, path.gradient.device, path.in-chassis-gradient.device").first
+            sleep(1)
 
             if element.count() == 0:
                 raise AssertionError("Located map node does not contain a color path element.")

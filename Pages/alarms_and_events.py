@@ -670,6 +670,47 @@ class AlarmsAndEvents:
             raise AssertionError(f"select_device_filterBy_devices('{device_name}') failed. Problem: {e}")
 
     # ✅
+    def close_devices_dropdown(self, timeout: int = 5000):
+        """
+        Close the Devices dropdown if it is open.
+        """
+        try:
+            dropdown = self.page.locator("app-dropdown[label='Devices']").first
+            sleep(0.5)
+            if dropdown.count() == 0:
+                return
+
+            container = dropdown.locator("div.dropdown-container").first
+            sleep(0.5)
+            menu = dropdown.locator("div.dropdown-menu[data-label='Devices']").first
+            sleep(0.5)
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle], button#button-basic").first
+            sleep(0.5)
+
+            def is_open() -> bool:
+                try:
+                    container_cls = container.get_attribute("class") or ""
+                    menu_cls = menu.get_attribute("class") or ""
+                    return ("open" in container_cls and "show" in container_cls) or ("show" in menu_cls)
+                except Exception:
+                    return False
+
+            # Already closed
+            if not is_open():
+                return
+
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.scroll_into_view_if_needed()
+
+            # Click the toggle button to close
+            btn.click(force=True)
+
+            self.wait_until(lambda: not is_open(), timeout_ms=timeout, interval_ms=150)
+
+        except Exception as e:
+            raise AssertionError(f"close_devices_dropdown failed. Problem: {e}")
+
+    # ✅
     def remove_device_filterBy_devices(self, device_name: str, timeout: int = 10000):
         """
         Unselect a specific device in the Devices filter.
@@ -1382,14 +1423,16 @@ class AlarmsAndEvents:
 
             # 4) Click "Acknowledge Alert"
             ack_btn = self.page.locator("div.faults-actionWrapper-footer button.btn.btn-primary", has_text=re.compile(r"^\s*Acknowledge\s+Alert\s*$", re.IGNORECASE)).first
+            sleep(1)
+            if ack_btn.count() == 0:
+                return True  # nothing to click → already Clear or not applicable
 
             expect(ack_btn).to_be_visible(timeout=timeout)
             self.wait_until(lambda: ack_btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
 
-            sleep(5)
+            sleep(3)
             ack_btn.click(force=True)
-            refresh_page(self.page)
-            sleep(5)
+            sleep(3)
 
             return True
 
@@ -1402,7 +1445,7 @@ class AlarmsAndEvents:
         Clear an alarm based on the desired alarm GLOBAL row index (across ALL pages).
         Steps:
         1) Navigate pages until the global row_index row is visible.
-        2) Click Ack checkbox (selection).
+        2) Check Ack existing on checkbox (selection).
         3) Click "Clear Alert".
         4) Verify the Severity cell text becomes 'Clear' for that row index.
         """
@@ -1521,11 +1564,15 @@ class AlarmsAndEvents:
             sleep(1)
 
             clear_btn = self.page.get_by_role("button", name=re.compile(r"^\s*Clear\s+Alert\s*$", re.IGNORECASE)).first
+            sleep(1)
+            if clear_btn.count() == 0:
+                return True
+
             expect(clear_btn).to_be_visible(timeout=timeout)
             self.wait_until(lambda: clear_btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
 
             clear_btn.click(force=True)
-            refresh_page(self.page)
+            sleep(3)
 
             # Verify severity becomes "Clear" 
             def severity_is_clear() -> bool:
@@ -1540,7 +1587,7 @@ class AlarmsAndEvents:
 
             self.wait_until(severity_is_clear, timeout_ms=timeout, interval_ms=200)
 
-            sleep(5)
+            sleep(3)
             return True
 
         except Exception as e:

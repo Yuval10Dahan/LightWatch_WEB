@@ -115,7 +115,7 @@ def test_domain_management(page, left_panel):
 
     # ----------------------------
     # Step 4: cleanup remove_domain (best-effort)
-    # ----------------------------
+    # ---------------------------- 
     def step_4():
         for name in [domain_a, domain_b]:
                 dm.remove_domain(name)

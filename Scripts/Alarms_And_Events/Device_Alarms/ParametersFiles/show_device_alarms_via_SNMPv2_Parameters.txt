@@ -2,13 +2,13 @@
     'LW_SERVER_HOST_IP': '172.16.10.22:8080',
     'LW_USERNAME': 'administrator',
     'LW_PASSWORD': 'administrator',
-    '': '',
-    '': '',
-    '': '',
-    '': '',
-    '': '',
-    '': '',
-    '': '',
-    '': '',
-    '': ''
+    'DEVICES_LIST': ['172.16.30.15', '172.16.30.13'],
+    'DEVICE_IP_USER': 'tech',
+    'DEVICE_IP_PASS': 'packetlight',
+    'DUT_IP1_NAME': 'PL-2000ADS (172.16.30.15)',
+    'DUT_IP2_NAME': 'PL-1000IL2 (172.16.30.13)',
+    'NEW_CHASSIS_ID': '67',
+    'DOMAIN_NAME': 'Script_Domain',
+    'SUB_DOMAIN_NAME': 'Script_Sub_Domain',
+    'CATEGORY_TEST_DEVICE': '172.16.40.31'
      }

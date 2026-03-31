@@ -262,7 +262,7 @@ class DomainManagement:
             raise ValueError("device_name_or_ip is empty")
 
         tree = self.from_tree() if tree_title == "From" else self.to_tree()
-        device_types = ("ROADM", "TRANSPONDER", "MUXPONDER")
+        device_types = ("DEVICE", "ROADM", "TRANSPONDER", "MUXPONDER")
 
         # If user passed only IP -> match "(IP)"
         is_ip_only = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
@@ -476,7 +476,7 @@ class DomainManagement:
 
             tree = self.from_tree()
 
-            device_types = ("ROADM", "TRANSPONDER", "MUXPONDER")
+            device_types = ("DEVICE", "ROADM", "TRANSPONDER", "MUXPONDER")
 
             is_ip_only = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
             if is_ip_only:
@@ -1028,7 +1028,7 @@ class DomainManagement:
         rm.click()
 
     # ✅
-    def remove_domain(self, domain_name: str, timeout: int = 5000):
+    def remove_domain_old(self, domain_name: str, timeout: int = 5000):
         """
         Delete a domain.
         """
@@ -1068,7 +1068,76 @@ class DomainManagement:
             raise AssertionError(f"remove_domain('{domain_name}') failed. Problem: {e}")
 
     # ✅
-    def remove_chassis(self, chassis_name: str, parent_domain_name: str | None = None, timeout: int = 8000):
+    def remove_domain(self, domain_name: str, timeout: int = 5000):
+        """
+        Delete a domain.
+
+        If the domain is already deleted / not found, this function does nothing.
+        """
+        try:
+            target = (domain_name or "").strip()
+            if not target:
+                raise ValueError("domain_name is empty")
+
+            # If already deleted -> do nothing
+            if self.verify_element_deleted(target, element_type="domain", tree_title="From", refresh=False):
+                return
+
+            refresh_page(self.page)
+            sleep(10)
+
+            # Re-check after refresh
+            if self.verify_element_deleted(target, element_type="domain", tree_title="From", refresh=False):
+                return
+
+            # Click Remove
+            try:
+                self.click_remove_domain_btn(target, timeout=timeout)
+            except Exception:
+                # If cannot click → maybe already deleted
+                if self.verify_element_deleted(target, element_type="domain", tree_title="From", refresh=False):
+                    return
+                raise
+
+            # Warning modal must appear
+            warn = self.warning_remove_modal()
+
+            if not (warn.count() > 0 and warn.is_visible()):
+                # Maybe already deleted meanwhile
+                if self.verify_element_deleted(target, element_type="domain", tree_title="From", refresh=True):
+                    return
+                raise AssertionError(f"remove_domain('{target}') failed: Warning modal did not appear.")
+
+            expect(warn).to_be_visible(timeout=timeout)
+
+            # Optional validation of warning text
+            try:
+                article = warn.locator("article").first
+                if article.count() > 0:
+                    text = article.inner_text().lower()
+                    if "will be deleted" not in text:
+                        raise AssertionError(f"Unexpected Warning text: {text}")
+            except Exception:
+                pass
+
+            # Confirm deletion
+            yes = self.warning_yes_btn()
+            expect(yes).to_be_visible(timeout=timeout)
+            expect(yes).to_be_enabled(timeout=timeout)
+            yes.click()
+
+            refresh_page(self.page)
+            countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")
+
+            # Final verification
+            if not self.verify_element_deleted(target, element_type="domain", tree_title="From", refresh=False):
+                raise AssertionError(f"remove_domain('{target}') failed: domain still exists in tree.")
+
+        except Exception as e:
+            raise AssertionError(f"remove_domain('{domain_name}') failed. Problem: {e}")
+
+    # ✅
+    def remove_chassis_old(self, chassis_name: str, parent_domain_name: str | None = None, timeout: int = 8000):
         """
         Delete a chassis (e.g., 'Chassis: 99/99' or 'Chassis: 99').
         If the chassis is under a collapsed domain, pass parent_domain_name to expand first.
@@ -1076,6 +1145,7 @@ class DomainManagement:
         try:
             refresh_page(self.page)
             sleep(10)
+
             name = (chassis_name or "").strip()
             if not name:
                 raise ValueError("chassis_name is empty")
@@ -1159,7 +1229,109 @@ class DomainManagement:
 
         except Exception as e:
             raise AssertionError(f"remove_chassis('{chassis_name}') failed. Problem: {e}")
-        
+
+    # ✅
+    def remove_chassis(self, chassis_name: str, parent_domain_name: str | None = None, timeout: int = 8000):
+        """
+        Delete a chassis (e.g., 'Chassis: 99/99' or 'Chassis: 99').
+        If the chassis is under a collapsed domain, pass parent_domain_name to expand first.
+        """
+        try:
+            name = (chassis_name or "").strip()
+            if not name:
+                raise ValueError("chassis_name is empty")
+            
+            # If already deleted -> do nothing
+            if self.verify_element_deleted(name, element_type="chassis", tree_title="From", refresh=False):
+                return
+
+            refresh_page(self.page)
+            sleep(10)
+
+            # Re-check after refresh
+            if self.verify_element_deleted(name, element_type="chassis", tree_title="From", refresh=False):
+                return
+
+            # Optional: expand parent domain so the chassis row becomes visible
+            if parent_domain_name:
+                self.expand_element(parent_domain_name, tree_title="From", timeout=timeout)
+
+            # Click Remove
+            self.click_remove_chassis_btn(name, timeout=timeout)
+            sleep(0.5)
+
+            warn = self.warning_remove_modal()
+            msg = self.message_modal()
+
+            def warning_visible() -> bool:
+                try:
+                    return warn.count() > 0 and warn.is_visible()
+                except Exception:
+                    return False
+
+            def message_visible() -> bool:
+                try:
+                    return msg.count() > 0 and msg.is_visible()
+                except Exception:
+                    return False
+                
+            sleep(0.5)
+
+            # Wait until either Warning OR Message modal appears
+            # self.wait_until(lambda: warning_visible() or message_visible(), timeout_ms=timeout, interval_ms=150)
+
+            # If Message modal popped -> cannot delete (or blocked)
+            if message_visible():
+                t = self.message_text()
+                expect(t).to_be_visible(timeout=timeout)
+                msg_text = t.inner_text().strip()
+
+                ok = self.message_ok_btn()
+                expect(ok).to_be_visible(timeout=timeout)
+                sleep(1)
+                ok.click()
+
+                raise AssertionError(f"remove_chassis('{name}') failed (Message modal): {msg_text}")
+
+            # Warning modal must appear -> confirm
+            expect(warn).to_be_visible(timeout=timeout)
+
+            yes = self.warning_yes_btn()
+            expect(yes).to_be_visible(timeout=timeout)
+            expect(yes).to_be_enabled(timeout=timeout)
+            sleep(1)
+            yes.click()
+            refresh_page(self.page)
+            sleep(10)
+
+            # After confirming, sometimes a Message modal can still appear.
+            # Give it a short chance before assert disappearance.
+            # try:
+            #     self.wait_until(lambda: message_visible() or (self.chassis_row_locator(name).count() == 0), timeout_ms=min(timeout, 3000), interval_ms=150)
+            # except Exception:
+            #     pass
+
+            if message_visible():
+                t = self.message_text()
+                expect(t).to_be_visible(timeout=timeout)
+                msg_text = t.inner_text().strip()
+
+                ok = self.message_ok_btn()
+                expect(ok).to_be_visible(timeout=timeout)
+                sleep(1)
+                ok.click()
+
+                raise AssertionError(f"remove_chassis('{name}') failed after confirmation (Message modal): {msg_text}")
+
+            # Verify chassis removed from tree
+            # self.wait_until(lambda: self.chassis_row_locator(name, tree_title="From").count() == 0, timeout_ms=timeout, interval_ms=200)
+
+            refresh_page(self.page)
+            countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")  # UI stabilize
+
+        except Exception as e:
+            raise AssertionError(f"remove_chassis('{chassis_name}') failed. Problem: {e}")
+
     # ✅
     def remove_device(self, device_name_or_ip: str, parent_domain_name: str | None = None, parent_chassis: str | None = None, timeout: int = 8000):
         """
@@ -1168,12 +1340,20 @@ class DomainManagement:
         - If the device is hidden under a collapsed domain/chassis, pass parent_domain_name and/or parent_chassis to expand first.
         """
         try:
-            refresh_page(self.page)
-            sleep(10)
-
             target = (device_name_or_ip or "").strip()
             if not target:
                 raise ValueError("device_name_or_ip is empty")
+            
+            # If already deleted -> do nothing
+            if self.verify_element_deleted(target, element_type="device", tree_title="From", refresh=False):
+                return
+            
+            refresh_page(self.page)
+            sleep(10)
+
+            # Re-check after refresh
+            if self.verify_element_deleted(target, element_type="device", tree_title="From", refresh=False):
+                return
 
             # Optional: expand domain, then chassis (if relevant)
             if parent_domain_name:
@@ -1250,6 +1430,42 @@ class DomainManagement:
 
         except Exception as e:
             raise AssertionError(f"remove_device('{device_name_or_ip}') failed. Problem: {e}")
+        
+    # ✅
+    def verify_element_deleted(self, element_name: str, element_type: str = "any", tree_title: str = "From", timeout: int = 15000, refresh: bool = True) -> bool:
+        """
+        Verify that a domain / chassis / device is no longer present
+        in the Domain Management tree.
+
+        Returns:
+            True  -> element is not found
+            False -> element is still found
+        """
+        try:
+            name = (element_name or "").strip()
+            if not name:
+                return False
+
+            if refresh:
+                refresh_page(self.page)
+
+            et = element_type.strip().lower()
+
+            if et == "domain":
+                locator = self.domain_row_locator(name, tree_title=tree_title)
+            elif et == "chassis":
+                locator = self.chassis_row_locator(name, tree_title=tree_title)
+            elif et == "device":
+                locator = self.device_row_locator(name, tree_title=tree_title)
+            elif et == "any":
+                locator = self.row_locator(name, tree_title=tree_title)
+            else:
+                return False
+
+            return locator.count() == 0
+
+        except Exception:
+            return False
         
     # ==========================================================
     # Rename domain

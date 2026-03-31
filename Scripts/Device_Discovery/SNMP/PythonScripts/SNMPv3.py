@@ -7,7 +7,7 @@ Comprehensive SNMPv3 Test
 Tests the SNMPv3 tab inside Device Discovery.
 
 
-*** Runtime: approximately ** minutes ***
+*** Runtime: approximately == minutes ***
 """ 
 
 
