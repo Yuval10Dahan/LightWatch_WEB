@@ -1,8 +1,5 @@
 Adjust the script 'show_device_alarms.py' in Scripts -> Scripts --> Alarms_And_Events --> Device_Alarms --> PythonScripts, by this steps:
 
-values in top of the script: 
-DEVICES_LIST = ['172.16.30.15', '172.16.30.13']
-
 step 1: 
 go to 'Domain Management' page.
 add domain under 'Inventory' called "Script_Domain".
@@ -11,23 +8,35 @@ add another domain under "Script_Domain" called "Script_Sub_Domain".
 step 2:
 for ip in DEVICES_LIST:
 login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
-add the LW server as snmp trap with 'SNMP Version = SNMP v2c' on the ip via 'Add_Trap_Manager' in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+do cold reset to the device.
+after that wait for all devices from DEVICES_LIST to be up.
 
 step 3:
-Go to "Device Discovery" page.
 for ip in DEVICES_LIST:
-click on SNMPv2
+login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+set chassis id to empty.
+add SNTP server = GOOGLE_SNTP_SERVER.
+set SNTP configuration to Enabled with GMT = GMT+2.
+refresh the page.
+go to SNMP tab.
+add the LW server as snmp trap with 'SNMP Version = SNMP v2c' on the ip via 'Add_Trap_Manager' in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+
+step 4:
+Go to "Device Discovery" page.
+click on SNMPv2.
+for ip in DEVICES_LIST:
 Set IP-address: ip
 click on "Start Discovery".
 refresh the page.
+after the loop refresh the page once again.
 
-step 4: 
+step 5: 
 go to 'Domain Management' page.
 for 172.16.30.15: change chassis id -> new chassis id -> id = 67
 for 172.16.30.13: change chassis id -> existing chassis id -> chassis 67
 move chassis 67 under "Script_Sub_Domain" via move to domain.
 
-step 5:
+step 6:
 for ip in DEVICES_LIST:
  login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
  store the alarm table of the ip via 'get_alarms_table("ALL")' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
@@ -35,139 +44,163 @@ for ip in DEVICES_LIST:
  set Faults type to "Alarms".
  set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
  select the ip via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
- compare between the alarms of the ip you stored to the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events' that their "source" = ip.
+ get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+ convert the alarms from LW Server to the same GUI format.
+ compare between the alarms of the ip you stored to the alarms from LW Server via 'compare_device_and_lw_alarms'.
  if the alarms of the ip is not as the alarms in the LW server, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
  refresh the page
 
-step 6:
+step 7:
 go to Alarm & Events page on LW server.
 set Faults type to "Alarms".
 set filter by to "Domain/Chassis" via 'set_filterBy' in 'Pages -> alarms_and_events'
 select the chassis "Chassis: 67/67" via 'select_domain_or_chassis_filterBy_domain_or_chassis' in 'Pages -> alarms_and_events'
-compare between the alarms of both the Ip's you stored (pl_alarms_stored) to the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
-compare via 'compare_device_and_lw_alarms'.
-if the alarms of both the ip's is not as the alarms in the LW server, fail the step and continue to the next step.
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+for each ip in DEVICES_LIST:
+ compare between the alarms of the ip you stored (pl_alarms_stored) to only the relevant alarms from LW Server of that ip.
+ compare via 'compare_device_and_lw_alarms'.
+if the alarms of one or both ip's are not as the alarms in the LW server, fail the step and continue to the next step.
 refresh the page
- 
 
-step7:
+
+step8:
 for ip in DEVICES_LIST:
  login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
  get the product name of the ip via 'get_system_product_name' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
+ if needed, use DUT_IP1_NAME / DUT_IP2_NAME as fallback to know the product name.
  go to Alarm & Events page on LW server.
  set Faults type to "Alarms".
  set filter by to "Device type" via 'set_filterBy' in 'Pages -> alarms_and_events'
  select the device type via 'select_devices_type_filterBy_device_type(ip product name)' in 'Pages -> alarms_and_events'
- compare between the alarms of the ip you stored to the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events' that their "source" = ip.
- if the alarms of the ip is not as the alarms in the LW server, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ compare between the alarms of the ip you stored to the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events' that belong to this ip.
+ if the alarms of the ip are not as the alarms in the LW server, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
  refresh the page
 
 # Severity
-step 8:
+step 9:
 refresh the page.
 for ip in DEVICES_LIST:
  login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
- set admin up for port 1 of the ip via 'set_admin_status' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
- store the alarm table of port 1 in the ip via 'get_alarms_table(button_or_port = "1")' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
+ get the product name of the ip and according to it take the relevant port from PORT_PER_PRODUCT.
+ set admin up for that port of the ip via 'set_admin_status' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
+ store the alarm table of that port in the ip via 'get_alarms_table(button_or_port = port_number)' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
  go to Alarm & Events page on LW server.
  set Faults type to "Alarms".
  set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
  select the ip via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+
  set severity to 'Critical'.
- use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the Alarms that are of "severity" = Critical and "source" = "{ip} Port 1" and
- match to the type and count of alarms of type 'Critical' in the alarm table of port 1 we store above.
- if its not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the alarms that are of "severity" = Critical and their source matches the relevant ip port.
+ match them to the alarms of type 'Critical' in the alarm table of the stored port.
+ if it does not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
 
  set severity to 'Major'.
- use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the Alarms that are of "severity" = Major and "source" = "{ip} Port 1" and
- match to the type and count of alarms of type 'Minor' in the alarm table of port 1 we store above.
- if its not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the alarms that are of "severity" = Major and their source matches the relevant ip port.
+ match them to the alarms of type 'Major' in the alarm table of the stored port.
+ if it does not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
 
  set severity to 'Minor'.
- use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the Alarms that are of "severity" = Minor and "source" = "{ip} Port 1" and
- match to the type and count of alarms of type 'Minor' in the alarm table of port 1 we store above.
- if its not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the alarms that are of "severity" = Minor and their source matches the relevant ip port.
+ match them to the alarms of type 'Minor' in the alarm table of the stored port.
+ if it does not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
 
  set severity to 'All'.
  refresh the page
 
 # Category
-step 9:
-refresh the page
-login to the GUI of 172.16.30.15 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
-for 'category' in CATEGORIES_LIST:
- put comment on this part for now until i will write the right functions:
- Generate an alarm that relate to 'category'.
- store the alarm table of the ip via 'get_alarms_table("ALL")' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
- go to Alarm & Events page on LW server.
- set Faults type to "Alarms".
- set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
- select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+step 10:
+refresh the page.
+login to the GUI of CATEGORY_TEST_DEVICE using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+do not generate alarms in this script. rely on the setup done before the test.
+store the alarm table of the device via 'get_alarms_table("ALL")' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = CATEGORY_TEST_DEVICE via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+for each 'category' in CATEGORIES_LIST:
  set category by 'set_category' in 'Pages -> alarms_and_events' to 'category'.
- use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the Alarms that are of "category" = 'category' and "source" = "172.16.30.15" and
- match to the type and count of alarms of type 'category' in the alarm table we store above.
- if its not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ use 'get_all_alarms' in 'Pages -> alarms_and_events' and take all the alarms that are of "category" = 'category'.
+ convert each category list to the same GUI format and union all category results together.
+after that sort both sides and compare the union from LW to the full alarm table that was stored from the device.
+if it does not match, fail the step.
 
 # Date
-step 10:
-refresh the page
-login to the GUI of 172.16.30.15 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
-for 'from_date' in FROM_DATES_LIST:
- put comment on this part for now until i will write the right functions:
- Generate an alarm that relate to 'date'.
- store the alarm table of the ip via 'get_alarms_table("ALL")' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
+step 11:
+refresh the page.
+for ip in DEVICES_LIST:
  go to Alarm & Events page on LW server.
  set Faults type to "Alarms".
  set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
- select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
- set 'from date' by 'set_from_date' in 'Pages -> alarms_and_events' to 'from_date'.
- use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the Alarms that are of "From date" = 'from_date' and "source" = "172.16.30.15" and
- match to the type and count of alarms of type ('creation_timestamp' <= 'from_date') in the alarm table we store above.
- if its not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ select the ip via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+ get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+ take one existing alarm from the list and use its 'creation_timestamp' as the base for the date test.
+ do positive test:
+ set 'from date' to one hour before the alarm time.
+ set 'to date' to one hour after the alarm time.
+ verify that the selected alarm exists in the filtered results.
+ do negative test:
+ set 'from date' to three days before the alarm time.
+ set 'to date' to two days before the alarm time.
+ verify that the selected alarm does not exist in the filtered results.
+ refresh the page
 
 # Message
-step 11:
-refresh the page
-login to the GUI of 172.16.30.15 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
-for 'Message' in MESSAGES_LIST:
- put comment on this part for now until i will write the right functions:
- Generate an alarm that relate to 'Message'.
- store the alarm table of the ip via 'get_alarms_table("ALL")' in 'PL_Devices -> PL_Pages -> PL_main_screen_POM'.
+step 12:
+refresh the page.
+for ip in DEVICES_LIST:
  go to Alarm & Events page on LW server.
  set Faults type to "Alarms".
  set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
- select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
- set message by 'set_message' in 'Pages -> alarms_and_events' to 'message'.
- use 'get_all_alarms' in 'Pages -> alarms_and_events'. take all the Alarms that are of "message" = 'message' and "source" = "172.16.30.15" and
- match to the type and count of alarms of type 'message' in the alarm table we store above.
- if its not match, break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ select the ip via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+ get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+ take one existing alarm message from the list and use it as the base for the message test.
+ do positive test:
+ set message by 'set_message' in 'Pages -> alarms_and_events' to the existing message.
+ verify that the selected alarm exists in the filtered results.
+ do negative test:
+ set message by 'set_message' in 'Pages -> alarms_and_events' to DUMMY_MESSAGE.
+ verify that no alarms are returned.
+ refresh the page
 
-step 12:
+step 13:
 refresh the page
 go to Alarm & Events page on LW server.
 set Faults type to "Alarms".
 set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
-select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+select the ip = DEVICES_LIST[1] via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
 get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
 count the number of alarms in the list and save it as 'number_of_alarms'.
-do for loop of 'number_of_alarms' iterations that clear alert for each alarms via 'clear_alert' in 'Pages -> alarms_and_events'.
-get the alarms from LW Server once again via 'get_all_alarms' in 'Pages -> alarms_and_events'.
-make sure that each alarms from the list has 'severity' = Clear.
+do for loop of 'number_of_alarms' iterations:
+ acknowledge the alarm via 'check_Ack'
+ clear the alarm via 'clear_alert'
 go to 'Management Map' page on LW server.
 select domain "Script_Domain" via 'select_domain' in 'Pages -> upper_panel'.
-double click on the element "Script_Sub_Domain" via 'double_click_on_element_via_the_map' in 'Pages -> management_map'.
-check that the color of the element 172.16.30.15 is green via 'get_map_element_color' in 'Pages -> management_map'.
-if its not green fail the step.
-
-step 13:
-refresh the page
-remove devices from DEVICES_LIST from LW via domain_management.remove_device.
-apply factory defaults to the devices from DEVICES_LIST via 'SNMP_Modules' -> 'SNMP_Functions' -> 'SNMP_Device_Reset'.
-wait for each device to be up before you finish this step via 'Utilities' -> 'General_Utils' -> 'Device_Is_Up'.
+select sub domain "Script_Sub_Domain" via 'select_sub_domain' in 'Pages -> upper_panel'.
+double click on the element "Chassis: 67" via 'double_click_on_element_via_the_map' in 'Pages -> management_map'.
+check that the color of the element of the tested ip is green via 'get_map_element_color' in 'Pages -> management_map'.
+if it is not green fail the step.
 
 step 14:
 refresh the page
+remove devices from DEVICES_LIST from LW via domain_management.remove_device.
+reset chassis id for all devices from ALL_DEVICES.
+remove CATEGORY_TEST_DEVICE from LW too.
+apply factory defaults to the devices from ALL_DEVICES via 'SNMP_Modules' -> 'SNMP_Functions' -> 'SNMP_Device_Reset'.
+if needed, use the GUI fallback reset.
+wait for each device from ALL_DEVICES to be up before you finish this step via 'devices_are_up'.
 
+step 15:
+this step is optional.
+if ALL_ALARMS_TEST_DEVICE is empty, skip this step.
+if ALL_ALARMS_TEST_DEVICE has value:
+refresh the page.
+add ALL_ALARMS_TEST_DEVICE via SNMPv2 discovery.
+retrieve all alarms from the device GUI.
+retrieve all alarms from LW Server for that device.
+convert LW alarms to the same GUI format and compare both sides.
+after that verify that each alarm type from EXPECTED_ALARMS exists in the LW messages.
+if one expected alarm is missing, fail the step.
 
-
-collect if the each step passed, if one of them failed then say that the test failed, if all of them are pass then say that the test passed.
+collect if each step passed.
+if one of them failed then say that the test failed.
+if all of them are pass then say that the test passed.

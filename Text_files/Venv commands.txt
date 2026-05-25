@@ -7,13 +7,24 @@ pip list:
 venv-python 3.14: py -3.14 -m pip list
 
 python 3.8: py -3.8 -m pip list
+==================================================
+How to switch between virtual environments:
 
+# Python 3.11
+.venv311\Scripts\activate
 
-
+# Python 3.14
+.venv\Scripts\activate
 
 ==================================================
 run via CMD:
 
-1) .venv\Scripts\activate
+1) ".venv\Scripts\activate" (python 3.14) or ".venv311\Scripts\activate" (python 3.11)
 2) transfer the test file to be on front page (C:\Gitlab_y\automation\LightWatch_WEB)
 3) python .\{name of the file}.py
+
+run via VSCode:
+
+1) Ctrl + Shift + P
+2) type "Python: Select Interpreter"
+3) select "Python 3.14.2" or "Python 3.11.9"

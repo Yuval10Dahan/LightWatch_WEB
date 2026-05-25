@@ -4,9 +4,7 @@
 
 
 import os
-
 os.makedirs("frames_dump", exist_ok=True)
-
 for i, fr in enumerate(page.frames):
     try:
         name = fr.name or f"frame_{i}"

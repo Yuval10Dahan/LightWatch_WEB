@@ -8,7 +8,7 @@ Date: 20/01/2026
 from playwright.sync_api import sync_playwright, expect
 from Pages.left_panel_page import LeftPanel
 from Pages.login_page import LoginPage
-from Pages.common_functions import CommonFunctionsPage
+from Pages.system_operations import SystemOperationsPage
 import time
 
 # Initialize constants
@@ -20,7 +20,7 @@ PASSWORD = "administrator"
 def test_navigation_left_panel(page):
     try:
         # Initialize the LeftPanel class
-        left_panel = LeftPanel(page)
+        left_panel = LeftPanel(page) 
 
         # Test navigation for each section in the left panel
 
@@ -28,10 +28,10 @@ def test_navigation_left_panel(page):
         left_panel.click_service_list()
 
         # Click on "Management Map" and verify it's visible
-        left_panel.click_management_map()
+        left_panel.click_network_topology() 
 
         # Click again on "Management Map" and verify it's handle correctly
-        left_panel.click_management_map()
+        left_panel.click_network_topology()
 
         # Click on "Service Provisioning" and verify it's visible
         left_panel.click_service_provisioning()
@@ -51,10 +51,10 @@ def test_navigation_left_panel(page):
         # Click on "Alarms & Events" and verify it's visible
         left_panel.click_alarms_and_events()
 
-        # Click on "Common Functions" and verify it's visible
-        left_panel.click_common_functions()
-        common_functions = CommonFunctionsPage(page)
-        common_functions.click_exit()
+        # Click on "System Operations" and verify it's visible
+        left_panel.click_system_operations()
+        system_operations = SystemOperationsPage(page)
+        system_operations.click_exit()
 
         # Click on "User Management" and verify it's visible
         left_panel.click_user_management()

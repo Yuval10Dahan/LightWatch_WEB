@@ -65,7 +65,7 @@ class PL_SecurityPage:
             self.page.once("dialog", lambda d: d.accept())
         except Exception:
             pass
-
+ 
     # ------------------------------------------------------------
     # Actions
     # ------------------------------------------------------------

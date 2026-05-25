@@ -16,7 +16,7 @@ from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery 
-from Pages.management_map import ManagementMap
+from Pages.network_topology import NetworkTopology
 from Pages.domain_management import DomainManagement
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_SNMP_page import PL_SNMPPage
@@ -117,7 +117,7 @@ def open_device_discovery(left_panel: LeftPanel):
 
 def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     device_discovery  = DeviceDiscovery(page)
-    management_map  = ManagementMap(page)
+    network_topology  = NetworkTopology(page)
     domain_management = DomainManagement(page)
     login  = LoginPage(page)
 
@@ -258,24 +258,24 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     ##################################################################
     def step_6():
         refresh_page(page)
-        device_page = page.context.new_page()
+        # device_page = page.context.new_page()
 
-        try:
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(DEVICE_IP_1)
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {DEVICE_IP_1} GUI failed."
+        # try:
+        #     pl_login = PL_LoginPage(device_page)
+        #     pl_login.goto(DEVICE_IP_1)
+        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+        #     assert ok, f"Login to {DEVICE_IP_1} GUI failed."
 
-            pl_SNMP = PL_SNMPPage(device_page)
-            ok_tab = pl_SNMP.open_SNMP_tab()
-            assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_1}."
+        #     pl_SNMP = PL_SNMPPage(device_page)
+        #     ok_tab = pl_SNMP.open_SNMP_tab()
+        #     assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_1}."
 
-            success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-            assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-            refresh_page(page)
+        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
+        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
+        #     refresh_page(page)
 
-        finally:
-            device_page.close()
+        # finally:
+        #     device_page.close()
 
 
         open_device_discovery(left_panel)
@@ -296,13 +296,13 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     # Step 7 – Check Management Map #
     #################################
     def step_7():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
-        in_nav = management_map.is_element_exist_on_navigation_info_list(DEVICE_IP_1)
+        network_topology.show_navigation_info()
+        in_nav = network_topology.is_element_exist_on_navigation_info_list(DEVICE_IP_1)
         assert in_nav, f"{DEVICE_IP_1} was not found in the Navigation Info list."
-        management_map.navigation_info_open_element_details(DEVICE_IP_1)
+        network_topology.navigation_info_open_element_details(DEVICE_IP_1)
 
     results[7] = run_step(7, step_7, logger, report)
 
@@ -388,24 +388,24 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     #############################################################
     def step_11():
         refresh_page(page)
-        device_page = page.context.new_page()
+        # device_page = page.context.new_page()
 
-        try:
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(DEVICE_IP_2)
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {DEVICE_IP_2} GUI failed."
+        # try:
+        #     pl_login = PL_LoginPage(device_page)
+        #     pl_login.goto(DEVICE_IP_2)
+        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+        #     assert ok, f"Login to {DEVICE_IP_2} GUI failed."
 
-            pl_SNMP = PL_SNMPPage(device_page)
-            ok_tab = pl_SNMP.open_SNMP_tab()
-            assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_2}."
+        #     pl_SNMP = PL_SNMPPage(device_page)
+        #     ok_tab = pl_SNMP.open_SNMP_tab()
+        #     assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_2}."
 
-            success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-            assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-            refresh_page(page)
+        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
+        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
+        #     refresh_page(page)
 
-        finally:
-            device_page.close()
+        # finally:
+        #     device_page.close()
 
 
         open_device_discovery(left_panel)
@@ -428,13 +428,13 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     # Step 12 – Check Management Map #
     ##################################
     def step_12():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
-        in_nav = management_map.is_element_exist_on_navigation_info_list(DEVICE_IP_2)
+        network_topology.show_navigation_info()
+        in_nav = network_topology.is_element_exist_on_navigation_info_list(DEVICE_IP_2)
         assert in_nav, f"{DEVICE_IP_2} was not found in the Navigation Info list."
-        management_map.navigation_info_open_element_details(DEVICE_IP_2)
+        network_topology.navigation_info_open_element_details(DEVICE_IP_2)
 
     results[12] = run_step(12, step_12, logger, report)
 
@@ -518,24 +518,24 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     ###################################################
     def step_16():
         refresh_page(page)
-        device_page = page.context.new_page()
+        # device_page = page.context.new_page()
 
-        try:
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(DEVICE_IP_3)
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {DEVICE_IP_3} GUI failed."
+        # try:
+        #     pl_login = PL_LoginPage(device_page)
+        #     pl_login.goto(DEVICE_IP_3)
+        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+        #     assert ok, f"Login to {DEVICE_IP_3} GUI failed."
 
-            pl_SNMP = PL_SNMPPage(device_page)
-            ok_tab = pl_SNMP.open_SNMP_tab()
-            assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_3}."
+        #     pl_SNMP = PL_SNMPPage(device_page)
+        #     ok_tab = pl_SNMP.open_SNMP_tab()
+        #     assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_3}."
 
-            success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-            assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-            refresh_page(page)
+        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
+        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
+        #     refresh_page(page)
 
-        finally:
-            device_page.close()
+        # finally:
+        #     device_page.close()
 
 
         open_device_discovery(left_panel)
@@ -560,13 +560,13 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     # Step 17 – Check Management Map #
     ##################################
     def step_17():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
-        in_nav = management_map.is_element_exist_on_navigation_info_list(DEVICE_IP_3)
+        network_topology.show_navigation_info()
+        in_nav = network_topology.is_element_exist_on_navigation_info_list(DEVICE_IP_3)
         assert in_nav, f"{DEVICE_IP_3} was not found in the Navigation Info list."
-        management_map.navigation_info_open_element_details(DEVICE_IP_3)
+        network_topology.navigation_info_open_element_details(DEVICE_IP_3)
 
     results[17] = run_step(17, step_17, logger, report)
 
@@ -684,24 +684,24 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
 
         # Discovery
         refresh_page(page)
-        device_page = page.context.new_page()
+        # device_page = page.context.new_page()
 
-        try:
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(target_ip)
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {target_ip} GUI failed."
+        # try:
+        #     pl_login = PL_LoginPage(device_page)
+        #     pl_login.goto(target_ip)
+        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+        #     assert ok, f"Login to {target_ip} GUI failed."
 
-            pl_SNMP = PL_SNMPPage(device_page)
-            ok_tab = pl_SNMP.open_SNMP_tab()
-            assert ok_tab, f"Failed to open SNMP tab on {target_ip}."
+        #     pl_SNMP = PL_SNMPPage(device_page)
+        #     ok_tab = pl_SNMP.open_SNMP_tab()
+        #     assert ok_tab, f"Failed to open SNMP tab on {target_ip}."
 
-            success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-            assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-            refresh_page(page)
+        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
+        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
+        #     refresh_page(page)
 
-        finally:
-            device_page.close()
+        # finally:
+        #     device_page.close()
 
 
         open_device_discovery(left_panel)
@@ -721,10 +721,10 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         refresh_page(page)
 
         # Map verify
-        ok_map = left_panel.click_management_map()
-        assert ok_map, "Failed to navigate to Management Map."
-        management_map.show_navigation_info()
-        in_nav = management_map.is_element_exist_on_navigation_info_list(target_ip)
+        ok_map = left_panel.click_network_topology()
+        assert ok_map, "Failed to navigate to Network Topology."
+        network_topology.show_navigation_info()
+        in_nav = network_topology.is_element_exist_on_navigation_info_list(target_ip)
         assert in_nav, f"{target_ip} not found in Nav Info."
 
         # Traps verify

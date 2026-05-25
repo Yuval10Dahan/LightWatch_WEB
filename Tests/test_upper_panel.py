@@ -6,6 +6,7 @@ Date: 08/02/2026
 from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.upper_panel import UpperPanel
+from Pages.left_panel_page import LeftPanel
 import time
 from Utils.utils import refresh_page
 
@@ -29,14 +30,14 @@ def run_step(step_num: float, title: str, fn):
         return False
 
 
-def test_upper_panel(page):
+def test_upper_panel(page, left_panel):
     up = UpperPanel(page)
 
     # ----------------------------
     # Step 1: Avatar menu open
     # ----------------------------
     def step_1():
-        up.click_on_avatar_icon()
+        up.click_on_avatar_icon() 
 
     run_step(1, "Upper Panel: open avatar menu", step_1)
 
@@ -54,11 +55,11 @@ def test_upper_panel(page):
         print(f"Username in change password form: '{current_user}'")
         # up.set_username("yuval")
 
-        up.set_current_password("current_password")
-        up.set_new_password("TempPass123!")
-        up.set_confirm_password("TempPass123!")
+        up.set_current_password(PASSWORD)
+        up.set_new_password("packetlight1")
+        up.set_confirm_password("packetlight1")
 
-        # up.click_save_new_password()
+        up.click_save_new_password()
 
         # Return to main page so header elements exist consistently for next steps
         page.goto(BASE_URL)
@@ -75,7 +76,24 @@ def test_upper_panel(page):
     # ----------------------------
     def step_3():
         up.click_on_global_search()
-        up.set_global_search_value("Ethernet")
+        # up.set_global_search_value("30.124")
+        up.click_on_device_via_global_search("172.16.30.124")
+
+        left_panel.click_network_topology()
+        # up.set_global_search_value("30.124")
+        up.click_on_device_service_list_tab_via_global_search("172.16.30.124")
+
+        left_panel.click_network_topology()
+        # up.set_global_search_value("30.124")
+        up.click_on_device_performance_tab_via_global_search("172.16.30.124")
+
+        left_panel.click_network_topology()
+        refresh_page(page)
+        up.click_on_global_search()
+        recent_searces = up.get_recent_searces()
+        print("Recent searches:", recent_searces)
+
+        up.set_global_search_value("30.124")
         up.close_global_search()
 
     run_step(3, "Upper Panel: global search (open/set/close)", step_3)
@@ -135,8 +153,9 @@ if __name__ == "__main__":
 
         print("Login Success ✅")
 
+        left_panel = LeftPanel(page)
         refresh_page(page)
-        test_upper_panel(page)
+        test_upper_panel(page, left_panel)
 
         context.close()
         browser.close()

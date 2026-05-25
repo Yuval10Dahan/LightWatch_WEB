@@ -13,7 +13,7 @@ from datetime import datetime
 from Utils.utils import refresh_page
 
 
-MAX_SCROLL_PAGES = 60
+MAX_SCROLL_PAGES = 200
 
 
 
@@ -160,6 +160,7 @@ class AlarmsAndEvents:
         esc = esc.replace(r"\ ", r"\s+")
 
         return re.compile(esc)
+  
     # ==========================================================
     # Faults Type
     # ==========================================================
@@ -882,7 +883,7 @@ class AlarmsAndEvents:
         except Exception as e:
             raise AssertionError(f"remove_all_devices_filterBy_devices failed. Problem: {e}")
 
-
+ 
     # ==========================================================
     # Filter By: Domain / Chassis
     # ==========================================================
@@ -1594,6 +1595,270 @@ class AlarmsAndEvents:
             raise AssertionError(f"clear_alert failed. Problem: {e}")
 
     # ==========================================================
+    # Hide Events
+    # ==========================================================
+
+    # ✅
+    def hide_event(self, row_index: int = 0, timeout: int = 8000) -> bool:
+        """
+        Hide an event based on the desired GLOBAL row index (across all pages).
+
+        Return:
+            True if the event was hidden successfully.
+        """
+        try:
+            if row_index < 0:
+                raise ValueError("row_index must be >= 0")
+
+            self.set_faults_type("Events")
+
+            table = self.page.locator("app-simple-table div.simple-table-container table").first
+            expect(table).to_be_visible(timeout=timeout)
+
+            pagination = self.page.locator("div.simple-table-footer ul.pagination").first
+
+            def get_rows():
+                expect(table).to_be_visible(timeout=timeout)
+                return table.locator("tbody tr")
+
+            def current_page_number() -> int | None:
+                """
+                Read the current active page number from pagination.
+                """
+                try:
+                    active = self.page.locator("div.simple-table-footer ul.pagination li.page-item.active a.page-link").first
+                    if active.count() == 0:
+                        return None
+                    txt = self._clean(active.inner_text())
+                    return int(txt) if txt.isdigit() else None
+                except Exception:
+                    return None
+
+            def next_btn():
+                if pagination.count() == 0:
+                    return None
+                return pagination.locator("a.page-link[aria-label='Next'], a.page-link",
+                    has_text=re.compile(r"^\s*Next\s*$", re.IGNORECASE)
+                ).first
+
+            def prev_btn():
+                if pagination.count() == 0:
+                    return None
+                return pagination.locator(
+                    "a.page-link[aria-label='Previous'], a.page-link",
+                    has_text=re.compile(r"^\s*Previous\s*$", re.IGNORECASE)
+                ).first
+
+            def is_disabled(btn) -> bool:
+                if btn is None or btn.count() == 0:
+                    return True
+                try:
+                    li = btn.locator("xpath=ancestor::li[1]").first
+                    cls = (li.get_attribute("class") or "").lower()
+                    aria = (btn.get_attribute("aria-disabled") or "").lower()
+                    return ("disabled" in cls) or (aria == "true")
+                except Exception:
+                    try:
+                        return btn.is_disabled()
+                    except Exception:
+                        return False
+
+            def wait_for_page_change(before_page: int | None, timeout_ms: int):
+                """
+                Wait until active page number changes.
+                """
+                self.wait_until(
+                    lambda: (
+                        before_page is not None
+                        and current_page_number() is not None
+                        and current_page_number() != before_page
+                    ),
+                    timeout_ms=timeout_ms,
+                    interval_ms=150,
+                )
+
+            def goto_first_page():
+                """
+                Navigate to page 1 using Previous until disabled.
+                """
+                if pagination.count() == 0:
+                    return
+
+                for _ in range(MAX_SCROLL_PAGES):
+                    p = prev_btn()
+                    if p is None or p.count() == 0 or is_disabled(p):
+                        break
+
+                    before_page = current_page_number()
+                    p.click(force=True)
+
+                    self.wait_until(
+                        lambda: (
+                            (
+                                before_page is not None
+                                and current_page_number() is not None
+                                and current_page_number() != before_page
+                            )
+                            or is_disabled(prev_btn())
+                        ),
+                        timeout_ms=min(timeout, 4000),
+                        interval_ms=150,
+                    )
+
+            # Start from first page
+            goto_first_page()
+
+            # Find row across pages
+            idx = row_index
+            target_row = None
+
+            if pagination.count() == 0:
+                rows = get_rows()
+                if rows.count() == 0:
+                    raise AssertionError("No event rows found.")
+                if idx >= rows.count():
+                    raise AssertionError(f"row_index={row_index} out of range. rows={rows.count()}")
+                target_row = rows.nth(idx)
+            else:
+                for _ in range(MAX_SCROLL_PAGES):
+                    rows = get_rows()
+                    c = rows.count()
+
+                    if c == 0:
+                        raise AssertionError("Current page contains 0 rows.")
+
+                    if idx < c:
+                        target_row = rows.nth(idx)
+                        break
+
+                    idx -= c
+
+                    n = next_btn()
+                    if n is None or n.count() == 0 or is_disabled(n):
+                        break
+
+                    before_page = current_page_number()
+                    n.click(force=True)
+                    wait_for_page_change(before_page, timeout_ms=timeout)
+
+                if target_row is None:
+                    raise AssertionError(f"row_index={row_index} out of range across pages.")
+
+            # Save row signature before hiding
+            target_tds = target_row.locator("td")
+            if target_tds.count() == 0:
+                raise AssertionError("Target event row has no cells.")
+
+            target_message = self._clean(target_tds.nth(0).inner_text() if target_tds.count() > 0 else "")
+            target_source = self._clean(target_tds.nth(5).inner_text() if target_tds.count() > 5 else "")
+            target_creation = self._clean(target_tds.nth(7).inner_text() if target_tds.count() > 7 else "")
+
+            # Select row
+            target_row.scroll_into_view_if_needed()
+            target_row.click(force=True)
+            sleep(1)
+
+            try:
+                self.wait_until(
+                    lambda: "selected" in ((target_row.get_attribute("class") or "").lower()),
+                    timeout_ms=min(timeout, 3000),
+                    interval_ms=150
+                )
+            except Exception:
+                pass
+
+            hide_btn = self.page.locator(
+                "div.faults-actionWrapper-footer button",
+                has_text=re.compile(r"^\s*Hide\s+Event\s*$", re.IGNORECASE)
+            ).first
+
+            if hide_btn.count() == 0:
+                raise AssertionError("Hide Event button not found.")
+
+            expect(hide_btn).to_be_visible(timeout=timeout)
+            self.wait_until(lambda: hide_btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
+
+            hide_btn.click(force=True)
+            sleep(2)
+
+            # Make sure hidden events are not shown
+            try:
+                lbl = self.page.locator(
+                    "app-checkbox",
+                    has_text=re.compile(r"^\s*Show hidden events\s*$", re.IGNORECASE)
+                ).locator("label.checkbox-container").first
+
+                if lbl.count() > 0:
+                    cls = (lbl.get_attribute("class") or "").lower()
+                    if "checked" in cls:
+                        lbl.click(force=True)
+                        sleep(1)
+            except Exception:
+                pass
+
+            def row_still_visible_on_current_page() -> bool:
+                try:
+                    rows = get_rows()
+                    for i in range(rows.count()):
+                        r = rows.nth(i)
+                        tds = r.locator("td")
+                        msg = self._clean(tds.nth(0).inner_text() if tds.count() > 0 else "")
+                        src = self._clean(tds.nth(5).inner_text() if tds.count() > 5 else "")
+                        cre = self._clean(tds.nth(7).inner_text() if tds.count() > 7 else "")
+                        if msg == target_message and src == target_source and cre == target_creation:
+                            return True
+                    return False
+                except Exception:
+                    return False
+
+            self.wait_until(lambda: not row_still_visible_on_current_page(), timeout_ms=timeout, interval_ms=200)
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"hide_event failed. Problem: {e}")
+
+    # ✅
+    def show_hidden_events(self, show: bool = True, timeout: int = 8000) -> bool:
+        """
+        Set the 'Show hidden events' checkbox.
+
+        Args:
+            show: True to check it, False to uncheck it.
+
+        Return:
+            True if checkbox reached the requested state.
+        """
+        try:
+            checkbox = self.page.locator("app-checkbox", has_text=re.compile(r"^\s*Show hidden events\s*$", re.IGNORECASE)).first
+
+            if checkbox.count() == 0:
+                raise AssertionError("Show hidden events checkbox not found.")
+
+            label = checkbox.locator("label.checkbox-container").first
+            expect(label).to_be_visible(timeout=timeout)
+
+            def is_checked() -> bool:
+                try:
+                    cls = (label.get_attribute("class") or "").lower()
+                    if "checked" in cls:
+                        return True
+                    return checkbox.locator("svg.checked").count() > 0
+                except Exception:
+                    return False
+
+            current = is_checked()
+            if current != show:
+                label.click(force=True)
+                self.wait_until(lambda: is_checked() == show, timeout_ms=timeout, interval_ms=150)
+                sleep(1)
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"show_hidden_events failed. Problem: {e}")
+
+    # ==========================================================
     # Table Retrieval
     # ==========================================================
 
@@ -1619,7 +1884,7 @@ class AlarmsAndEvents:
         return int(last_page_text)
 
     # ✅
-    def get_all_events(self, timeout: int = 15000, max_pages: int = 10) -> list[dict]:
+    def get_all_events(self, timeout: int = 15000, max_pages: int = 15000, delay: int | None = None) -> list[dict]:
         """
         Return all rows currently displayed in the Alarms/Events table across pagination.
         Output: list of dicts keyed by the visible column headers.
@@ -1630,12 +1895,11 @@ class AlarmsAndEvents:
             expect(table).to_be_visible(timeout=timeout)
 
             total_pages = self.get_pages_count(timeout=timeout)
-            print(f"Go over {total_pages} pages of events...")
+            # print(f"Go over {total_pages} pages of events...")
 
             thead = table.locator("thead").first
             tbody = table.locator("tbody").first
             expect(thead).to_be_visible(timeout=timeout)
-            expect(tbody).to_be_visible(timeout=timeout)
 
             # ----------------------------
             # Column headers + column types
@@ -1750,8 +2014,10 @@ class AlarmsAndEvents:
                 # Click next and wait for tbody to change (or at least for a short stable wait)
                 next_btn.click(force=True)
 
-                self.wait_until(lambda: snapshot_tbody() != before, timeout_ms=min(timeout, 8000), interval_ms=200)
-
+                # self.wait_until(lambda: snapshot_tbody() != before, timeout_ms=min(timeout, 8000), interval_ms=200)
+                if delay:
+                    sleep(delay)
+                
                 add_unique(read_current_page_rows())
 
             return all_rows
@@ -1760,7 +2026,7 @@ class AlarmsAndEvents:
             raise AssertionError(f"get_all_events failed. Problem: {e}")
 
     # ✅
-    def get_all_alarms(self, timeout: int = 12000, verbose: bool = True, max_pages: int | None = None) -> list[dict]:
+    def get_all_alarms(self, timeout: int = 12000, verbose: bool = False, max_pages: int | None = None) -> list[dict]:
         """
         Return all alarms currently shown in the Alarms table, across ALL pages.
 

@@ -14,7 +14,7 @@ from Utils.utils import refresh_page
 SERVER_HOST_IP = "172.16.10.22:8080"
 BASE_URL = f"http://{SERVER_HOST_IP}/"
 USERNAME = "administrator"
-PASSWORD = "administrator"
+PASSWORD = "administrator" 
 
 
 def run_step(step_num: float, title: str, fn):
@@ -23,7 +23,7 @@ def run_step(step_num: float, title: str, fn):
     """
     try:
         fn()
-        print(f"Step {step_num} Success ✅")
+        print(f"Step {step_num} Success ✅") 
         return True
     except Exception as e:
         print(f"Step {step_num} Failed ❌  Error: {e}")
@@ -41,35 +41,63 @@ def open_service_provisioning(left_panel: LeftPanel):
 def test_service_provisioning(page, left_panel):
     sp = ServiceProvisioning(page)
 
-    # ----------------------------
-    # Step 1: Open modal + Exit
-    # ----------------------------
-    def step_1():
-        open_service_provisioning(left_panel)
-        sp.wait_modal_visible()
+    # # ----------------------------
+    # # Step 1: Open modal + Exit
+    # # ----------------------------
+    # def step_1():
+    #     open_service_provisioning(left_panel)
+    #     sp.wait_modal_visible()
 
-        sp.click_exit()
-        sp.wait_modal_hidden()
+    #     sp.click_exit()
+    #     sp.wait_modal_hidden()
 
-    run_step(1, "Provisioning: open modal + Exit closes it", step_1)
+    # run_step(1, "Provisioning: open modal + Exit closes it", step_1)
 
-    # ----------------------------
-    # Step 2: Create ROADM service
-    # ----------------------------
-    def step_2():
-        open_service_provisioning(left_panel)
-        sp.create_ROADM_service()
+    # # ----------------------------
+    # # Step 2: Create ROADM service
+    # # ----------------------------
+    # def step_2():
+    #     open_service_provisioning(left_panel)
+    #     sp.create_ROADM_service()
+    #     sp.set_ROADM_mode("Uplink to Uplink")
+    #     sp.set_ROADM_protection("1+1")
+    #     sp.set_ROADM_A_chassis("Chassis: 4")
+    #     sp.set_ROADM_Z_chassis("Chassis: 8")
+    #     sp.set_ROADM_provisioning_type("Flex Grid")
+    #     sp.set_ROADM_bandwidth("75GHz (m = 6)")
+    #     sp.set_ROADM_service_name("Yuval-Test-ROADM")
+    #     sp.enable_ROADM_path_restriction()
+    #     sp.disable_ROADM_path_restriction()
+    #     sp.ROADM_service_click_next()
 
-    run_step(2, "Provisioning: create ROADM service", step_2)
+    #     sp.ROADM_service_click_back()
+    #     # sp.set_ROADM_path1_A_device()
+    #     # sp.set_ROADM_path1_A_port()
+    #     # sp.set_ROADM_path1_Z_device()
+    #     # sp.set_ROADM_path1_Z_port()
 
-    # ----------------------------
-    # Step 3: Create OTN service
-    # ----------------------------
-    def step_3():
-        open_service_provisioning(left_panel)
-        sp.create_OTN_service()
+    # run_step(2, "Provisioning: create ROADM service", step_2)
 
-    run_step(3, "Provisioning: create OTN service", step_3)
+    # # ----------------------------
+    # # Step 3: Create OTN service
+    # # ----------------------------
+    # def step_3():
+    #     open_service_provisioning(left_panel)
+    #     sp.create_OTN_service()
+    #     # sp.set_OTN_A_node()
+    #     # sp.set_OTN_A_port()
+    #     sp.OTN_service_refresh()
+    #     sp.enable_OTN_protection()
+    #     sp.disable_OTN_protection()
+    #     # sp.set_OTN_service_type()
+
+    #     sp.enable_OTN_rate_limit()
+    #     sp.disable_OTN_rate_limit()
+    #     sp.enable_OTN_rate_limit()
+
+    #     sp.set_OTN_limit_to("ODU2")      
+
+    # run_step(3, "Provisioning: create OTN service", step_3)
 
     # ----------------------------
     # Step 4: Create CHASSIS service

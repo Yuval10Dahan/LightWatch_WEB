@@ -684,6 +684,7 @@ class DeviceDiscovery:
             return menu
         except Exception as e:
             raise AssertionError(f"open_dropdown_menu('{label}') failed. Problem: {e}")
+    
     # =========================
     # ICMP
     # =========================
@@ -1090,15 +1091,8 @@ class DeviceDiscovery:
             raise AssertionError(f"get_SNMPv3_privacy_password failed. Problem: {e}")
 
     # ✅
-    def configure_SNMPv3_entire_process(
-        self,
-        security_level: str,
-        auth_protocol: str = None,
-        auth_password: str = None,
-        privacy_protocol: str = None,
-        privacy_password: str = None,
-        timeout: int = 8000
-    ):
+    def configure_SNMPv3_entire_process(self, security_level: str, auth_protocol: str = None, auth_password: str = None,
+        privacy_protocol: str = None, privacy_password: str = None, timeout: int = 8000):
         """
         Configure SNMPv3 settings safely based on the requested Security Level.
         """
@@ -1294,7 +1288,7 @@ class DeviceDiscovery:
             raise AssertionError(f"reject_default_override failed. Problem: {e}")
 
     # ✅
-    def click_start_discovery(self, timeout: int = 8000) -> bool:
+    def click_start_discovery(self, timeout: int = 8000, is_icmp: bool = False) -> bool:
         """
         Click Start Discovery and verify that the action succeeded.
         """
@@ -1308,7 +1302,12 @@ class DeviceDiscovery:
             btn.click(force=True)
 
             # Verify success message
-            return self.click_button_and_validate_toast(success_text="Discovery process start Success", failure_label="click_start_discovery", timeout=timeout)
+            if is_icmp:
+                return self.click_button_and_validate_toast(success_text="Device added successfully Success", 
+                failure_label="click_start_discovery", timeout=timeout)
+            else:
+                return self.click_button_and_validate_toast(success_text="Discovery process start Success", 
+                failure_label="click_start_discovery", timeout=timeout)
 
         except Exception as e:
             raise AssertionError(f"click_start_discovery failed. Problem: {e}")

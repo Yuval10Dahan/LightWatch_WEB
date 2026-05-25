@@ -6,6 +6,7 @@ Date: 20/01/2026
 
 from time import sleep
 from playwright.sync_api import Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from Utils.utils import refresh_page
 
 class LeftPanel:
@@ -16,17 +17,17 @@ class LeftPanel:
 
     def __init__(self, page: Page):
         self.page = page
-
+ 
         # Locators for each section
-        self.management_map = page.locator('li[routerlink="map"]')
+        self.network_topology = page.locator('li[routerlink="map"]')
         self.service_list = page.locator('li[routerlink="service"]')  
         self.service_provisioning = page.locator('li[routerlink="addservice"]')
-        self.performance = page.locator('li[routerlink="performance"]')
+        self.performance = page.locator('li[routerlink="map/performance"]')
         self.device_discovery = page.locator('li[routerlink="map/discovery"]')
         self.domain_management = page.locator('li[routerlink="devicemanagement"]')
         self.inventory = page.locator('li[routerlink="inventory"]')
         self.alarms_and_events = page.locator('li[routerlink="map/faults"]')
-        self.common_functions = page.locator('li', has_text="Common Functions")
+        self.system_operations = page.locator('li', has_text="System Operations")
         self.user_management = page.locator('li', has_text="User Management")
         self.task_manager = page.locator('li', has_text="Task Manager")
         self.system_configuration = page.locator('li', has_text="System Configuration")
@@ -39,11 +40,11 @@ class LeftPanel:
     # ==========================================================
 
     # ✅
-    def click_management_map(self) -> bool:
+    def click_network_topology(self) -> bool:
         try:
-            self.management_map.click()
-            expect(self.management_map).to_have_class('active')
-            sleep(0.5)
+            self.network_topology.click()
+            expect(self.network_topology).to_have_class('active')
+            sleep(5)
             return True
 
         except TimeoutError:
@@ -137,15 +138,24 @@ class LeftPanel:
             return False
 
     # ✅
-    def click_common_functions(self) -> bool:
+    def click_system_operations(self) -> bool:
         try:
-            self.common_functions.click()
-            expect(self.page.locator('.common-functions-container')).to_be_visible(timeout=10_000)
-            sleep(5)
+            system_operations_popup = self.page.locator('.common-functions-container')
+
+            # If System Operations is already open, do nothing
+            if system_operations_popup.is_visible():
+                return True
+
+            self.system_operations.click()
+
+            # Verify that the popup was opened
+            expect(system_operations_popup).to_be_visible(timeout=10_000)
+
+            sleep(1)
             return True
-        
-        except TimeoutError:
-            print(f"Click on 'Common Functions' failed ❌")
+
+        except PlaywrightTimeoutError:
+            print("Click on 'System Operations' failed ❌")
             return False
 
     # ✅

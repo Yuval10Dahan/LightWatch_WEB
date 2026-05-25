@@ -11,7 +11,10 @@ import time
 import re
 from time import sleep
 from datetime import datetime
+from Utils.utils import refresh_page
 
+
+SLEEP = 1
 
 
 class UpperPanel:
@@ -267,6 +270,274 @@ class UpperPanel:
 
         except Exception as e:
             raise AssertionError(f"set_global_search_value('{value}') failed. Problem: {e}")
+
+    # ✅
+    def click_on_device_via_global_search(self, device_text: str, timeout: int = 8000):
+        """
+        Search and click a device row from Global Search.
+
+        Example:
+            click_on_device_via_global_search("PL-4000M (172.16.30.124)")
+            click_on_device_via_global_search("172.16.30.124")
+        """
+        try:
+            device_text = (device_text or "").strip()
+            if not device_text:
+                raise ValueError("device_text is empty")
+
+            self.set_global_search_value(device_text, timeout=timeout)
+
+            search = self.page.locator("app-global-search").first
+            sleep(SLEEP)
+            expect(search).to_be_visible(timeout=timeout)
+
+            result_row = search.locator(
+                "li",
+                has=search.locator(
+                    ".global-search-content-row-label",
+                    has_text=re.compile(rf".*{re.escape(device_text)}.*", re.IGNORECASE)
+                )
+            ).first
+
+            sleep(SLEEP)
+
+            # Fallback: if user searched only IP / partial text
+            if result_row.count() == 0:
+                result_row = search.locator(
+                    "li",
+                    has_text=re.compile(rf".*{re.escape(device_text)}.*", re.IGNORECASE)
+                ).first
+
+                sleep(SLEEP)
+
+            expect(result_row).to_be_visible(timeout=timeout)
+            result_row.scroll_into_view_if_needed()
+            result_row.click(force=True)
+
+            sleep(SLEEP)
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"click_on_device_via_global_search('{device_text}') failed. Problem: {e}")
+
+    # ✅
+    def click_on_device_service_list_tab_via_global_search(self, device_text: str, timeout: int = 8000):
+        """
+        Search a device in Global Search and click its Service List icon.
+
+        Example:
+            click_on_device_service_list_tab_via_global_search("172.16.30.124")
+            click_on_device_service_list_tab_via_global_search("PL-4000M (172.16.30.124)")
+        """
+
+        try:
+            refresh_page(self.page)
+            device_text = (device_text or "").strip()
+
+            if not device_text:
+                raise ValueError("device_text is empty")
+
+            self.set_global_search_value(device_text, timeout=timeout)
+            sleep(SLEEP)
+
+            search = self.page.locator("app-global-search").first
+            sleep(SLEEP)
+
+            expect(search).to_be_visible(timeout=timeout)
+
+            # Locate the matching device row
+            result_row = search.locator(
+                "li",
+                has=search.locator(
+                    ".global-search-content-row-label",
+                    has_text=re.compile(
+                        rf".*{re.escape(device_text)}.*",
+                        re.IGNORECASE
+                    )
+                )
+            ).first
+
+            sleep(SLEEP)
+
+            # Fallback
+            if result_row.count() == 0:
+                result_row = search.locator(
+                    "li",
+                    has_text=re.compile(
+                        rf".*{re.escape(device_text)}.*",
+                        re.IGNORECASE
+                    )
+                ).first
+
+                sleep(SLEEP)
+
+            expect(result_row).to_be_visible(timeout=timeout)
+
+            # First icon = Service List
+            service_icon = result_row.locator(
+                "app-icon[name='service-list']"
+            ).first
+
+            sleep(SLEEP)
+
+            expect(service_icon).to_be_visible(timeout=timeout)
+            expect(service_icon).to_be_enabled(timeout=timeout)
+
+            service_icon.scroll_into_view_if_needed()
+            service_icon.click(force=True)
+
+            sleep(SLEEP)
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(
+                f"click_on_device_service_list_tab_via_global_search('{device_text}') failed. Problem: {e}")
+
+    # ✅
+    def click_on_device_performance_tab_via_global_search(self, device_text: str, timeout: int = 8000):
+        """
+        Search a device in Global Search and click its Performance icon.
+
+        Example:
+            click_on_device_performance_tab_via_global_search("172.16.30.124")
+            click_on_device_performance_tab_via_global_search("PL-4000M (172.16.30.124)")
+        """
+
+        try:
+            refresh_page(self.page)
+            device_text = (device_text or "").strip()
+
+            if not device_text:
+                raise ValueError("device_text is empty")
+
+            self.set_global_search_value(device_text, timeout=timeout)
+            sleep(SLEEP)
+
+            search = self.page.locator("app-global-search").first
+            sleep(SLEEP)
+
+            expect(search).to_be_visible(timeout=timeout)
+
+            # Locate matching device row
+            result_row = search.locator(
+                "li",
+                has=search.locator(
+                    ".global-search-content-row-label",
+                    has_text=re.compile(
+                        rf".*{re.escape(device_text)}.*",
+                        re.IGNORECASE
+                    )
+                )
+            ).first
+
+            sleep(SLEEP)
+
+            # Fallback
+            if result_row.count() == 0:
+                result_row = search.locator(
+                    "li",
+                    has_text=re.compile(
+                        rf".*{re.escape(device_text)}.*",
+                        re.IGNORECASE
+                    )
+                ).first
+
+                sleep(SLEEP)
+
+            expect(result_row).to_be_visible(timeout=timeout)
+
+            # Second icon = Performance
+            performance_icon = result_row.locator(
+                "app-icon[name='chart-bar']"
+            ).first
+
+            sleep(SLEEP)
+
+            expect(performance_icon).to_be_visible(timeout=timeout)
+            expect(performance_icon).to_be_enabled(timeout=timeout)
+
+            performance_icon.scroll_into_view_if_needed()
+            performance_icon.click(force=True)
+
+            sleep(SLEEP)
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(
+                f"click_on_device_performance_tab_via_global_search('{device_text}') failed. Problem: {e}")
+
+    # ❌
+    def click_on_service_via_global_search(self):
+        """
+        Search and click a service row from Global Search.
+
+        Example:
+            
+        """
+        pass
+
+    # ❌
+    def click_on_service__________1(self):
+        pass
+
+    # ❌
+    def click_on_service__________2(self):
+        pass
+
+    # ✅
+    def get_recent_searces(self, timeout: int = 8000) -> list[str]:
+        """
+        Return the recent searches displayed in Global Search.
+
+        Example return:
+            [
+                "172.16.30.124",
+                "30.24",
+                "Service_1"
+            ]
+        """
+
+        try:
+            # Open global search
+            self.click_on_global_search(timeout=timeout)
+
+            search = self.page.locator("app-global-search").first
+            sleep(SLEEP/2)
+            expect(search).to_be_visible(timeout=timeout)
+
+            # RECENT SEARCHES section
+            recent_section = search.locator("h3", has_text=re.compile(r"recent searches", re.IGNORECASE)).first
+
+            sleep(SLEEP/2)
+
+            expect(recent_section).to_be_visible(timeout=timeout)
+
+            # All recent-search rows AFTER the header
+            recent_rows = recent_section.locator("xpath=following-sibling::ul[1]/li")
+            sleep(SLEEP/2)
+
+            count = recent_rows.count()
+
+            results = []
+
+            for i in range(count):
+                row = recent_rows.nth(i)
+
+                text = (
+                    row.inner_text(timeout=timeout)
+                    .replace("\n", " ")
+                    .strip()
+                )
+
+                if text:
+                    results.append(text)
+
+            return results
+
+        except Exception as e:
+            raise AssertionError(f"get_recent_searces failed. Problem: {e}")
 
     # ✅
     def close_global_search(self, timeout: int = 8000):

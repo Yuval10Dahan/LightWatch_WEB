@@ -12,6 +12,7 @@ from datetime import datetime
 
 
 MAX_SCROLL_PAGES = 60
+SLEEP = 0.2
 
 
 class ServiceList:
@@ -266,469 +267,939 @@ class ServiceList:
         ampm = dt.strftime("%p").lower()
 
         return f"{month} {day}{suffix} {year}, {hour_12}:{minute}:{second} {ampm}"
-    # =========================
-    # Severity
-    # =========================
-
-    # ✅
-    def get_severity(self):
-        """
-        Get the currently selected Severity filter value.
-        """
-        return self.dropdown_selected_text("Severity")
-
-    # ✅
-    def set_severity(self, severity: str):
-        """
-        Set the Severity filter to the given value.
-        """
-        self.dropdown_pick("Severity", severity)
-        sleep(1)
-
-    # =========================
-    # Category
-    # =========================
-
-    # ✅
-    def get_category(self):
-        """
-        Get the currently selected Category filter value.
-        Returns the visible dropdown text.
-        """
-        return self.dropdown_selected_text("Category")
-
-    # ✅
-    def set_category(self, category: str):
-        """
-        Set the Category filter to the given value.
-        """
-        self.dropdown_pick("Category", category)
-        sleep(1)
-
-    # =========================
-    # Filter By (general)
-    # =========================
-
-    # ✅
-    def get_filter_by(self):
-        """
-        Return the currently selected 'Filter by' mode.
-        Returns one of: 'Devices' / 'Domain/Chassis' / 'Device type'.
-        """
-        rb = self.filter_by_container()
-
-        options = ["Devices", "Domain/Chassis", "Device type"]
-        for opt in options:
-            label = rb.locator(f"label:has-text('{opt}')").first
-            if label.count() == 0:
-                continue
-            try:
-                checked_svg = label.locator("svg.checked").first
-                if checked_svg.count() > 0 and checked_svg.is_visible():
-                    return opt
-            except Exception:
-                continue
-
-        return ""  # unknown
     
-    # ✅
-    def set_filter_by(self, filter_by: str):
-        """
-        Select a 'Filter by' option by label text.
-        """
-        rb = self.filter_by_container()
-        label = rb.locator(f"label:has-text('{filter_by}')").first
-        if label.count() == 0:
-            raise AssertionError(f"Filter by option '{filter_by}' not found.")
-        label.click(force=True)
+    # =========================
+    # Service Name
+    # =========================
 
-        # Best-effort wait that it becomes selected
-        def selected():
-            try:
-                chk = label.locator("svg.checked").first
-                return chk.count() > 0 and chk.is_visible()
-            except Exception:
-                return False
+    # ✅
+    def set_service_name(self, service_name: str, timeout: int = 8000):
+        """
+        Set the Service Name filter.
+        """
 
         try:
-            self.wait_until(selected, timeout_ms=5000, interval_ms=200)
-        except Exception:
-            # Some DOMs don't render svg.checked; don't hard-fail
-            pass
+            service_name = (service_name or "").strip()
 
-        sleep(1)
+            root = self.filters_root()
+            inp = root.locator("app-input[label='Service Name'] input[type='text']").first
+            sleep(SLEEP)
+
+            expect(inp).to_be_visible(timeout=timeout)
+            expect(inp).to_be_enabled(timeout=timeout)
+
+            current_value = (inp.input_value() or "").strip()
+
+            if current_value == service_name:
+                return True
+
+            inp.click(force=True)
+            inp.fill(service_name)
+
+            self.wait_until(lambda: (inp.input_value() or "").strip() == service_name, timeout_ms=timeout, interval_ms=150)
+
+            sleep(SLEEP)
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"set_service_name('{service_name}') failed. Problem: {e}")
+
+    # =========================
+    # Service Layer
+    # =========================
+
+    # ✅
+    def select_service_layer(self, service_layer: str, timeout: int = 8000):
+        """
+        Select one Service Layer from the multi-select dropdown.
+
+        Examples: "ROADM", "OTN", "CS".
+        """
+
+        try:
+            service_layer = (service_layer or "").strip()
+            if not service_layer:
+                raise ValueError("service_layer is empty")
+
+            dropdown = self.dropdown("Service Layer")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.click(force=True)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Service Layer']").first
+            sleep(SLEEP)
+            expect(menu).to_be_visible(timeout=timeout)
+
+            item = menu.locator("li.dropdown-item", has_text=re.compile(rf"^\s*{re.escape(service_layer)}\s*$", re.IGNORECASE)).first
+            sleep(SLEEP)
+
+            if item.count() == 0:
+                options = [
+                    self._clean(x)
+                    for x in menu.locator("li.dropdown-item").all_inner_texts()
+                    if self._clean(x)
+                ]
+                sleep(SLEEP)
+
+                raise AssertionError(
+                    f"Service Layer '{service_layer}' not found. Available: {options}"
+                )
+
+            item.scroll_into_view_if_needed()
+
+            # If already selected, do not click again.
+            checkbox = item.locator("app-checkbox").first
+            sleep(SLEEP)
+
+            if checkbox.count() > 0:
+                checked = checkbox.locator("svg.checked").first
+                sleep(SLEEP)
+                if checked.count() > 0 and checked.is_visible():
+                    return True
+
+            item.click(force=True)
+
+            if service_layer != "All":
+                self.wait_until(lambda: item.locator("app-checkbox svg.checked").count() > 0, timeout_ms=timeout, interval_ms=150)
+
+            self.close_service_layer_dropdown()
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"select_service_layer('{service_layer}') failed. Problem: {e}")
+
+    # ✅
+    def set_all_service_layers(self, timeout: int = 8000):
+        """
+        Select all real Service Layer options.
+        """
+
+        try:
+            dropdown = self.dropdown("Service Layer")
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.click(force=True)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Service Layer']").first
+            sleep(SLEEP)
+            expect(menu).to_be_visible(timeout=timeout)
+
+            rows = menu.locator("li.dropdown-item.multiple")
+            sleep(SLEEP)
+            expect(rows.first).to_be_visible(timeout=timeout)
+
+            def is_checked(row) -> bool:
+                locator = row.locator("svg.unchecked")
+                sleep(SLEEP)
+                return locator.count() == 0
+
+            def all_real_layers_selected() -> bool:
+                count = rows.count()
+
+                # Start from 1 to skip "All"
+                for i in range(1, count):
+                    row = rows.nth(i)
+
+                    if not is_checked(row):
+                        row.scroll_into_view_if_needed()
+                        row.click(force=True)
+                        sleep(SLEEP)
+
+                # Verify again
+                for i in range(1, count):
+                    row = rows.nth(i)
+
+                    if not is_checked(row):
+                        return False
+
+                return True
+
+            self.wait_until(all_real_layers_selected, timeout_ms=timeout, interval_ms=200)
+            sleep(SLEEP)
+            self.close_service_layer_dropdown()
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"set_all_service_layers failed. Problem: {e}")
+
+    # ✅
+    def get_all_selected_service_layers(self, timeout: int = 8000) -> list[str]:
+        """
+        Return all selected Service Layer values.
+        """
+
+        try:
+            dropdown = self.dropdown("Service Layer")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+
+            # 1) First try to read selected chips from the closed dropdown button
+            chip_texts = [
+                self._clean(t)
+                for t in btn.locator("div.selected-view.multiple span").all_inner_texts()
+            ]
+            sleep(SLEEP)
+
+            has_plus = any(re.fullmatch(r"\+\s*\d+", t) for t in chip_texts)
+
+            if chip_texts and not has_plus:
+                out = []
+                seen = set()
+
+                for text in chip_texts:
+                    if not text or text.lower() == "all":
+                        continue
+
+                    if text not in seen:
+                        seen.add(text)
+                        out.append(text)
+
+                return out
+
+            # 2) If chips are compressed / not available, scan the dropdown menu
+            menu = dropdown.locator("div.dropdown-menu[data-label='Service Layer']").first
+            sleep(SLEEP)
+
+            if menu.count() == 0 or not menu.is_visible():
+                btn.click(force=True)
+                self.wait_until(lambda: menu.count() > 0 and menu.is_visible(), timeout_ms=timeout, interval_ms=150)
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            rows = menu.locator("li.dropdown-item.multiple")
+            sleep(SLEEP)
+
+            selected_layers = []
+            seen = set()
+
+            for i in range(rows.count()):
+                row = rows.nth(i)
+                text = self._clean(row.inner_text())
+
+                if not text or text.lower() == "all":
+                    continue
+
+                # Selected rows do NOT have svg.unchecked
+                is_selected = row.locator("svg.unchecked").count() == 0
+                sleep(SLEEP)
+
+                if is_selected and text not in seen:
+                    seen.add(text)
+                    selected_layers.append(text)
+
+            sleep(SLEEP)
+            self.close_service_layer_dropdown()
+
+            return selected_layers
+
+        except Exception as e:
+            raise AssertionError(f"get_all_selected_service_layers failed. Problem: {e}")
+
+    # ✅
+    def close_service_layer_dropdown(self, timeout: int = 5000):
+        """
+        Close the Service Layer dropdown if it is open.
+        """
+
+        try:
+            dropdown = self.dropdown("Service Layer")
+
+            if dropdown.count() == 0:
+                return
+
+            container = dropdown.locator("div.dropdown-container").first
+            sleep(SLEEP)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Service Layer']").first
+            sleep(SLEEP)
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+
+            def is_open() -> bool:
+                try:
+                    container_cls = container.get_attribute("class") or ""
+                    menu_cls = menu.get_attribute("class") or ""
+
+                    return (
+                        ("open" in container_cls and "show" in container_cls)
+                        or ("show" in menu_cls)
+                    )
+
+                except Exception:
+                    return False
+
+            # Already closed
+            if not is_open():
+                return
+
+            expect(btn).to_be_visible(timeout=timeout)
+
+            btn.scroll_into_view_if_needed()
+            sleep(SLEEP)
+
+            # Click dropdown button to close
+            btn.click(force=True)
+
+            self.wait_until(lambda: not is_open(), timeout_ms=timeout, interval_ms=150)
+
+        except Exception as e:
+            raise AssertionError(f"close_service_layer_dropdown failed. Problem: {e}")
+
+    # ✅
+    def remove_service_layer(self, service_layer: str, timeout: int = 8000):
+        """
+        Unselect one Service Layer from the multi-select dropdown.
+        """
+
+        try:
+            service_layer = (service_layer or "").strip()
+            if not service_layer:
+                raise ValueError("service_layer is empty")
+
+            dropdown = self.dropdown("Service Layer")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Service Layer']").first
+            sleep(SLEEP)
+
+            if menu.count() == 0 or not menu.is_visible():
+                btn.click(force=True)
+                self.wait_until(
+                    lambda: menu.count() > 0 and menu.is_visible(),
+                    timeout_ms=timeout,
+                    interval_ms=150
+                )
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(rf"^\s*{re.escape(service_layer)}\s*$", re.IGNORECASE)).first
+            sleep(SLEEP)
+
+            if row.count() == 0:
+                options = [
+                    self._clean(x)
+                    for x in menu.locator("li.dropdown-item.multiple").all_inner_texts()
+                    if self._clean(x)
+                ]
+                
+                sleep(SLEEP)
+                raise AssertionError(
+                    f"Service Layer '{service_layer}' not found. Available: {options}"
+                )
+
+            row.scroll_into_view_if_needed()
+
+            def is_checked() -> bool:
+                locator = row.locator("svg.unchecked")
+                sleep(SLEEP)
+                return locator.count() == 0
+
+            # Already unselected
+            if not is_checked():
+                return True
+
+            row.click(force=True)
+
+            self.wait_until(lambda: not is_checked(), timeout_ms=timeout, interval_ms=150)
+            sleep(SLEEP)
+            self.close_service_layer_dropdown()
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"remove_service_layer('{service_layer}') failed. Problem: {e}")
+
+    # ✅
+    def remove_all_service_layers(self, timeout: int = 8000):
+        """
+        Clear all selected Service Layer values by clicking 'All'.
+        """
+
+        try:
+            dropdown = self.dropdown("Service Layer")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+
+            expect(btn).to_be_visible(timeout=timeout)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Service Layer']").first
+            sleep(SLEEP)
+
+            # Open only if needed
+            if menu.count() == 0 or not menu.is_visible():
+                btn.click(force=True)
+
+                self.wait_until(
+                    lambda: menu.count() > 0 and menu.is_visible(),
+                    timeout_ms=timeout,
+                    interval_ms=150
+                )
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            all_row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(r"^\s*All\s*$", re.IGNORECASE)).first
+            sleep(SLEEP)
+
+            expect(all_row).to_be_visible(timeout=timeout)
+
+            # If nothing selected already -> done
+            checked_rows = menu.locator("li.dropdown-item.multiple:not(:has(svg.unchecked))")
+            sleep(SLEEP)
+
+            # subtract "All"
+            checked_count = max(0, checked_rows.count() - 1)
+
+            if checked_count == 0:
+                return True
+
+            all_row.scroll_into_view_if_needed()
+            all_row.click(force=True)
+
+            # Wait until all real layers become unchecked
+            self.wait_until(
+                lambda: (
+                    menu.locator(
+                        "li.dropdown-item.multiple:not(:has(svg.unchecked))"
+                    ).count() <= 1  # only "All" may remain checked
+                ),
+                timeout_ms=timeout,
+                interval_ms=200
+            )
+
+            sleep(SLEEP)
+            self.close_service_layer_dropdown()
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"remove_all_service_layers failed. Problem: {e}")
+    
+    # =========================
+    # Service Type
+    # =========================
+
+
+    # =========================
+    # Protection Type
+    # =========================
+
+    # ✅
+    def select_protection_type(self, protection_type: str, timeout: int = 8000):
+        """
+        Select one Protection Type from the multi-select dropdown.
+
+        Examples: "Unprotected", "Protected", "Restoration".
+        """
+
+        try:
+            protection_type = (protection_type or "").strip()
+            if not protection_type:
+                raise ValueError("protection_type is empty")
+
+            dropdown = self.dropdown("Protection Type")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.click(force=True)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Protection Type']").first
+            sleep(SLEEP)
+            expect(menu).to_be_visible(timeout=timeout)
+
+            item = menu.locator("li.dropdown-item",has_text=re.compile(rf"^\s*{re.escape(protection_type)}\s*$", re.IGNORECASE)).first
+
+            if item.count() == 0:
+                options = [
+                    self._clean(x)
+                    for x in menu.locator("li.dropdown-item").all_inner_texts()
+                    if self._clean(x)
+                ]
+                raise AssertionError(
+                    f"Protection Type '{protection_type}' not found. Available: {options}"
+                )
+
+            item.scroll_into_view_if_needed()
+
+            checkbox = item.locator("app-checkbox").first
+            sleep(SLEEP)
+            if checkbox.count() > 0:
+                checked = checkbox.locator("svg.checked").first
+                sleep(SLEEP)
+                if checked.count() > 0 and checked.is_visible():
+                    self.close_protection_type_dropdown()
+                    return True
+
+            item.click(force=True)
+
+            if protection_type.lower() != "all":
+                self.wait_until(
+                    lambda: item.locator("app-checkbox svg.checked").count() > 0,
+                    timeout_ms=timeout,
+                    interval_ms=150
+                )
+
+            self.close_protection_type_dropdown()
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"select_protection_type('{protection_type}') failed. Problem: {e}")
+    
+    # ✅
+    def set_all_protection_types(self, timeout: int = 8000):
+        """
+        Select all real Protection Type options.
+        """
+
+        try:
+            dropdown = self.dropdown("Protection Type")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.click(force=True)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Protection Type']").first
+            sleep(SLEEP)
+            expect(menu).to_be_visible(timeout=timeout)
+
+            rows = menu.locator("li.dropdown-item.multiple")
+            sleep(SLEEP)
+            expect(rows.first).to_be_visible(timeout=timeout)
+
+            def is_checked(row) -> bool:
+                locator = row.locator("svg.unchecked")
+                sleep(SLEEP)
+                return locator.count() == 0
+
+            def all_real_protection_types_selected() -> bool:
+                count = rows.count()
+
+                # Start from 1 to skip "All"
+                for i in range(1, count):
+                    row = rows.nth(i)
+
+                    if not is_checked(row):
+                        row.scroll_into_view_if_needed()
+                        row.click(force=True)
+                        sleep(SLEEP)
+
+                # Verify again
+                for i in range(1, count):
+                    if not is_checked(rows.nth(i)):
+                        return False
+
+                return True
+
+            self.wait_until(
+                all_real_protection_types_selected,
+                timeout_ms=timeout,
+                interval_ms=200
+            )
+
+            sleep(SLEEP)
+            self.close_protection_type_dropdown()
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"set_all_protection_types failed. Problem: {e}")
+
+    # ✅
+    def get_all_selected_protection_types(self, timeout: int = 8000) -> list[str]:
+        """
+        Return all selected Protection Type values.
+        """
+
+        try:
+            dropdown = self.dropdown("Protection Type")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+
+            # 1) First try to read selected chips from the closed dropdown button
+            chip_texts = [
+                self._clean(t)
+                for t in btn.locator(
+                    "div.selected-view.multiple span"
+                ).all_inner_texts()
+            ]
+
+            sleep(SLEEP)
+
+            has_plus = any(
+                re.fullmatch(r"\+\s*\d+", t)
+                for t in chip_texts
+            )
+
+            if chip_texts and not has_plus:
+                out = []
+                seen = set()
+
+                for text in chip_texts:
+                    if not text or text.lower() == "all":
+                        continue
+
+                    if text not in seen:
+                        seen.add(text)
+                        out.append(text)
+
+                return out
+
+            # 2) If chips are compressed / not available, scan dropdown
+            menu = dropdown.locator("div.dropdown-menu[data-label='Protection Type']").first
+            sleep(SLEEP)
+
+            if menu.count() == 0 or not menu.is_visible():
+                btn.click(force=True)
+
+                self.wait_until(
+                    lambda: menu.count() > 0 and menu.is_visible(),
+                    timeout_ms=timeout,
+                    interval_ms=150
+                )
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            rows = menu.locator("li.dropdown-item.multiple")
+            sleep(SLEEP)
+
+            selected_types = []
+            seen = set()
+
+            for i in range(rows.count()):
+                row = rows.nth(i)
+
+                text = self._clean(row.inner_text())
+
+                if not text or text.lower() == "all":
+                    continue
+
+                # Selected rows do NOT have svg.unchecked
+                is_selected = (
+                    row.locator("svg.unchecked").count() == 0
+                )
+
+                sleep(SLEEP)
+
+                if is_selected and text not in seen:
+                    seen.add(text)
+                    selected_types.append(text)
+
+            sleep(SLEEP)
+
+            self.close_protection_type_dropdown()
+
+            return selected_types
+
+        except Exception as e:
+            raise AssertionError(f"get_all_selected_protection_types failed. Problem: {e}")
+
+    # ✅
+    def close_protection_type_dropdown(self, timeout: int = 5000):
+        """
+        Close the Protection Type dropdown if it is open.
+        """
+
+        try:
+            dropdown = self.dropdown("Protection Type")
+
+            if dropdown.count() == 0:
+                return
+
+            container = dropdown.locator("div.dropdown-container").first
+            sleep(SLEEP)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Protection Type']").first
+            sleep(SLEEP)
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(SLEEP)
+
+            def is_open() -> bool:
+                try:
+                    container_cls = container.get_attribute("class") or ""
+                    menu_cls = menu.get_attribute("class") or ""
+
+                    return (
+                        ("open" in container_cls and "show" in container_cls)
+                        or ("show" in menu_cls)
+                    )
+
+                except Exception:
+                    return False
+
+            # Already closed
+            if not is_open():
+                return
+
+            expect(btn).to_be_visible(timeout=timeout)
+
+            btn.scroll_into_view_if_needed()
+            sleep(SLEEP)
+
+            # Click dropdown button to close
+            btn.click(force=True)
+
+            self.wait_until(
+                lambda: not is_open(),
+                timeout_ms=timeout,
+                interval_ms=150
+            )
+
+        except Exception as e:
+            raise AssertionError(f"close_protection_type_dropdown failed. Problem: {e}")
+
+    # ✅
+    def remove_protection_type(self, protection_type: str, timeout: int = 8000):
+        """
+        Unselect one Protection Type from the multi-select dropdown.
+        """
+
+        try:
+            protection_type = (protection_type or "").strip()
+            if not protection_type:
+                raise ValueError("protection_type is empty")
+
+            dropdown = self.dropdown("Protection Type")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Protection Type']").first
+            sleep(SLEEP)
+
+            if menu.count() == 0 or not menu.is_visible():
+                btn.click(force=True)
+
+                self.wait_until(
+                    lambda: menu.count() > 0 and menu.is_visible(),
+                    timeout_ms=timeout,
+                    interval_ms=150
+                )
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            row = menu.locator(
+                "li.dropdown-item.multiple",
+                has_text=re.compile(
+                    rf"^\s*{re.escape(protection_type)}\s*$",
+                    re.IGNORECASE
+                )
+            ).first
+
+            sleep(SLEEP)
+
+            if row.count() == 0:
+                options = [
+                    self._clean(x)
+                    for x in menu.locator("li.dropdown-item.multiple").all_inner_texts()
+                    if self._clean(x)
+                ]
+
+                sleep(SLEEP)
+                raise AssertionError(
+                    f"Protection Type '{protection_type}' not found. Available: {options}"
+                )
+
+            row.scroll_into_view_if_needed()
+
+            def is_checked() -> bool:
+                return row.locator("svg.unchecked").count() == 0
+
+            # Already unselected
+            if not is_checked():
+                self.close_protection_type_dropdown()
+                return True
+
+            row.click(force=True)
+
+            self.wait_until(
+                lambda: not is_checked(),
+                timeout_ms=timeout,
+                interval_ms=150
+            )
+
+            sleep(SLEEP)
+            self.close_protection_type_dropdown()
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"remove_protection_type('{protection_type}') failed. Problem: {e}")
+
+    # ✅
+    def remove_all_protection_types(self, timeout: int = 8000):
+        """
+        Clear all selected Protection Type values by clicking 'All'.
+        """
+
+        try:
+            dropdown = self.dropdown("Protection Type")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Protection Type']").first
+            sleep(SLEEP)
+
+            # Open only if needed
+            if menu.count() == 0 or not menu.is_visible():
+                btn.click(force=True)
+
+                self.wait_until(
+                    lambda: menu.count() > 0 and menu.is_visible(),
+                    timeout_ms=timeout,
+                    interval_ms=150
+                )
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            all_row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(r"^\s*All\s*$", re.IGNORECASE)).first
+            sleep(SLEEP)
+            expect(all_row).to_be_visible(timeout=timeout)
+
+            checked_rows = menu.locator("li.dropdown-item.multiple:not(:has(svg.unchecked))")
+            sleep(SLEEP)
+
+            # subtract "All"
+            checked_count = max(0, checked_rows.count() - 1)
+
+            if checked_count == 0:
+                self.close_protection_type_dropdown()
+                return True
+
+            all_row.scroll_into_view_if_needed()
+            all_row.click(force=True)
+
+            self.wait_until(
+                lambda: (
+                    menu.locator(
+                        "li.dropdown-item.multiple:not(:has(svg.unchecked))"
+                    ).count() <= 1
+                ),
+                timeout_ms=timeout,
+                interval_ms=200
+            )
+
+            sleep(SLEEP)
+            self.close_protection_type_dropdown()
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"remove_all_protection_types failed. Problem: {e}")
+
+    # =========================
+    # Filter By ( / "Domain/Chassis" / )
+    # =========================
+
+    # ✅
+    def get_filter_by(self, timeout: int = 8000) -> str:
+        """
+        Return the currently selected 'Filter by' dropdown value.
+        """
+
+        try:
+            return self.dropdown_selected_text("Filter by")
+
+        except Exception as e:
+            raise AssertionError(f"get_filter_by failed. Problem: {e}")
+    
+    # ✅
+    def set_filter_by(self, filter_by: str, timeout: int = 8000):
+        """
+        Select the 'Filter by' dropdown value.
+        """
+
+        try:
+            filter_by = (filter_by or "").strip()
+            if not filter_by:
+                raise ValueError("filter_by is empty")
+
+            dropdown = self.dropdown("Filter by")
+
+            current_value = self.dropdown_selected_text("Filter by")
+            if current_value.lower() == filter_by.lower():
+                return True
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+            expect(btn).to_be_enabled(timeout=timeout)
+
+            btn.click(force=True)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Filter by']").first
+
+            sleep(SLEEP)
+            expect(menu).to_be_visible(timeout=timeout)
+
+            item = menu.locator(
+                "li.dropdown-item",
+                has_text=re.compile(
+                    rf"^\s*{re.escape(filter_by)}\s*$",
+                    re.IGNORECASE
+                )
+            ).first
+            sleep(SLEEP)
+
+            if item.count() == 0:
+                options = [
+                    self._clean(x)
+                    for x in menu.locator("li.dropdown-item").all_inner_texts()
+                    if self._clean(x)
+                ]
+
+                sleep(SLEEP)
+                raise AssertionError(
+                    f"Filter by value '{filter_by}' not found. Available: {options}"
+                )
+
+            item.scroll_into_view_if_needed()
+            item.click(force=True)
+
+            self.wait_until(
+                lambda: self.dropdown_selected_text("Filter by").lower() == filter_by.lower(),
+                timeout_ms=timeout,
+                interval_ms=150
+            )
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"set_filter_by('{filter_by}') failed. Problem: {e}")
 
     # =========================
     # Filter By → Devices
     # =========================
 
-    # ✅
-    def devices_dropdown(self):
-        """
-        Return the app-dropdown for Devices.
-        """
-        root = self.filters_root()
-        dropdown = root.locator("section.section-devices app-dropdown[label='Devices']").first
-        if dropdown.count() == 0:
-            raise AssertionError("Devices dropdown not found.")
-        return dropdown
-
-    # ✅
-    def _try_open_devices_dropdown(self, timeout: int = 8000):
-        """
-        Best-effort open for Devices dropdown.
-        Returns the menu locator if visible, otherwise returns None (no exception).
-        """
-        dropdown = self.devices_dropdown()
-        btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
-        expect(btn).to_be_visible(timeout=timeout)
-
-        menu = dropdown.locator("div.dropdown-menu[data-label='Devices']").first
-
-        # Try a few ways to open (some builds toggle weirdly)
-        attempts = [
-            lambda: btn.click(force=True),
-            lambda: btn.click(force=True),  # sometimes first click focuses, second opens
-            lambda: btn.press("Enter"),
-            lambda: btn.press("Space"),
-            lambda: btn.press("ArrowDown"),
-        ]
-
-        for act in attempts:
-            try:
-                act()
-            except Exception:
-                pass
-
-            try:
-                # poll visibility without hard failing
-                self.wait_until(lambda: menu.is_visible(), timeout_ms=min(timeout, 1500), interval_ms=150)
-                if menu.is_visible():
-                    return menu
-            except Exception:
-                pass
-
-        return None
-
-    # ✅
-    def open_devices_dropdown(self, timeout: int = 8000):
-        """
-        Open the Devices dropdown and return its menu locator.
-        Raises AssertionError if it cannot be opened.
-        """
-        menu = self._try_open_devices_dropdown(timeout=timeout)
-        if menu is None:
-            raise AssertionError("Devices dropdown menu did not open (menu stayed hidden).")
-        return menu
-
-    # ✅
-    def is_device_checked(self, device_li) -> bool:
-        """
-        Return True if the device checkbox is selected.
-        """
-        return device_li.locator("svg.unchecked").count() == 0
-
-    # ✅
-    def device_text(self, device_li) -> str:
-        """
-        Extract the device label text from the li (ignoring checkbox).
-        """
-        txt = self._clean(device_li.inner_text())
-        return txt.split()[0] if txt else ""
-
-    # ✅
-    def set_all_devices_filterBy_devices(self, timeout: int = 10000):
-        """
-        Select all devices in the Devices filter by selecting each device row.
-        Scrolls through the list and clicks any unchecked device until all are checked.
-        """
-        self.set_filter_by("Devices")
-        menu = self.open_devices_dropdown(timeout=timeout)
-
-        scroller = menu.locator("div.simplebar-content-wrapper").first
-        expect(scroller).to_be_visible(timeout=timeout)
-
-        def click_all_visible_unchecked() -> bool:
-            """
-            Click every unchecked device currently rendered (skip the 'All' row at index 0).
-            Returns True if any click was performed.
-            """
-            clicked_any = False
-            rows = menu.locator("li.dropdown-item.multiple")
-            n = rows.count()
-            for i in range(1, n):
-                r = rows.nth(i)
-                if not self.is_device_checked(r):
-                    r.scroll_into_view_if_needed()
-                    r.click(force=True)
-                    clicked_any = True
-            return clicked_any
-
-        def any_unchecked_visible() -> bool:
-            rows = menu.locator("li.dropdown-item.multiple")
-            n = rows.count()
-            for i in range(1, n):
-                r = rows.nth(i)
-                if not self.is_device_checked(r):
-                    return True
-            return False
-
-        def scroll_to_top():
-            scroller.evaluate("el => { el.scrollTop = 0; }")
-
-        def scroll_page_down():
-            scroller.evaluate("el => { el.scrollTop = el.scrollTop + el.clientHeight; }")
-
-        def get_scroll_state():
-            return (
-                scroller.evaluate("el => el.scrollTop"),
-                scroller.evaluate("el => el.scrollHeight"),
-                scroller.evaluate("el => el.clientHeight"),
-            )
-
-        def all_selected_across_scroll() -> bool:
-            """
-            Two-pass strategy (handles virtualization):
-            - Pass 1: scroll down, clicking any unchecked visible device rows.
-            - Pass 2: scroll down again and verify none remain unchecked.
-            """
-            try:
-                # -------- Pass 1: select everything we can see while scrolling down
-                scroll_to_top()
-                last_scroll_top = -1
-                for _ in range(MAX_SCROLL_PAGES):
-                    click_all_visible_unchecked()
-
-                    scroll_top, scroll_h, client_h = get_scroll_state()
-                    if scroll_top + client_h >= scroll_h - 2:
-                        break
-
-                    if scroll_top == last_scroll_top:
-                        break
-                    last_scroll_top = scroll_top
-
-                    scroll_page_down()
-
-                # -------- Pass 2: verify (no unchecked anywhere while scrolling)
-                scroll_to_top()
-                last_scroll_top = -1
-                for _ in range(MAX_SCROLL_PAGES):
-                    if any_unchecked_visible():
-                        return False
-
-                    scroll_top, scroll_h, client_h = get_scroll_state()
-                    if scroll_top + client_h >= scroll_h - 2:
-                        return not any_unchecked_visible()
-
-                    if scroll_top == last_scroll_top:
-                        return not any_unchecked_visible()
-                    last_scroll_top = scroll_top
-
-                    scroll_page_down()
-
-                return True
-            except Exception:
-                return False
-
-        self.wait_until(all_selected_across_scroll, timeout_ms=timeout, interval_ms=250)
-
-    # ✅
-    def get_all_selected_devices_filterBy_devices(self, timeout: int = 8000) -> list:
-        """
-        Return a list of selected devices in the Devices filter.
-        Scrolls the list and collects checked device names.
-        """
-        self.set_filter_by("Devices")
-
-        menu = self._try_open_devices_dropdown(timeout=timeout)
-        if menu is None:
-            print("Devices dropdown did not open (likely no selected devices). Returning [].")
-            return []
-
-        scroller = menu.locator("div.simplebar-content-wrapper").first
-        # scroller might not exist if list is very small
-        if scroller.count() == 0:
-            scroller = menu
-
-        def scroll_to_top():
-            try:
-                scroller.evaluate("el => { el.scrollTop = 0; }")
-            except Exception:
-                pass
-
-        def scroll_page_down():
-            try:
-                scroller.evaluate("el => { el.scrollTop = el.scrollTop + el.clientHeight; }")
-            except Exception:
-                pass
-
-        def get_scroll_state():
-            try:
-                return (
-                    scroller.evaluate("el => el.scrollTop"),
-                    scroller.evaluate("el => el.scrollHeight"),
-                    scroller.evaluate("el => el.clientHeight"),
-                )
-            except Exception:
-                return (0, 0, 0)
-
-        seen = set()
-        out = []
-
-        scroll_to_top()
-        last_scroll_top = -1
-
-        for _ in range(MAX_SCROLL_PAGES):
-            rows = menu.locator("li.dropdown-item.multiple")
-            n = rows.count()
-
-            for i in range(1, n):  # skip "All"
-                r = rows.nth(i)
-                if self.is_device_checked(r):
-                    name = self.device_text(r)
-                    if name and name not in seen:
-                        seen.add(name)
-                        out.append(name)
-
-            scroll_top, scroll_h, client_h = get_scroll_state()
-            if scroll_h == 0 or client_h == 0:
-                break
-            if scroll_top + client_h >= scroll_h - 2:
-                break
-            if scroll_top == last_scroll_top:
-                break
-
-            last_scroll_top = scroll_top
-            scroll_page_down()
-
-        if not out:
-            print("No devices are selected in Devices filter.")
-        return out
-
-    # ✅
-    def select_device_filterBy_devices(self, device_name: str, timeout: int = 10000):
-        """
-        Select a specific device in the Devices filter.
-        Scrolls until the device is found, then selects it if not already selected.
-        """
-        self.set_filter_by("Devices")
-        menu = self.open_devices_dropdown(timeout=timeout)
-
-        scroller = menu.locator("div.simplebar-content-wrapper").first
-        expect(scroller).to_be_visible(timeout=timeout)
-
-        def scroll_to_top():
-            scroller.evaluate("el => { el.scrollTop = 0; }")
-
-        def scroll_page_down():
-            scroller.evaluate("el => { el.scrollTop = el.scrollTop + el.clientHeight; }")
-
-        def get_scroll_state():
-            return (
-                scroller.evaluate("el => el.scrollTop"),
-                scroller.evaluate("el => el.scrollHeight"),
-                scroller.evaluate("el => el.clientHeight"),
-            )
-
-        scroll_to_top()
-        last_scroll_top = -1
-        for _ in range(MAX_SCROLL_PAGES):
-            row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(rf"^\s*{re.escape(device_name)}\s*$")).first
-
-            if row.count() > 0:
-                row.scroll_into_view_if_needed()
-                if not self.is_device_checked(row):
-                    row.click(force=True)
-                    self.wait_until(lambda: self.is_device_checked(row), timeout_ms=timeout, interval_ms=200)
-                return
-
-            scroll_top, scroll_h, client_h = get_scroll_state()
-            if scroll_top + client_h >= scroll_h - 2:
-                break
-            if scroll_top == last_scroll_top:
-                break
-            last_scroll_top = scroll_top
-            scroll_page_down()
-
-        raise AssertionError(f"Device '{device_name}' not found in Devices dropdown (even after scrolling).")
-
-    # ✅
-    def remove_device_filterBy_devices(self, device_name: str, timeout: int = 10000):
-        """
-        Unselect a specific device in the Devices filter.
-        Scrolls until the device is found, then unselects it if selected.
-        """
-        self.set_filter_by("Devices")
-        menu = self.open_devices_dropdown(timeout=timeout)
-
-        scroller = menu.locator("div.simplebar-content-wrapper").first
-        expect(scroller).to_be_visible(timeout=timeout)
-
-        def scroll_to_top():
-            scroller.evaluate("el => { el.scrollTop = 0; }")
-
-        def scroll_page_down():
-            scroller.evaluate("el => { el.scrollTop = el.scrollTop + el.clientHeight; }")
-
-        def get_scroll_state():
-            return (
-                scroller.evaluate("el => el.scrollTop"),
-                scroller.evaluate("el => el.scrollHeight"),
-                scroller.evaluate("el => el.clientHeight"),
-            )
-
-        scroll_to_top()
-        last_scroll_top = -1
-        for _ in range(MAX_SCROLL_PAGES):
-            row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(rf"^\s*{re.escape(device_name)}\s*$")).first
-
-            if row.count() > 0:
-                row.scroll_into_view_if_needed()
-                if self.is_device_checked(row):
-                    row.click(force=True)
-                    self.wait_until(lambda: not self.is_device_checked(row), timeout_ms=timeout, interval_ms=200)
-                return
-
-            scroll_top, scroll_h, client_h = get_scroll_state()
-            if scroll_top + client_h >= scroll_h - 2:
-                break
-            if scroll_top == last_scroll_top:
-                break
-            last_scroll_top = scroll_top
-            scroll_page_down()
-
-        raise AssertionError(f"Device '{device_name}' not found in Devices dropdown (even after scrolling).")
-
-    # ✅
-    def remove_all_devices_filterBy_devices(self, timeout: int = 10000):
-        """
-        Unselect all devices by clicking the 'All' control (it clears all selections in this UI).
-        """
-        self.set_filter_by("Devices")
-        menu = self.open_devices_dropdown(timeout=timeout)
-
-        all_row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(r"^\s*All\s*$")).first
-        expect(all_row).to_be_visible(timeout=timeout)
-        all_row.click(force=True)
-
-        # Best-effort verify: no checked devices remain in the visible viewport
-        def none_checked_visible():
-            rows = menu.locator("li.dropdown-item.multiple")
-            n = rows.count()
-            for i in range(1, n):
-                if self.is_device_checked(rows.nth(i)):
-                    return False
-            return True
-
-        try:
-            self.wait_until(none_checked_visible, timeout_ms=timeout, interval_ms=250)
-        except Exception:
-            pass
 
     # =========================
     # Filter By → Domain / Chassis
     # =========================
-
+ 
     # ✅
     def click_on_inventory_tree_icon(self, timeout: int = 5000):
         """
@@ -747,286 +1218,139 @@ class ServiceList:
         return modal
 
     # ✅
-    def get_selected_domain_or_chassis_filterBy_domain_or_chassis(self) -> str:
+    def get_selected_domain_or_chassis(self, timeout: int = 8000) -> str:
         """
         Return the currently selected Domain/Chassis value.
         """
-        root = self.filters_root()
-        domain_section = root.locator("section.section-domain").first
-        if domain_section.count() == 0:
-            return ""
 
-        # Input is disabled per HTML, so value may be empty
-        inp = domain_section.locator("app-input[label='Domain'] input").first
-        if inp.count() > 0:
+        try:
+            dd = self.page.locator("app-dropdown-inventory-tree").filter(
+                has=self.page.locator(
+                    "div.label",
+                    has_text=re.compile(r"^\s*Domain/Chassis\s*$", re.IGNORECASE)
+                )
+            ).first
+
+            sleep(SLEEP)
+
+            expect(dd).to_be_visible(timeout=timeout)
+
+            btn_span = dd.locator("button.dropdown-inventory-tree-button span").first
+            sleep(SLEEP)
+
+            expect(btn_span).to_be_visible(timeout=timeout)
+
+            return self._clean(btn_span.inner_text())
+
+        except Exception as e:
+            raise AssertionError(f"get_selected_domain_or_chassis failed. Problem: {e}")
+    
+   # ✅
+    def select_domain_or_chassis(self, name: str, timeout: int = 8000):
+        """
+        Select Domain/Chassis filter value.
+        """
+
+        try:
+            name = (name or "").strip()
+            if not name:
+                raise ValueError("name is empty")
+
+            wants_all = name.lower() in ("all", "all domains")
+            expected_text = "All" if wants_all else name.split("/", 1)[0].strip()
+            expected_rx = re.compile(rf"\b{re.escape(expected_text)}\b", re.IGNORECASE)
+
+            dd = self.page.locator("app-dropdown-inventory-tree").filter(
+                has=self.page.locator(
+                    "div.label",
+                    has_text=re.compile(r"^\s*Domain/Chassis\s*$", re.IGNORECASE)
+                )
+            ).first
+
+            sleep(SLEEP)
+
+            expect(dd).to_be_visible(timeout=timeout)
+
+            btn = dd.locator("button.dropdown-inventory-tree-button").first
+            sleep(SLEEP)
+            expect(btn).to_be_visible(timeout=timeout)
+            expect(btn).to_be_enabled(timeout=timeout)
+
+            current_text = self._clean(btn.inner_text())
+            if expected_rx.search(current_text):
+                return True
+
+            btn.click(force=True)
+
+            modal = self.page.locator("div.modal-dialog").first
+            sleep(SLEEP)
+            expect(modal).to_be_visible(timeout=timeout)
+
+            if wants_all:
+                default_item = modal.locator(
+                    "section.dropdown-inventory-tree-default-item",
+                    has_text=re.compile(r"\bAll Domains\b|\bAll\b", re.IGNORECASE)
+                ).first
+                sleep(SLEEP)
+
+                expect(default_item).to_be_visible(timeout=timeout)
+                default_item.click(force=True)
+
+            else:
+                tree = modal.locator("app-inventory-tree").first
+                sleep(SLEEP)
+                expect(tree).to_be_visible(timeout=timeout)
+
+                row = tree.locator(
+                    "div.inventory-tree-level-title[type='DOMAIN'], "
+                    "div.inventory-tree-level-title[type='CHASSIS']"
+                ).filter(
+                    has_text=re.compile(rf"^\s*{re.escape(name)}\s*$", re.IGNORECASE)
+                ).first
+
+                sleep(SLEEP)
+
+                if row.count() == 0:
+                    row = tree.locator(
+                        "div.inventory-tree-level-title[type='DOMAIN'], "
+                        "div.inventory-tree-level-title[type='CHASSIS']"
+                    ).filter(
+                        has_text=re.compile(re.escape(name), re.IGNORECASE)
+                    ).first
+
+                    sleep(SLEEP)
+
+                if row.count() == 0:
+                    raise AssertionError(f"Domain/Chassis '{name}' not found in tree.")
+
+                row.scroll_into_view_if_needed()
+                expect(row).to_be_visible(timeout=timeout)
+                row.click(force=True)
+
+            btn_span = dd.locator("button.dropdown-inventory-tree-button span").first
+            sleep(SLEEP)
+            expect(btn_span).to_be_visible(timeout=timeout)
+
+            self.wait_until(
+                lambda: expected_rx.search(self._clean(btn_span.inner_text())) is not None,
+                timeout_ms=timeout,
+                interval_ms=150
+            )
+
             try:
-                v = self._clean(inp.input_value())
-                if v:
-                    return v
-            except Exception:
-                pass
-
-            try:
-                v = self._clean(inp.get_attribute("value") or "")
-                if v:
-                    return v
-            except Exception:
-                pass
-
-        # Fallback: read the visible text for the whole Domain control
-        try:
-            return self._clean(domain_section.locator("app-input[label='Domain']").inner_text())
-        except Exception:
-            return ""
-    
-    # ✅
-    def reset_domain_or_chassis_filterBy_domain_or_chassis(self, timeout: int = 8000):
-        """
-        Reset the Domain/Chassis filter using the picker modal (click icon -> Reset -> Ok).
-        """
-        self.set_filter_by("Domain/Chassis")
-
-        root = self.filters_root()
-        domain_section = root.locator("section.section-domain").first
-        if domain_section.count() == 0:
-            raise AssertionError("Domain section not found.")
-
-        modal = self.click_on_inventory_tree_icon(timeout=timeout)
-
-        reset_btn = modal.locator("footer button:has-text('Reset')").first
-        expect(reset_btn).to_be_visible(timeout=timeout)
-        reset_btn.click(force=True)
-
-        ok_btn = modal.locator("footer button:has-text('Ok')").first
-        expect(ok_btn).to_be_visible(timeout=timeout)
-        ok_btn.click(force=True)
-
-        expect(modal).to_be_hidden(timeout=timeout)
-
-        # Optional: wait until something is reflected in the UI 
-        def updated():
-            return self.get_selected_domain_or_chassis_filterBy_domain_or_chassis().strip() != ""
-
-        try:
-            self.wait_until(updated, timeout_ms=timeout, interval_ms=200)
-        except Exception:
-            pass
-    
-    # ✅
-    def select_domain_or_chassis_filterBy_domain_or_chassis(self, value: str, timeout: int = 10000):
-        """
-        Select a Domain/Chassis group from the inventory-tree modal and confirm with Ok.
-        """
-        self.set_filter_by("Domain/Chassis")
-
-        root = self.filters_root()
-        domain_section = root.locator("section.section-domain").first
-        if domain_section.count() == 0:
-            raise AssertionError("Domain section not found.")
-
-        modal = self.click_on_inventory_tree_icon(timeout=timeout)
-
-        node = modal.locator("app-inventory-tree span", has_text=re.compile(rf"^\s*{re.escape(value)}\s*$")).first
-
-        if node.count() == 0:
-            labels = modal.locator("app-inventory-tree span").all_inner_texts()
-            labels = [self._clean(x) for x in labels if self._clean(x)]
-            raise AssertionError(f"Domain/Chassis '{value}' not found in inventory tree. Visible: {labels}")
-
-        node.scroll_into_view_if_needed()
-        node.click(force=True)
-
-        ok_btn = modal.locator("footer button:has-text('Ok')").first
-        expect(ok_btn).to_be_visible(timeout=timeout)
-        ok_btn.click(force=True)
-
-        expect(modal).to_be_hidden(timeout=timeout)
-
-        def updated():
-            sleep(2)
-            v = self.get_selected_domain_or_chassis_filterBy_domain_or_chassis()
-            return v.strip() != "" and value.strip().lower() in v.strip().lower()
-
-        try:
-            self.wait_until(updated, timeout_ms=timeout, interval_ms=200)
-        except Exception:
-            # Some builds may not echo the selection into the disabled field text.
-            pass
-
-    # =========================
-    # Filter By → Device Type
-    # =========================
-    
-    # ❌
-    def set_all_devices_filterBy_device_type(self):
-        """
-        Select 'All' in the Device Type filter.
-        """
-        pass
-    
-    # ❌
-    def get_all_selected_devices_filterBy_device_type(self):
-        """
-        Return a list with the selected device type.
-        Returns [] if 'All' is selected.
-        """
-        pass
-    
-    # ❌
-    def select_device_type_filterBy_device_type(self, device_type: str):
-        """
-        Select a specific device type in the filter.
-        """
-        pass
-
-    # ❌
-    def remove_device_type_filterBy_device_type(self, device_type: str):
-        """
-        Remove a selected device type by resetting to 'All'.
-        """
-        pass
-    
-    # ❌
-    def remove_all_devices_filterBy_device_type(self):
-        """
-        Reset Device Type filter to 'All'.
-        """
-        pass
-
-    # =========================
-    # Date
-    # =========================
-
-    # ✅
-    def get_date(self):
-        """
-        Return the currently selected date range string.
-        """
-        inp = self.date_input_field()
-        try:
-            return self._clean(inp.input_value())
-        except Exception:
-            return self._clean(inp.get_attribute("value") or "")
-
-    # ✅
-    def set_date(self, from_date_and_time: str, to_date_and_time: str, timeout: int = 10000):
-        """
-        Set date range using easy inputs like 'YEAR-MONTH-DAY HOUR:MINUTES' or 'YEAR-MONTH-DAY HOUR:MINUTES:SECONDS'
-        Example: '2026-01-27 11:14' or '2026-01-27 11:14:39'.
-        """
-        # Allow 'YYYY-MM-DD HH:MM' or 'YYYY-MM-DD HH:MM:SS'
-        def parse(s: str) -> datetime:
-            s = s.strip()
-            for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
-                try:
-                    return datetime.strptime(s, fmt)
-                except ValueError:
-                    pass
-            raise ValueError(f"Unsupported datetime format: '{s}'. Use 'YYYY-MM-DD HH:MM[:SS]'")
-
-        from_dt = parse(from_date_and_time)
-        to_dt = parse(to_date_and_time)
-
-        target = f"{self.format_for_picker(from_dt)} - {self.format_for_picker(to_dt)}"
-
-        inp = self.date_input_field()
-        expect(inp).to_be_visible(timeout=timeout)
-        inp.click(force=True)
-        inp.fill("")
-        inp.type(target, delay=5)
-        inp.press("Enter")
-
-        # close picker if open 
-        picker = self.page.locator("bs-daterangepicker-container[role='dialog']").first
-        if picker.count() > 0:
-            try:
-                if picker.is_visible():
+                if modal.is_visible():
                     self.page.keyboard.press("Escape")
             except Exception:
                 pass
 
-        sleep(2)
-        self.wait_until(lambda: (self.get_date() or "").strip() != "", timeout_ms=timeout, interval_ms=200)
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"select_domain_or_chassis('{name}') failed. Problem: {e}")
 
     # =========================
-    # Message
+    # Filter By → Device Type
     # =========================
-    
-    # ✅
-    def set_message(self, message: str):
-        """
-        Set the Message filter text.
-        Overwrites any existing value in the input field.
-        """
-        inp = self.message_input_field()
-        inp.fill(message)
-
-        sleep(1)
-
-    # =========================
-    # Ordering / Sorting
-    # =========================
-    
-    # ✅
-    def get_order_by(self):
-        """
-        Return the currently selected Order By value.
-        """
-        return self.dropdown_selected_text("Order by")
-
-    # ✅
-    def set_order_by(self, column_name: str):
-        """
-        Set the Order By dropdown to a specific column.
-        """
-        self.dropdown_pick("Order by", column_name)
-        sleep(1)
-
-    # ✅
-    def set_order_by_all(self):
-        """
-        Set the Order By dropdown to 'All'.
-        """
-        self.dropdown_pick("Order by", "All")
-        sleep(1)
-
-    # ✅
-    def enable_descending_order(self):
-        """
-        Enable descending sort order if it is not already enabled.
-        """
-        cb = self.descending_checkbox()
-        label = cb.locator("label.checkbox-container").first
-        expect(label).to_be_visible(timeout=5000)
-
-        def is_checked():
-            cls = (label.get_attribute("class") or "")
-            return "checked" in cls.split()
-
-        if is_checked():
-            return
-
-        label.click(force=True)
-        self.wait_until(is_checked, timeout_ms=5000, interval_ms=200)
-
-    # ✅
-    def disable_descending_order(self):
-        """
-        Disable descending sort order if it is currently enabled.
-        """
-        cb = self.descending_checkbox()
-        label = cb.locator("label.checkbox-container").first
-        expect(label).to_be_visible(timeout=5000)
-
-        def is_checked():
-            cls = (label.get_attribute("class") or "")
-            return "checked" in cls.split()
-
-        if not is_checked():
-            return
-
-        label.click(force=True)
-        self.wait_until(lambda: not is_checked(), timeout_ms=5000, interval_ms=200)
 
     # =========================
     # Pagination

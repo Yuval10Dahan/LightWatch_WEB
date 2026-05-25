@@ -15,7 +15,8 @@ from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery
-from Pages.management_map import ManagementMap
+from Pages.network_topology import NetworkTopology
+from Pages.domain_management import DomainManagement
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_SNMP_page import PL_SNMPPage
 from PL_Devices.PL_Pages.PL_main_screen_POM import PL_Main_Screen_POM
@@ -65,7 +66,7 @@ else:
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    DEVICE_IP = "172.16.20.113"
+    DEVICE_IP = "172.16.20.126"
     DEVICE_IP_USER = "tech"
     DEVICE_IP_PASS = "packetlight"
 
@@ -137,7 +138,8 @@ def open_device_discovery(left_panel: LeftPanel):
 
 def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
     device_discovery  = DeviceDiscovery(page)
-    management_map  = ManagementMap(page)
+    network_topology  = NetworkTopology(page)
+    domain_management = DomainManagement(page)
     login  = LoginPage(page)
 
     results = {}
@@ -176,6 +178,14 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
     stored_defaults = {}
 
     def step_2():
+        device_discovery.set_SNMPv2_read_community("admin")
+        device_discovery.set_SNMPv2_write_community("admin")
+        device_discovery.set_SNMPv2_admin_community("admin")
+        device_discovery.set_SNMPv2_contact_port(int(161))
+        device_discovery.click_save_as_default()
+        device_discovery.confirm_default_override()
+        sleep(5)
+
         stored_defaults["readCommunity"]  = device_discovery.get_SNMPv2_read_community()
         stored_defaults["writeCommunity"] = device_discovery.get_SNMPv2_write_community()
         stored_defaults["adminCommunity"] = device_discovery.get_SNMPv2_admin_community()
@@ -320,33 +330,13 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     results[5] = run_step(5, step_5, logger, report)
 
-    ################################################################
-    # Step 6 – Add the LW server to the DEVICE_IP SNMP Traps table #
-    # Start Discovery                                              #
-    ################################################################
+    ###########################################
+    # Step 6 – Start Discovery for DEVICE_IP. #
+    ###########################################
 
     def step_6():
         refresh_page(page)
-        device_page = page.context.new_page()
-
-        try:
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(DEVICE_IP_URL)
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {DEVICE_IP} GUI failed."
-
-            pl_SNMP = PL_SNMPPage(device_page)
-            ok_tab = pl_SNMP.open_SNMP_tab()
-            assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP}."
-
-            success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v2c")
-            assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-            refresh_page(page)
-
-        finally:
-            device_page.close()
-
-
+    
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv2()
 
@@ -363,17 +353,17 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
     ###################################################################
 
     def step_7():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
+        network_topology.show_navigation_info()
 
-        in_nav = management_map.is_element_exist_on_navigation_info_list(DEVICE_IP)
+        in_nav = network_topology.is_element_exist_on_navigation_info_list(DEVICE_IP)
         assert in_nav, (
             f"{DEVICE_IP} was not found in the Navigation Info list. "
             f"Discovery may not have completed yet.")
 
-        management_map.navigation_info_open_element_details(DEVICE_IP)
+        network_topology.navigation_info_open_element_details(DEVICE_IP)
 
     results[7] = run_step(7, step_7, logger, report)
 
@@ -526,6 +516,10 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     def step_13():
         refresh_page(page)
+
+        left_panel.click_domain_management()
+        domain_management.remove_device(BLOCKED_DEVICE_IP)
+
         blocked_device_page = page.context.new_page()
 
         # Set device SNMP protocol to 'v3 only'
@@ -574,12 +568,12 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
             pl_SNMP_blocked_device2.open_SNMP_tab()
             
             # Verify that BLOCKED_DEVICE_URL is not displaying on LW navigation info
-            ok = left_panel.click_management_map()
-            assert ok, "Failed to navigate to Management Map."
+            ok = left_panel.click_network_topology()
+            assert ok, "Failed to navigate to Network Topology."
 
-            management_map.show_navigation_info()
+            network_topology.show_navigation_info()
 
-            in_nav = management_map.is_element_exist_on_navigation_info_list(BLOCKED_DEVICE_IP)
+            in_nav = network_topology.is_element_exist_on_navigation_info_list(BLOCKED_DEVICE_IP)
             assert not in_nav, (
                 f"{BLOCKED_DEVICE_IP} was found in the Navigation Info list. "
                 f"It should not be there.")
@@ -604,8 +598,8 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv2()
 
-        device_discovery.set_SNMPv2_read_community(ADMIN_COMMUNITY)
-        device_discovery.set_SNMPv2_write_community(ADMIN_COMMUNITY)
+        device_discovery.set_SNMPv2_read_community(READ_COMMUNITY)
+        device_discovery.set_SNMPv2_write_community(WRITE_COMMUNITY)
         device_discovery.set_SNMPv2_admin_community(ADMIN_COMMUNITY)
         device_discovery.set_SNMPv2_contact_port(CONTACT_PORT)
 
@@ -630,11 +624,11 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
         got_port  = int(device_discovery.get_SNMPv2_contact_port())
 
         errors = []
-        if got_read != ADMIN_COMMUNITY:
-            errors.append(f"readCommunity: expected='{ADMIN_COMMUNITY}' got='{got_read}'")
+        if got_read != READ_COMMUNITY:
+            errors.append(f"readCommunity: expected='{READ_COMMUNITY}' got='{got_read}'")
 
-        if got_write != ADMIN_COMMUNITY:
-            errors.append(f"writeCommunity: expected='{ADMIN_COMMUNITY}' got='{got_write}'")
+        if got_write != WRITE_COMMUNITY:
+            errors.append(f"writeCommunity: expected='{WRITE_COMMUNITY}' got='{got_write}'")
 
         if got_admin != ADMIN_COMMUNITY:
             errors.append(f"adminCommunity: expected='{ADMIN_COMMUNITY}' got='{got_admin}'")

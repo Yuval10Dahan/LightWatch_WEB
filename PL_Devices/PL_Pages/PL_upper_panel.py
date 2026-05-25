@@ -248,7 +248,11 @@ class PL_Upper_Panel:
                 # Port 19 / 20 special handling (single/split mode)
                 # ==========================================================
                 elif raw in {"19", "20"} or port_id in {19, 20}:
-                    uplink_btn = p.locator("#Port-19").first
+                    if str(port_id) == "19" or port_id == 19:
+                        uplink_btn = p.locator("#Port-19").first
+                    else:
+                        uplink_btn = p.locator("#Port-20").first
+                        
                     click_plain(uplink_btn)
                     self.page.wait_for_timeout(500)
 

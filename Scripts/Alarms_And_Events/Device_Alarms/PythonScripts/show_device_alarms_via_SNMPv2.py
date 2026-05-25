@@ -19,44 +19,25 @@ Steps to verify before running this script:
    a. Stop LW Server.
    b. Press Win + R.
    c. Type: services.msc
-   d. Locate: SNMP Trap
+   d. Locate: SNMP Trap 
    e. Right-click → Properties → Click Stop.
    f. Set Startup type → Disabled → Click Apply → OK.
    g. Start LW Server.
 3. After applying the fix, verify that port 162 is now occupied by java.exe and not snmptrap.exe.
 --------------------------------------------------------------------------------------------------------------------------
-
-Setup:
-1) To fully test the functionality of the 'Category' field:
-Generate alarms of the following category types for the device CATEGORY_TEST_DEVICE before starting the test: 
-    - Device 
-    - Syslog
-    - System 
-    - Configuration Event
-    - Inventory
-    - Discovery
-    - Provisioning
-    - Security 
-    - Service 
-    - OTN Service
-    - CS Service
-    - CS Link
-    - ROADM domain
 """
 
 from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery
-from Pages.management_map import ManagementMap
+from Pages.network_topology import NetworkTopology
 from Pages.domain_management import DomainManagement
 from Pages.alarms_and_events import AlarmsAndEvents
 from Pages.upper_panel import UpperPanel
-from Pages.common_functions import CommonFunctionsPage
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
-from PL_Devices.PL_Pages.PL_SNMP_page import PL_SNMPPage
 from PL_Devices.PL_Pages.PL_main_screen_POM import PL_Main_Screen_POM
-from Utils.utils import refresh_page, countdown_sleep, devices_are_up
+from Utils.utils import refresh_page, devices_are_up
 import time
 from time import sleep
 from Utils.Logger import create_logger
@@ -107,14 +88,13 @@ else:
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
 
-    DUT_IP1_NAME = "PL-2000ADS (172.16.30.15)"
-    DUT_IP2_NAME = "PL-1000IL2 (172.16.30.13)"
+    DUT_IP_NAMES = ["PL-2000ADS (172.16.30.15)", "PL-1000IL2 (172.16.30.13)"]
 
     NEW_CHASSIS_ID = "67"
-    DOMAIN_NAME = "Script_Domain"
-    SUB_DOMAIN_NAME = "Script_Sub_Domain"
+    DOMAIN_NAME = "ScriptDomain"
+    SUB_DOMAIN_NAME = "ScriptSubDomain"
 
-    CATEGORY_TEST_DEVICE = "172.16.40.31"
+    CATEGORY_TEST_DEVICE = "172.16.20.126"
     
 
 # ================================================================
@@ -128,7 +108,6 @@ CATEGORIES_LIST = ["Device", "Syslog", "System", "Configuration Event", "Invento
                     "Discovery", "Provisioning", "Security", "Service", "OTN Service", 
                     "CS Service", "CS Link", "ROADM domain"]
 
-ALL_ALARMS_TEST_DEVICE = "" # Fill this variable if you want to test step 15
 ALL_DEVICES = DEVICES_LIST + [CATEGORY_TEST_DEVICE]
 
 GOOGLE_SNTP_SERVER = '216.239.35.0'
@@ -306,15 +285,14 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
     domain_management = DomainManagement(page)
     device_discovery = DeviceDiscovery(page)
     alarms_and_events = AlarmsAndEvents(page)
-    management_map = ManagementMap(page)
+    network_topology = NetworkTopology(page)
     upper_panel = UpperPanel(page)
-    common_functions = CommonFunctionsPage(page)
 
     results = {}
     pl_alarms_stored = {}
     pl_alarms_port_1 = {}
 
-    #######################################
+    ####################################### 
     # Step 1 – Add domain and sub-domain. #
     #######################################
     def step_1():
@@ -326,11 +304,11 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
     results[1] = run_step(1, step_1, logger, report)
 
-    ########################################
-    # Step 2 – Cold reset for all devices. # 
-    ########################################
+    ###################################################
+    # Step 2 – Factory default reset for all devices. # 
+    ###################################################
     def step_2():
-        for ip in DEVICES_LIST:
+        for ip in ALL_DEVICES:
             device_page = page.context.new_page()
             pl_login = PL_LoginPage(device_page)
             pl_login.goto(f"http://{ip}/")
@@ -338,22 +316,21 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             sleep(1)
 
             pl_main_screen_POM = PL_Main_Screen_POM(device_page)
-            pl_main_screen_POM.device_restart("cold")
+            pl_main_screen_POM.device_restart("factory")
             sleep(5)
             device_page.close()
 
-        # Wait for devices to come back up after cold reset
-        devices_are_up(DEVICES_LIST, wait_time=WAIT)
+        # Wait for devices to come back up after factory default reset
+        devices_are_up(ALL_DEVICES, wait_time=WAIT)
 
     results[2] = run_step(2, step_2, logger, report)
 
     ################################################################################
     # Step 3 – Login to the GUI of each IP.                                        #
     # Set SNTP server and timezone to synchronize device time with LW server time. #                                   
-    # Add the LW server as SNMP trap manager with SNMP v2c.                        # 
     ################################################################################
     def step_3():
-        for ip in DEVICES_LIST:
+        for ip in ALL_DEVICES:
             device_page = page.context.new_page()
             pl_login = PL_LoginPage(device_page)
             pl_login.goto(f"http://{ip}/")
@@ -370,11 +347,6 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2)
             refresh_page(device_page)
 
-            pl_SNMP = PL_SNMPPage(device_page)  
-            pl_SNMP.open_SNMP_tab()
-            success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v2c")
-            assert success, f"Server IP was not added as trap manager for {ip}"
-
             device_page.close()
 
     results[3] = run_step(3, step_3, logger, report)
@@ -386,7 +358,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
         left_panel.click_device_discovery()
         device_discovery.click_SNMPv2()
 
-        for ip in DEVICES_LIST:
+        for ip in ALL_DEVICES:
             device_discovery.set_ip_address(ip)
             sleep(0.5)
             device_discovery.click_start_discovery()
@@ -405,7 +377,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
         try:
             domain_management.change_CHASSIS_ID(
-                element_name=DUT_IP1_NAME,
+                element_name=DUT_IP_NAMES[0],
                 to_mode="new",
                 new_chassis_id=NEW_CHASSIS_ID, 
                 existing_chassis_id=None,
@@ -413,21 +385,23 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             )
 
         except Exception as e:
-            print(f"Failed to change chassis id for {DUT_IP1_NAME}: {e}")
-            logger.info(f"Failed to change chassis id for {DUT_IP1_NAME}: {e}")
+            print(f"Failed to change chassis id for {DUT_IP_NAMES[0]}: {e}")
+            logger.info(f"Failed to change chassis id for {DUT_IP_NAMES[0]}: {e}")
+        
+        for dut_name in DUT_IP_NAMES:
+            if dut_name != DUT_IP_NAMES[0]:
+                try:
+                    domain_management.change_CHASSIS_ID(
+                        element_name=dut_name,
+                        to_mode="existing",
+                        new_chassis_id=None, 
+                        existing_chassis_id=f"Chassis: {NEW_CHASSIS_ID}",
+                        parent_chassis=None
+                    )
 
-        try:
-            domain_management.change_CHASSIS_ID(
-                element_name=DUT_IP2_NAME,
-                to_mode="existing",
-                new_chassis_id=None, 
-                existing_chassis_id=f"Chassis: {NEW_CHASSIS_ID}",
-                parent_chassis=None
-            )
-
-        except Exception as e:
-            print(f"Failed to change chassis id for {DUT_IP2_NAME}: {e}")
-            logger.info(f"Failed to change chassis id for {DUT_IP2_NAME}: {e}")
+                except Exception as e:
+                    print(f"Failed to change chassis id for {dut_name}: {e}")
+                    logger.info(f"Failed to change chassis id for {dut_name}: {e}")
 
         try:
             domain_management.move_to_domain(source_item_name=f"Chassis: {NEW_CHASSIS_ID}/{NEW_CHASSIS_ID}",
@@ -453,7 +427,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             
             try:
                 pl_alarms_stored[ip] = pl_main.get_alarms_table("ALL")
-                print(f"Alarms from {ip} GUI: {pl_alarms_stored[ip]}")
+                # print(f"Alarms from {ip} GUI: {pl_alarms_stored[ip]}")
             except Exception:
                 pl_alarms_stored[ip] = []
 
@@ -467,7 +441,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             try:
                 lw_alarms = alarms_and_events.get_all_alarms()
                 lw_formatted_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_alarms)
-                print(f"Alarms from {ip} LW (GUI format): {lw_formatted_alarms}")
+                # print(f"Alarms from {ip} LW (GUI format): {lw_formatted_alarms}")
 
             except Exception:
                 lw_alarms = []
@@ -552,13 +526,11 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
                     product_name = "PL-1000IL2"
 
             except Exception:
-                # fallback: extract product name from DUT_IP strings
-                product_name_1, product_ip1 = extract_device_name_and_device_ip(DUT_IP1_NAME)
-                product_name_2, product_ip_2 = extract_device_name_and_device_ip(DUT_IP2_NAME)
-                if ip == product_ip1:
-                    product_name = product_name_1
-                elif ip == product_ip_2:
-                    product_name = product_name_2
+                for dut_name in DUT_IP_NAMES:
+                    product_name_from_list, product_ip_from_list = extract_device_name_and_device_ip(dut_name)
+                    if ip == product_ip_from_list:
+                        product_name = product_name_from_list
+                        break
                 else:             
                     raise AssertionError(f"Failed to get product name for {ip} and match it to expected IPs.")
 
@@ -594,7 +566,6 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
     ###########################################################
     def step_9():
         refresh_page(page)
-        all_match = True
 
         for ip in DEVICES_LIST:
             device_page = page.context.new_page()
@@ -635,7 +606,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             pl_critical_port1 = [a for a in pl_alarms_port_1[ip] if len(a) > 2 and a[2] == 'Critical']
             is_match = compare_device_and_lw_alarms(ip, pl_critical_port1, lw_formatted_critical_alarms, section="Critical")
             if not is_match:
-                all_match = False
+                raise AssertionError(f"Critical Alarms mismatch for {ip}")
 
             # Major
             alarms_and_events.set_severity("Major")
@@ -648,7 +619,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             pl_major_port1 = [a for a in pl_alarms_port_1[ip] if len(a) > 2 and a[2] == 'Major']
             is_match = compare_device_and_lw_alarms(ip, pl_major_port1, lw_formatted_major_alarms, section="Major")
             if not is_match:
-                all_match = False
+                raise AssertionError(f"Major Alarms mismatch for {ip}")
 
             # Minor
             alarms_and_events.set_severity("Minor")
@@ -661,13 +632,10 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             pl_minor_port1 = [a for a in pl_alarms_port_1[ip] if len(a) > 2 and a[2] == 'Minor']
             is_match = compare_device_and_lw_alarms(ip, pl_minor_port1, lw_formatted_minor_alarms, section="Minor")
             if not is_match:
-                all_match = False
+                raise AssertionError(f"Minor Alarms mismatch for {ip}")
 
             alarms_and_events.set_severity("All")
             refresh_page(page)
-
-        if not all_match:
-            raise AssertionError("Alarms content mismatch between Device GUI and LW Server.")
 
     results[9] = run_step(9, step_9, logger, report)
 
@@ -842,46 +810,46 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
     # Acknowledge and clear alerts, verify severity is Clear and element green. # 
     #############################################################################
     def step_13():
-        refresh_page(page)
-        ip = DEVICES_LIST[1]
-
-        left_panel.click_alarms_and_events()
-        alarms_and_events.set_faults_type("Alarms")
-        alarms_and_events.set_filterBy("Devices")
-        alarms_and_events.select_device_filterBy_devices(ip)
-        alarms_and_events.close_devices_dropdown()
+        refresh_page(page) 
         
-        try:
-            lw_alarms = alarms_and_events.get_all_alarms()
-        except:
-            lw_alarms = []
-             
-        number_of_alarms = len(lw_alarms)
-        for i in range(number_of_alarms):
+        for ip in DEVICES_LIST:
+            left_panel.click_alarms_and_events()
+            alarms_and_events.set_faults_type("Alarms")
+            alarms_and_events.set_filterBy("Devices")
+            alarms_and_events.select_device_filterBy_devices(ip)
+            alarms_and_events.close_devices_dropdown()
+            
             try:
-                print(f"clearing alarm number = {i}")
-                alarms_and_events.check_Ack(i)
-                alarms_and_events.clear_alert(i)
-                sleep(0.5)
+                lw_alarms = alarms_and_events.get_all_alarms()
+            except:
+                lw_alarms = []
+                
+            number_of_alarms = len(lw_alarms)
+            for i in range(number_of_alarms):
+                try:
+                    print(f"IP {ip}: Clearing alarm number = {i}")
+                    alarms_and_events.check_Ack(i)
+                    alarms_and_events.clear_alert(i)
+                    sleep(0.5)
+                except Exception as e:
+                    print(f"IP {ip}: acknowledge_alert or clear_alert for alarm {i} failed: {e}")
+                    logger.info(f"IP {ip}: acknowledge_alert or clear_alert for alarm {i} failed: {e}")
+
+                
+            left_panel.click_network_topology()
+            try:
+                upper_panel.select_domain(DOMAIN_NAME)
+                upper_panel.select_sub_domain(SUB_DOMAIN_NAME)
+                network_topology.double_click_on_element_via_the_map(f"Chassis: {NEW_CHASSIS_ID}")
+                state, color = network_topology.get_map_element_color(element_ip=ip)
+                if state != "positive" or color != "green":
+                    print(f"IP {ip}: Element color is not green: {color}")
+                    logger.info(f"IP {ip}: Element color is not green: {color}")
+
+                    raise AssertionError(f"IP {ip}: Element color is not green")
+
             except Exception as e:
-                print(f"acknowledge_alert or clear_alert for alarm {i} failed: {e}")
-                logger.info(f"acknowledge_alert or clear_alert for alarm {i} failed: {e}")
-
-             
-        left_panel.click_management_map()
-        try:
-            upper_panel.select_domain(DOMAIN_NAME)
-            upper_panel.select_sub_domain(SUB_DOMAIN_NAME)
-            management_map.double_click_on_element_via_the_map(f"Chassis: {NEW_CHASSIS_ID}")
-            state, color = management_map.get_map_element_color(element_ip=ip)
-            if state != "positive" or color != "green":
-                print(f"{ip}: Element color is not green: {color}")
-                logger.info(f"{ip}: Element color is not green: {color}")
-
-                raise AssertionError(f"{ip}: Element color is not green")
-
-        except Exception as e:
-            raise AssertionError(f"Error while checking element color: {e}")
+                raise AssertionError(f"IP {ip}: Error while checking element color: {e}")
             
 
     results[13] = run_step(13, step_13, logger, report)
@@ -958,154 +926,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
     results[14] = run_step(14, step_14, logger, report)
 
-    ###########################################################################################################
-    # Step 15 – Generate all alarm types (either via automation or manually) on ALL_ALARMS_TEST_DEVICE.       # 
-    # Retrieve all alarms from ALL_ALARMS_TEST_DEVICE and compare them against the corresponding              #
-    # alarms displayed in LW for ALL_ALARMS_TEST_DEVICE                                                       #
-    # Verify that each alarm type defined in EXPECTED_ALARMS exists by searching for it in the Message field. #
-    ###########################################################################################################
-    def step_15():
-        """
-        If there is need to test this step, fill the ALL_ALARMS_TEST_DEVICE variable with the IP address of the device.
-        """
-        refresh_page(page)
-
-        # ==========================================================
-        # Expected Popular Events / Alarms list (for LW validation)
-        # ==========================================================
-        EXPECTED_ALARMS = {
-            "client": [
-                "Optics Removed",
-                "Loss of Light",
-                "Loss of Lock",
-                "Loss of Sync",
-                "HI BER",
-                "OTN LOF",
-                "Ethernet Link Failure",
-                "Remote Fault",
-                "Key Exchange Failed",
-                "No License or License Expired",
-                "Service changing",
-                "Service Provisioning",
-            ],
-
-            "uplink": [
-                "Optics Removed",
-                "Loss of Light",
-                "Loss of Lock",
-                "OTN Path AIS",
-                "OTN Path BDI",
-                "Tx/WL changing",
-            ],
-
-            "system": [
-                "NTP server alarms/events",
-                "Radius/Tacacs events",
-                "Syslog server events",
-                "SW upgrade events",
-                "Remote Power Failure",
-                "User Login/Logout",
-                "Hardware Failure",
-                "Login Intrusion",
-                "Power Supply Failure 1",
-                "Power Supply Failure 2",
-                "Fan unit",
-                "System mode changing",
-                "Cold reset",
-                "Warm reset",
-                "WEB GUI: General tab Configuration",
-                "WEB GUI: IP tab configuration",
-                "SNMP add/delete",
-                "EDFA configuration",
-                "APS configuration",
-                "Optical Switch",
-                "OLP",
-            ],
-
-            "roadm": [
-                "Add",
-                "Drop",
-                "WSS",
-            ]
-        }
-        
-        if not ALL_ALARMS_TEST_DEVICE:
-            print("Step 15: ALL_ALARMS_TEST_DEVICE is not defined, skipping this step - NO RUN!!!.")
-            logger.info("Step 15: ALL_ALARMS_TEST_DEVICE is not defined, skipping this step - NO RUN!!!.")
-            return
-
-        # 1) Add ALL_ALARMS_TEST_DEVICE via SNMPv2
-        left_panel.click_device_discovery()
-        device_discovery.click_SNMPv2()
-        device_discovery.set_ip_address(ALL_ALARMS_TEST_DEVICE)
-        sleep(0.5)
-        device_discovery.click_start_discovery()
-        refresh_page(page)
-        sleep(2)
-
-        # 2) Retrieve alarms from Device GUI
-        device_page = page.context.new_page()
-        pl_login = PL_LoginPage(device_page)
-        pl_login.goto(f"http://{ALL_ALARMS_TEST_DEVICE}/")
-        try:
-            pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            pl_main = PL_Main_Screen_POM(device_page)
-            pl_alarms = pl_main.get_alarms_table("ALL")
-        except Exception as e:
-            pl_alarms = []
-        finally:
-            device_page.close()
-
-        # 3) Retrieve alarms from LightWatch Server
-        left_panel.click_alarms_and_events()
-        alarms_and_events.set_faults_type("Alarms")
-        alarms_and_events.set_filterBy("Devices")
-        alarms_and_events.select_device_filterBy_devices(ALL_ALARMS_TEST_DEVICE)
-        
-        try:
-            lw_alarms_raw = alarms_and_events.get_all_alarms()
-        except Exception as e:
-            lw_alarms_raw = []
-
-        # Convert format and compare
-        lw_formatted_alarms = convert_lw_alarms_to_gui_alarms_format(ALL_ALARMS_TEST_DEVICE, lw_alarms_raw)
-        
-        def normalize_time(ts: str) -> str:
-            try:
-                dt = datetime.strptime(ts, "%m/%d/%Y %I:%M:%S %p")
-                return dt.strftime("%m/%d/%Y %I:%M %p")
-            except Exception:
-                return ts
-                
-        def sort_key(alarm):
-            return (normalize_time(alarm[0]), alarm[1], alarm[2], alarm[3])
-
-        pl_alarms_sorted = sorted(pl_alarms, key=sort_key)
-        lw_alarms_sorted = sorted(lw_formatted_alarms, key=sort_key)
-
-        is_match = compare_device_and_lw_alarms(ALL_ALARMS_TEST_DEVICE, pl_alarms_sorted, lw_alarms_sorted, section="Step 15 All Alarms")
-        if not is_match:
-            raise AssertionError(f"Step 15: Alarms content mismatch for {ALL_ALARMS_TEST_DEVICE} between Device GUI and LW Server.")
-
-        # 4) Verify all expected alarms exist in LW messages
-        lw_messages = [a.get('message', '') for a in lw_alarms_raw]
-        missing_alarms = []
-        
-        for category, alarms in EXPECTED_ALARMS.items():
-            for expected_alarm in alarms:
-                alarm_found = any(expected_alarm in msg for msg in lw_messages)
-                if not alarm_found:
-                    missing_alarms.append(f"[{category}] {expected_alarm}")
-        
-        if missing_alarms:
-            raise AssertionError(f"Step 15: Missing expected alarms in LW alarms for {ALL_ALARMS_TEST_DEVICE}:\n" + "\n".join(missing_alarms))
-        
-        refresh_page(page)
-
-    results[15] = run_step(15, step_15, logger, report)
-
     # ==========================================================
-
 
     print("\n" + "=" * 60)
     all_passed = all(results.values())

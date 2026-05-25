@@ -669,6 +669,7 @@ class PL_SNMPPage:
 
         return False, ""
     
+    # ✅
     def Add_Trap_Manager(self, IP: str | None = None, SNMP_Version: str | None = None, V3_User: str | None = None,
         Trap_Port: str | int | None = None, Negative_Test: bool = False, Action_Dismiss: bool = False,
         Retries: int = 3, timeout: int = 10_000):

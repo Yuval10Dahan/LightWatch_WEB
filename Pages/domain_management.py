@@ -13,7 +13,7 @@ from time import sleep
 from Utils.utils import refresh_page, countdown_sleep
 
 
-RENDER_WAIT_TIME = 30
+RENDER_WAIT_TIME = 15
 
 
 class DomainManagement:
@@ -267,7 +267,8 @@ class DomainManagement:
         # If user passed only IP -> match "(IP)"
         is_ip_only = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
         if is_ip_only:
-            rx = re.compile(rf"\(\s*{re.escape(target)}\s*\)")
+            # rx = re.compile(rf"\(\s*{re.escape(target)}\s*\)")
+            rx = re.compile(rf"(^|\()\s*{re.escape(target)}\s*(\)|$)")
         else:
             # Prefer your flexible matcher for "NAME (IP)"
             rx = self.nav_text_regex(target)
@@ -480,7 +481,8 @@ class DomainManagement:
 
             is_ip_only = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
             if is_ip_only:
-                dev_rx = re.compile(rf"\(\s*{re.escape(target)}\s*\)")
+                # dev_rx = re.compile(rf"\(\s*{re.escape(target)}\s*\)")
+                dev_rx = re.compile(rf"(^|\()\s*{re.escape(target)}\s*(\)|$)")
             else:
                 if re.search(r"\(\s*\d{1,3}(?:\.\d{1,3}){3}\s*\)", target) is None:
                     raise AssertionError(f"'{target}' does not look like a device row. Use 'NAME (IP)' or IP only.")

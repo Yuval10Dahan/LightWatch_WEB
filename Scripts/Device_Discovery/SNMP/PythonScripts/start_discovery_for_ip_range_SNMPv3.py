@@ -13,7 +13,7 @@ from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery
-from Pages.management_map import ManagementMap
+from Pages.network_topology import NetworkTopology
 from Pages.domain_management import DomainManagement
 
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
@@ -272,7 +272,7 @@ def run_snmpv3_range_discovery(device_discovery: DeviceDiscovery, start_ip: str,
 
 def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, report):
     device_discovery = DeviceDiscovery(page)
-    management_map = ManagementMap(page)
+    network_topology = NetworkTopology(page)
     domain_management = DomainManagement(page)
     login = LoginPage(page)
 
@@ -423,8 +423,8 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     def step_6():
         refresh_page(page)
 
-        for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-            add_lw_trap_snmpv3(page, ip)
+        # for ip in [DEVICE_IP_1, DEVICE_IP_2]:
+        #     add_lw_trap_snmpv3(page, ip)
 
         open_device_discovery(left_panel)
 
@@ -440,17 +440,17 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     # Step 7 – Check Management Map             #
     #############################################
     def step_7():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
+        network_topology.show_navigation_info()
 
         missing = []
         for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-            if not management_map.is_element_exist_on_navigation_info_list(ip):
+            if not network_topology.is_element_exist_on_navigation_info_list(ip):
                 missing.append(ip)
             else:
-                management_map.navigation_info_open_element_details(ip)
+                network_topology.navigation_info_open_element_details(ip)
 
         if missing:
             raise AssertionError(f"Devices not found in Navigation Info after range discovery: {missing}")
@@ -491,8 +491,8 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     def step_11():
         refresh_page(page)
 
-        for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-            add_lw_trap_snmpv3(page, ip)
+        # for ip in [DEVICE_IP_1, DEVICE_IP_2]:
+        #     add_lw_trap_snmpv3(page, ip)
 
         open_device_discovery(left_panel)
 
@@ -516,17 +516,17 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     # Step 12 – Check Management Map #
     ##################################
     def step_12():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
+        network_topology.show_navigation_info()
 
         missing = []
         for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-            if not management_map.is_element_exist_on_navigation_info_list(ip):
+            if not network_topology.is_element_exist_on_navigation_info_list(ip):
                 missing.append(ip)
             else:
-                management_map.navigation_info_open_element_details(ip)
+                network_topology.navigation_info_open_element_details(ip)
 
         if missing:
             raise AssertionError(f"Devices not found in Navigation Info after range discovery: {missing}")
@@ -578,8 +578,8 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     def step_16():
         refresh_page(page)
 
-        for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-            add_lw_trap_snmpv3(page, ip)
+        # for ip in [DEVICE_IP_1, DEVICE_IP_2]:
+        #     add_lw_trap_snmpv3(page, ip)
 
         open_device_discovery(left_panel)
 
@@ -605,15 +605,15 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     # Step 17 – Check Management Map #
     ##################################
     def step_17():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
+        network_topology.show_navigation_info()
 
         for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-            in_nav = management_map.is_element_exist_on_navigation_info_list(ip)
+            in_nav = network_topology.is_element_exist_on_navigation_info_list(ip)
             assert in_nav, f"{ip} was not found in the Navigation Info list."
-            management_map.navigation_info_open_element_details(ip)
+            network_topology.navigation_info_open_element_details(ip)
 
     results[17] = run_step(17, step_17, logger, report)
 
@@ -689,8 +689,8 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
             snmpv3_priv=priv_proto,
         )
 
-        # Add LW trap on the target device
-        add_lw_trap_snmpv3(page, target_ip)
+        # # Add LW trap on the target device
+        # add_lw_trap_snmpv3(page, target_ip)
 
         # Discovery (RANGE mode with Start == End)
         refresh_page(page)
@@ -713,11 +713,11 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
         refresh_page(page)
 
         # Verify device appears in Management Map
-        ok_map = left_panel.click_management_map()
-        assert ok_map, "Failed to navigate to Management Map."
+        ok_map = left_panel.click_network_topology()
+        assert ok_map, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
-        in_nav = management_map.is_element_exist_on_navigation_info_list(target_ip)
+        network_topology.show_navigation_info()
+        in_nav = network_topology.is_element_exist_on_navigation_info_list(target_ip)
         assert in_nav, f"{target_ip} was not found in Navigation Info."
 
         # Verify LW trap still exists

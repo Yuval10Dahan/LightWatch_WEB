@@ -1,0 +1,171 @@
+look at the format of all the scripts under Scripts for inspiration.
+Adjust the script 'non_pl_devices.py' in Scripts --> Alarms_And_Events --> Non_PacketLight_Devices --> PythonScripts, by this steps:
+
+create side function called "verify_element_added(element_name)" that:
+go to 'Management Map' page.
+open navigation info via "show_navigation_info()" in Pages -> management_map.
+get the list of elements via "get_navigation_info_elements_list(visible_only=True)" in Pages -> management_map and save it as element_list.
+return True if element_name is indeed in element_list.
+otherwise return False.
+
+create side function called "verify_events_created(element_ip, expected_events)" that:
+go to Alarm & Events page on LW server.
+set Faults type to "Events".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the "To date" value via "get_to_date" in 'Pages -> alarms_and_events' and save it as to_date. (format example: 10/05/2026 18:15:44)
+take to_date and substract from it 10 minutes (for example: 10/05/2026 18:05:44) and save it as from_date.
+set From date via set_from_date(from_date) 'Pages -> alarms_and_events'
+get the events from LW Server via 'get_all_events' in 'Pages -> alarms_and_events' and store them as element_events.
+make sure expected_events included in element_events by comparing their Message field.
+return True if they are included.
+otherwise return False.
+
+create side function called "verify_element_is_green(element_name: str | None = None, element_ip: str | None = None, logger)" that:
+go to 'Management Map' page.
+if element_name:
+  get the color of the element via "get_map_element_color(element_name)" in Pages -> management_map.
+  you can do like this:
+  state, color = management_map.get_map_element_color(element_name=element_name)
+  if state != "positive" or color != "green":
+     print(f"IP {element_name}: Element color is not green: {color}")
+     logger.info(f"IP {element_name}: Element color is not green: {color}")
+     return False
+if element_ip:
+  get the color of the element via "get_map_element_color(element_ip)" in Pages -> management_map.
+  you can do like this:
+  state, color = management_map.get_map_element_color(element_ip=element_ip)
+  if state != "positive" or color != "green":
+     print(f"IP {element_ip}: Element color is not green: {color}")
+     logger.info(f"IP {element_ip}: Element color is not green: {color}")
+     return False
+return True
+
+
+
+# Non PL device via SNMPv2 
+step 1: 
+expected_events = ["Discovery for (172.16.10.22) started", "New SNMP device is detected 172.16.10.22", "Device is reachable 172.16.10.22", "Discovery for (172.16.10.22) completed"]
+Go to "Device Discovery" page.
+click on SNMPv2.
+Set IP-address: 172.16.10.22
+Set Read Community: public
+Set Write Community: public
+Set Admin Community: public
+click on "Start Discovery".
+refresh the page.
+verify "NOT A PACKETLIGHT DEVICE(172.16.10.22)" is added successfully via verify_element_added(element_name).
+if it False fail the step.
+verify expected_events include in element events list via verify_events_created("172.16.10.22", expected_events).
+if it False fail the step.
+verify color of the element on the map is green via verify_element_is_green(element_name=element_name, logger).
+if it False fail the step.
+
+# Non PL device via ICMP - PC
+step 2:
+expected_events = ["Discovery for (172.16.10.13) started", "Discovery for (172.16.10.13) completed"]
+Go to "Device Discovery" page.
+click on ICMP via "click_ICMP" in in Pages -> device_discovery.
+Set IP-address: 172.16.10.13
+click on "Start Discovery".
+refresh the page.
+verify "172.16.10.13" is added successfully via verify_element_added(element_name).
+if it False fail the step.
+verify expected_events include in element events list via verify_events_created("172.16.10.13", expected_events).
+if it False fail the step.
+verify color of the element on the map is green via verify_element_is_green(element_ip=element_name, logger).
+if it False fail the step.
+
+# Non PL device via ICMP - Switch
+step 3:
+expected_events = ["New SNMP device is detected 172.16.30.253", "Device is reachable 172.16.30.253"]
+Go to "Device Discovery" page.
+click on ICMP via "click_ICMP" in in Pages -> device_discovery.
+Set IP-address: 172.16.30.253
+click on "Start Discovery".
+refresh the page.
+verify "172.16.30.253" is added successfully via verify_element_added(element_name).
+if it False fail the step.
+verify expected_events include in element events list via verify_events_created("172.16.30.253", expected_events).
+if it False fail the step.
+verify color of the element on the map is green via verify_element_is_green(element_ip=element_name, logger).
+if it False fail the step.
+
+# Non PL device via ICMP - Website
+step 4:
+expected_events = ["New SNMP device is detected 172.16.10.101", "Device is reachable 172.16.10.101"]
+Go to "Device Discovery" page.
+click on ICMP via "click_ICMP" in in Pages -> device_discovery.
+Set IP-address: 172.16.30.253
+click on "Start Discovery".
+refresh the page.
+verify "172.16.10.101" is added successfully via verify_element_added(element_name).
+if it False fail the step.
+verify expected_events include in element events list via verify_events_created("172.16.10.101", expected_events).
+if it False fail the step.
+verify color of the element on the map is green via verify_element_is_green(element_ip=element_name, logger).
+if it False fail the step.
+
+# Non PL device via SNMPv3 - Switch
+step 5: 
+expected_events = []
+Go to "Device Discovery" page.
+click on SNMPv3.
+IP - address = 172.16.30.253
+User Name = test
+Security Level = Authentication, Privacy
+Authentication Protocol = SHA-1
+Authentication Password = Z@qqaz$$
+Privacy Protocol = AES-128
+Pryvacy Password = Z@qqaz$$
+click on 'Start Discovery'
+refresh the page
+verify "172.16.30.253" is added successfully via verify_element_added(element_name).
+if it False fail the step.
+verify expected_events include in element events list via verify_events_created("172.16.30.253", expected_events).
+if it False fail the step.
+verify color of the element on the map is green via verify_element_is_green(element_ip=element_name, logger).
+if it False fail the step.
+
+# PL device via ICMP
+step 6:
+expected_events = ["New SNMP device is detected 172.16.30.111", "Device is reachable 172.16.30.111"]
+Go to "Device Discovery" page.
+click on ICMP via "click_ICMP" in in Pages -> device_discovery.
+Set IP-address: 172.16.30.111
+click on "Start Discovery".
+refresh the page.
+verify "172.16.30.111" is added successfully via verify_element_added(element_name).
+if it False fail the step.
+verify expected_events include in element events list via verify_events_created("172.16.30.111", expected_events).
+if it False fail the step.
+verify color of the element on the map is green via verify_element_is_green(element_ip=element_name, logger).
+if it False fail the step.
+remove the device 172.16.30.111 via remove_device(device_name_or_ip=172.16.30.111) in Pages -> domain_management.
+verify the device removed via verify_element_deleted(element_name=172.16.30.111, element_type="device") in Pages -> domain_management.
+
+step 7:
+expected_events = ["Discovery failed for 172.16.30.111 - ICMP ping failed"]
+login to the GUI of 172.16.30.111 using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+do factory default reset to the device via device_restart("factory") in 'PL_Devices -> PL_Pages -> PL_Main_Screen_POM.
+sleep for 45 seconds.
+Go to "Device Discovery" page.
+click on ICMP via "click_ICMP" in in Pages -> device_discovery.
+Set IP-address: 172.16.30.111
+click on "Start Discovery".
+refresh the page.
+verify "172.16.30.111" is not added via verify_element_added(element_name).
+if it True fail the step.
+after that wait for the device to be up via devices_are_up(["172.16.30.111"]).
+Go to "Device Discovery" page.
+click on ICMP via "click_ICMP" in in Pages -> device_discovery.
+Set IP-address: 172.16.30.111
+click on "Start Discovery".
+refresh the page.
+verify expected_events include in element events list via verify_events_created("172.16.30.111", expected_events).
+if it False fail the step.
+
+
+collect if each step passed.
+if one of them failed then say that the test failed.
+if all of them are pass then say that the test passed.

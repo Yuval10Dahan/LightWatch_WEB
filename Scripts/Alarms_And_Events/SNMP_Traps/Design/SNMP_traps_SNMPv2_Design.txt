@@ -1,0 +1,315 @@
+Adjust the script 'SNMP_traps_SNMPv2.py' in Scripts --> Alarms_And_Events --> SNMP_Traps --> PythonScripts, by this steps:
+
+step 1: 
+go to 'Domain Management' page.
+add domain under 'Inventory' called "Script_Domain".
+add another domain under "Script_Domain" called "Script_Sub_Domain".
+
+step 2:
+for ip in DEVICES_LIST:
+login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+do cold reset to the device.
+after that wait for all devices from DEVICES_LIST to be up.
+
+step 3:
+for ip in DEVICES_LIST:
+login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+set chassis id to empty.
+add SNTP server = GOOGLE_SNTP_SERVER.
+set SNTP configuration to Enabled with GMT = GMT+2.
+refresh the page.
+go to SNMP tab.
+add the LW server as snmp trap with 'SNMP Version = SNMP v2c' on the ip via 'Add_Trap_Manager' in 'PL_Devices -> PL_Pages -> PL_SNMP_page'.
+
+step 4:
+Go to "Device Discovery" page.
+click on SNMPv2.
+for ip in DEVICES_LIST:
+Set IP-address: ip
+click on "Start Discovery".
+refresh the page.
+after the loop refresh the page once again.
+
+step 5: 
+go to 'Domain Management' page.
+for 172.16.30.15: change chassis id -> new chassis id -> id = 67
+for 172.16.30.16: change chassis id -> existing chassis id -> chassis 67
+for 172.16.30.13: change chassis id -> existing chassis id -> chassis 67
+move chassis 67 under "Script_Sub_Domain" via move to domain.
+
+step 6:
+for ip in DEVICES_LIST:
+ login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+ set admin up for uplink 1, via "set_admin_status" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+ set service type on port 1: 10GbE-LAN via "set_service_type" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+ set provision on port 1: uplink type - uplink 1, via "set provisioning" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+ set admin up on port 1, via via "set_admin_status" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+
+# Optics Removed
+step 7:
+refresh the page.
+for 172.16.30.15: set admin up on port 2
+store the alarms that exist on port 2 via "get_alarms_table("2")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Optics Removed" and Source = "Port 2" doesn't exist raise an exception.
+if it exist save it by "optics_removed_port2_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Optics Removed" and Source = "Port 2".
+if it exist compare it to the alarm "optics_removed_port2_alarm".
+if they are not the same raise an exception.
+
+
+# Unequipped / Unprovisioned
+step 8:
+refresh the page.
+look at the stored alarms from step 7.
+if an alarm with Message = "Unequipped / Unprovisioned" and Source = "Port 2" doesn't exist raise an exception.
+if it exist save it by "unprovisioned_port2_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Unequipped / Unprovisioned" and Source = "Port 2".
+if it exist compare it to the alarm "unprovisioned_port2_alarm".
+if they are not the same raise an exception.
+for 172.16.30.15: set admin down on port 2
+
+# Muxponder Path AIS + Optics Loss Propagation + Provisioning Mismatch
+step 9:
+refresh the page.
+for 172.16.30.15: set provision on port 2: uplink type - uplink 1, via "set provisioning" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+set admin up on port 2, via via "set_admin_status" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+store the alarms that exist on port 2 via "get_alarms_table("2")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Muxponder Path AIS" and Source = "Port 2" doesn't exist raise an exception.
+if it exist save it by "muxponder_path_ais_port2_alarm".
+if an alarm with Message = "Optics Loss Propagation" and Source = "Port 2" doesn't exist raise an exception.
+if it exist save it by "optics_loss_propagation_port2_alarm".
+if an alarm with Message = "Provisioning Mismatch" and Source = "Port 2" doesn't exist raise an exception.
+if it exist save it by "provisioning_mismatch_port2_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Muxponder Path AIS" and Source = "Port 2".
+if it exist compare it to the alarm "muxponder_path_ais_port2_alarm".
+if they are not the same raise an exception.
+look for an alarm from LW Server with Message = "Optics Loss Propagation" and Source = "Port 2".
+if it exist compare it to the alarm "optics_loss_propagation_port2_alarm".
+if they are not the same raise an exception.
+look for an alarm from LW Server with Message = "Provisioning Mismatch" and Source = "Port 2".
+if it exist compare it to the alarm "provisioning_mismatch_port2_alarm".
+if they are not the same raise an exception.
+for 172.16.30.15: set admin down on port 2
+remove provisioning on port 2 via "remove_provisioning" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+
+# Ethernet Link Failure
+step 10:
+refresh the page.
+for 172.16.30.15: set admin up on port ETH 2
+store the alarms that exist on port ETH 2 via "get_alarms_table("ETH 2")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Ethernet Link Failure" and Source = "ETH 2 Port" doesn't exist raise an exception.
+if it exist save it by "ethernet_link_failure_eth2_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Ethernet Link Failure" and Source = "ETH 2 Port".
+if it exist compare it to the alarm "ethernet_link_failure_eth2_alarm".
+if they are not the same raise an exception.
+for 172.16.30.15: set admin down on port ETH 2
+
+# License Expired or No License Applied
+step 11:
+refresh the page.
+for 172.16.30.15: set service type on port 2 to be "Encrypted 10GbE-LAN" via "set_service_type" PL_Devices -> PL_Pages -> PL_main_screen_POM.
+set admin up on port 2.
+store the alarms that exist on port 2 via "get_alarms_table("2")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "License Expired or No License Applied" and Source = "Port 2" doesn't exist raise an exception.
+if it exist save it by "license_expired_port2_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "License Expired or No License Applied" and Source = "Port 2".
+if it exist compare it to the alarm "license_expired_port2_alarm".
+if they are not the same raise an exception.
+for 172.16.30.15: set admin down on port 2
+
+# Optics Bit Rate Mismatch
+step 12:
+refresh the page.
+for 172.16.30.15: set admin down on port 1.
+remove provisioning on port 1 via "remove_provisioning" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+set service type on port 1 to be "16G FC" via "set_service_type" PL_Devices -> PL_Pages -> PL_main_screen_POM.
+set admin up on port 1.
+store the alarms that exist on port 1 via "get_alarms_table("1")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Optics Bit Rate Mismatch" and Source = "Port 1" doesn't exist raise an exception.
+if it exist save it by "optics_bit_rate_mismatch_port1_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Optics Bit Rate Mismatch" and Source = "Port 1".
+if it exist compare it to the alarm "optics_bit_rate_mismatch_port1_alarm".
+if they are not the same raise an exception.
+for 172.16.30.15: set admin down on port 1
+set service type on port 1 to be "10GbE-LAN" via "set_service_type" PL_Devices -> PL_Pages -> PL_main_screen_POM.
+set provision on port 1: uplink type - uplink 1, via "set provisioning" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+set admin up on port 1.
+
+# Optics Loss of Light + FarLCS (Far-end Loss of Client Signal)
+step 13:
+refresh the page
+for ip in DEVICES_LIST:
+ if ip != 172.16.30.13:
+  login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+  set admin up for uplink 1, via "set_admin_status" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+  set service type on port 1: 10GbE-LAN via "set_service_type" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+  set provision on port 1: uplink type - uplink 1, via "set provisioning" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+  set admin up on port 1, via via "set_admin_status" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+set the laser off via tgSession.set_laser(state='off')
+for 172.16.30.15: store the alarms that exist on port 1 via "get_alarms_table("1")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Optics Loss of Light" and Source = "Port 1" doesn't exist raise an exception.
+if it exist save it by "optics_loss_of_light_port1_alarm".
+if an alarm with Message = "FarLCS (Far-end Loss of Client Signal)" and Source = "Port 1" doesn't exist raise an exception.
+if it exist save it by "farLCS_port1_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Optics Loss of Light" and Source = "Port 1".
+if it exist compare it to the alarm "optics_loss_of_light_port1_alarm".
+if they are not the same raise an exception.
+look for an alarm from LW Server with Message = "FarLCS (Far-end Loss of Client Signal)" and Source = "Port 1".
+if it exist compare it to the alarm "farLCS_port1_alarm".
+if they are not the same raise an exception.
+set the laser on via tgSession.set_laser(state='on')
+
+# Signal Loss of Lock
+step 14:
+refresh the page
+insert Loss of lock Alarm via insert_PCS_Alarm(Alarm_Type='Loss of Lock') in viavi_Basic_Functions.
+for 172.16.30.15: store the alarms that exist on port 1 via "get_alarms_table("1")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Signal Loss of Lock" and Source = "Port 1" doesn't exist raise an exception.
+if it exist save it by "signal_loss_of_lock_port1_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Signal Loss of Lock" and Source = "Port 1".
+if it exist compare it to the alarm "signal_loss_of_lock_port1_alarm".
+if they are not the same raise an exception.
+stop the loss of lock alarm viavi_Basic_Functions.stop_PCS_Alarm(tgSession)
+
+# High BER (Signal Fail)
+step 15:
+refresh the page
+insert High BER Alarm via insert_PCS_Alarm(Alarm_Type='HIBER') in viavi_Basic_Functions.
+for 172.16.30.15: store the alarms that exist on port 1 via "get_alarms_table("1")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "High BER (Signal Fail)" and Source = "Port 1" doesn't exist raise an exception.
+if it exist save it by "high_ber_port1_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "High BER (Signal Fail)" and Source = "Port 1".
+if it exist compare it to the alarm "high_ber_port1_alarm".
+if they are not the same raise an exception.
+stop the High BER alarm viavi_Basic_Functions.stop_PCS_Alarm(tgSession)
+
+# Remote Fault
+step 16:
+refresh the page
+insert Remote Fault Alarm via insert_100GbE_PCS_Alarm(tgSession, Alarm_Type='Remote Fault') in viavi_Basic_Functions.
+for 172.16.30.15: store the alarms that exist on port 1 via "get_alarms_table("1")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Remote Fault" and Source = "Port 1" doesn't exist raise an exception.
+if it exist save it by "remote_fault_port1_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Remote Fault" and Source = "Port 1".
+if it exist compare it to the alarm "remote_fault_port1_alarm".
+if they are not the same raise an exception.
+stop the Remote Fault alarm viavi_Basic_Functions.stop_PCS_Alarm(tgSession)
+
+# Loss of Synchronization
+step 17:
+refresh the page
+change T.G Application to 8GFC via load_Predefind_Application(tgSession, APPLICATION_LOSS_OF_SYNC) in viavi_Basic_Functions.
+for 172.16.30.15: store the alarms that exist on port 1 via "get_alarms_table("1")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Loss of Synchronization" and Source = "Port 1" doesn't exist raise an exception.
+if it exist save it by "loss_of_sync_port1_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.15 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Loss of Synchronization" and Source = "Port 1".
+if it exist compare it to the alarm "loss_of_sync_port1_alarm".
+if they are not the same raise an exception.
+change T.G Application to 10GigEth-LAN via load_Predefind_Application(tgSession, TRAFFIC_GENERATOR_APPLICATION) in viavi_Basic_Functions.
+
+# Optical Switch Loss of Signal
+step 18:
+refresh the page
+for 172.16.30.13: set admin up on port COM 
+store the alarms that exist on port COM 1 via "get_alarms_table("COM")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Optical Switch Loss of Signal" and Source = "COM Port #1", doesn't exist raise an exception.
+if it exist save it by "optical_switch_COM_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.13 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Optical Switch Loss of Signal" and Source = "172.16.30.13 COM #1".
+if it exist compare it to the alarm "optical_switch_COM_alarm".
+if they are not the same raise an exception.
+set admin down on port COM.
+
+# Uplink check - Optics Removed
+step 19:
+refresh the page
+for 172.16.30.13: set admin up on uplink 2 
+store the alarms that exist on port of uplink 2 via "get_alarms_table("uplink 2")" in PL_Devices -> PL_Pages -> PL_main_screen_POM.
+if an alarm with Message = "Optics Removed" and Source = "Uplink 2", doesn't exist raise an exception.
+if it exist save it by "optics_removed_uplink_alarm".
+go to Alarm & Events page on LW server.
+set Faults type to "Alarms".
+set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+select the ip = 172.16.30.13 via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events'.
+convert the alarms from LW Server to the same GUI format.
+look for an alarm from LW Server with Message = "Optics Removed" and Source = "Uplink 2".
+if it exist compare it to the alarm "optics_removed_uplink_alarm".
+if they are not the same raise an exception.
+set admin down on port uplink 2.
+
+
+collect if each step passed.
+if one of them failed then say that the test failed.
+if all of them are pass then say that the test passed.

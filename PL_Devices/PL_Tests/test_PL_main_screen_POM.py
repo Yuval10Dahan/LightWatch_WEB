@@ -10,7 +10,7 @@ from PL_Devices.PL_Pages.PL_main_screen_POM import PL_Main_Screen_POM
 from PL_Devices.PL_Pages.PL_upper_panel import PL_Upper_Panel
 
 # NOTE: adjust to your device / environment
-SERVER_HOST_IP = "172.16.30.17"
+SERVER_HOST_IP = "172.16.30.15"
 BASE_URL = f"http://{SERVER_HOST_IP}/"
 USERNAME = "tech"
 PASSWORD = "packetlight"
@@ -53,151 +53,214 @@ def test_main_screen_POM(page):
 
     run_step(2, "Main Screen: login with valid credentials", step_2)
 
+    # # ----------------------------
+    # # Step 3: Click Fault
+    # # ----------------------------
+    # def step_3():
+    #     ok = main.click_Fault(timeout=20_000)
+    #     print(f"click_Fault returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_Fault() returned False")
+
+    # run_step(3, "Main Screen: click Fault", step_3)
+
+    # # ----------------------------
+    # # Step 4: Click Configuration
+    # # ----------------------------
+    # def step_4():
+    #     ok = main.click_Configuration(timeout=20_000)
+    #     print(f"click_Configuration returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_Configuration() returned False")
+
+    # run_step(4, "Main Screen: click Configuration", step_4)
+
+    # # ----------------------------
+    # # Step 5: Click Performance
+    # # ----------------------------
+    # def step_5():
+    #     ok = main.click_Performance(timeout=20_000)
+    #     print(f"click_Performance returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_Performance() returned False")
+
+    # run_step(5, "Main Screen: click Performance", step_5)
+
+    # # ----------------------------
+    # # Step 6: Click Security
+    # # ----------------------------
+    # def step_6():
+    #     ok = main.click_Security(timeout=20_000)
+    #     print(f"click_Security returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_Security() returned False")
+
+    # run_step(6, "Main Screen: click Security", step_6)
+
+    # # ----------------------------
+    # # Step 7: Click Maintenance
+    # # ----------------------------
+    # def step_7():
+    #     ok = main.click_maintenance(timeout=20_000)
+    #     print(f"click_maintenance returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_maintenance() returned False")
+
+    # run_step(7, "Main Screen: click Maintenance", step_7)
+
+    # # ----------------------------
+    # # Step 8: Click Alarms tab
+    # # ----------------------------
+    # def step_8():
+    #     ok = main.click_Alarms(timeout=20_000)
+    #     print(f"click_Alarms returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_Alarms() returned False")
+
+    # run_step(8, "Main Screen: click Alarms tab", step_8)
+
+    # # ----------------------------
+    # # Step 9: Click Events tab
+    # # ----------------------------
+    # def step_9():
+    #     ok = main.click_Events(timeout=20_000)
+    #     print(f"click_Events returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_Events() returned False")
+
+    # run_step(9, "Main Screen: click Events tab", step_9)
+
+    # # ----------------------------
+    # # Step 10: Click Configuration Changes tab
+    # # ----------------------------
+    # def step_10():
+    #     ok = main.click_Configuration_Changes(timeout=20_000)
+    #     print(f"click_Configuration_Changes returned: {ok}")
+    #     if ok is not True:
+    #         raise AssertionError("click_Configuration_Changes() returned False")
+
+    # run_step(10, "Main Screen: click Configuration Changes tab", step_10)
+
+    # # ----------------------------
+    # # Step 11: Read alarms table
+    # # ----------------------------
+    # def step_11():
+    #     table = main.alarms_table(timeout=20_000)
+    #     print(f"alarms_table returned {len(table)} rows")
+    #     print(f"table: {table}")
+    #     if not isinstance(table, list):
+    #         raise AssertionError("alarms_table() did not return a list")
+
+    # run_step(11, "Main Screen: get alarms table", step_11)
+
+    # # ----------------------------
+    # # Step 12: Get alarms table after clicking System
+    # # ----------------------------
+    # def step_12():
+    #     table = main.get_alarms_table("System", timeout=20_000)
+    #     print(f"table: {table}")
+    #     table = main.get_alarms_table("ALL", timeout=20_000)
+    #     print(f"table: {table}")
+    #     table = main.get_alarms_table("4", timeout=20_000)
+    #     print(f"table: {table}")  
+    #     table = main.get_alarms_table("ETH 2", timeout=20_000)
+    #     print(f"table: {table}")  
+
+    #     if not isinstance(table, list):
+    #         raise AssertionError("get_alarms_table('System') did not return a list")
+
+    # run_step(12, "Main Screen: get alarms table for System", step_12)
+
+    # # ----------------------------
+    # # Step 13: Set admin status of a port
+    # # ----------------------------
+    # def step_13():
+    #     port = "1"
+    #     status = "up"
+    #     ok, dialog_text = main.set_admin_status(port, status, timeout=20_000)
+    #     print(f"set_admin_status returned: ok={ok}, dialog_text='{dialog_text}'")
+    #     if ok is not True:
+    #         raise AssertionError(f"set_admin_status() returned False. Dialog text: '{dialog_text}'")
+    #     if not dialog_text:
+    #         raise AssertionError("Expected a confirmation dialog message but got empty text")
+        
+    #     ok, dialog_text = main.set_admin_status(port, "down", timeout=20_000)
+
+    # run_step(13, "Main Screen: set admin status of a port", step_13)
+
+    # # ----------------------------
+    # # Step 14: get product name
+    # # ----------------------------
+    # def step_14():
+    #     product_name = main.get_system_product_name()
+    #     print(f"get_system_product_name returned: '{product_name}'")
+    #     if not product_name:
+    #         raise AssertionError("get_system_product_name() returned empty string")
+
+    # run_step(14, "Main Screen: get system product name", step_14)
+
+    # # ----------------------------
+    # # Step 15: get events table
+    # # ----------------------------
+    # def step_15():
+    #     table = main.get_events_table("System", timeout=20_000)
+    #     print(f"table: {table}")
+    #     table = main.get_events_table("ALL", timeout=20_000)
+    #     print(f"table: {table}")
+    #     table = main.get_events_table("4", timeout=20_000)
+    #     print(f"table: {table}")  
+    #     table = main.get_events_table("ETH 2", timeout=20_000)
+    #     print(f"table: {table}")  
+
+    #     if not isinstance(table, list):
+    #         raise AssertionError("get_events_table('System') did not return a list")
+
+    # run_step(15, "Main Screen: get events table for System", step_15)
+
+    # # ----------------------------
+    # # Step 16: Set service type
+    # # ----------------------------
+    # def step_16():
+    #     port = "1"
+    #     # service_type = "16G FC"
+    #     service_type = "10GbE-LAN"
+    #     ok, dialog_text = main.set_service_type(port, service_type, timeout=20_000)
+    #     print(f"set_service_type returned: ok={ok}, dialog_text='{dialog_text}'")
+    #     if ok is not True:
+    #         raise AssertionError(f"set_service_type() returned False. Dialog text: '{dialog_text}'")
+    #     if not dialog_text:
+    #         raise AssertionError("Expected a confirmation dialog message but got empty text")
+
+    # run_step(16, "Main Screen: set service type", step_16)
+
     # ----------------------------
-    # Step 3: Click Fault
+    # Step 17: Set provisioning
     # ----------------------------
-    def step_3():
-        ok = main.click_Fault(timeout=20_000)
-        print(f"click_Fault returned: {ok}")
+    def step_17():
+        port = "2"
+        uplink_number = 1
+        ok, dialog_text = main.set_provisioning(port, uplink_number, slots_number=1, timeout=20_000)
+        print(f"set_provisioning returned: ok={ok}, dialog_text='{dialog_text}'")
         if ok is not True:
-            raise AssertionError("click_Fault() returned False")
-
-    run_step(3, "Main Screen: click Fault", step_3)
-
-    # ----------------------------
-    # Step 4: Click Configuration
-    # ----------------------------
-    def step_4():
-        ok = main.click_Configuration(timeout=20_000)
-        print(f"click_Configuration returned: {ok}")
-        if ok is not True:
-            raise AssertionError("click_Configuration() returned False")
-
-    run_step(4, "Main Screen: click Configuration", step_4)
-
-    # ----------------------------
-    # Step 5: Click Performance
-    # ----------------------------
-    def step_5():
-        ok = main.click_Performance(timeout=20_000)
-        print(f"click_Performance returned: {ok}")
-        if ok is not True:
-            raise AssertionError("click_Performance() returned False")
-
-    run_step(5, "Main Screen: click Performance", step_5)
-
-    # ----------------------------
-    # Step 6: Click Security
-    # ----------------------------
-    def step_6():
-        ok = main.click_Security(timeout=20_000)
-        print(f"click_Security returned: {ok}")
-        if ok is not True:
-            raise AssertionError("click_Security() returned False")
-
-    run_step(6, "Main Screen: click Security", step_6)
-
-    # ----------------------------
-    # Step 7: Click Maintenance
-    # ----------------------------
-    def step_7():
-        ok = main.click_maintenance(timeout=20_000)
-        print(f"click_maintenance returned: {ok}")
-        if ok is not True:
-            raise AssertionError("click_maintenance() returned False")
-
-    run_step(7, "Main Screen: click Maintenance", step_7)
-
-    # ----------------------------
-    # Step 8: Click Alarms tab
-    # ----------------------------
-    def step_8():
-        ok = main.click_Alarms(timeout=20_000)
-        print(f"click_Alarms returned: {ok}")
-        if ok is not True:
-            raise AssertionError("click_Alarms() returned False")
-
-    run_step(8, "Main Screen: click Alarms tab", step_8)
-
-    # ----------------------------
-    # Step 9: Click Events tab
-    # ----------------------------
-    def step_9():
-        ok = main.click_Events(timeout=20_000)
-        print(f"click_Events returned: {ok}")
-        if ok is not True:
-            raise AssertionError("click_Events() returned False")
-
-    run_step(9, "Main Screen: click Events tab", step_9)
-
-    # ----------------------------
-    # Step 10: Click Configuration Changes tab
-    # ----------------------------
-    def step_10():
-        ok = main.click_Configuration_Changes(timeout=20_000)
-        print(f"click_Configuration_Changes returned: {ok}")
-        if ok is not True:
-            raise AssertionError("click_Configuration_Changes() returned False")
-
-    run_step(10, "Main Screen: click Configuration Changes tab", step_10)
-
-    # ----------------------------
-    # Step 11: Read alarms table
-    # ----------------------------
-    def step_11():
-        table = main.alarms_table(timeout=20_000)
-        print(f"alarms_table returned {len(table)} rows")
-        print(f"table: {table}")
-        if not isinstance(table, list):
-            raise AssertionError("alarms_table() did not return a list")
-
-    run_step(11, "Main Screen: get alarms table", step_11)
-
-    # ----------------------------
-    # Step 12: Get alarms table after clicking System
-    # ----------------------------
-    def step_12():
-        table = main.get_alarms_table("System", timeout=20_000)
-        print(f"table: {table}")
-        table = main.get_alarms_table("ALL", timeout=20_000)
-        print(f"table: {table}")
-        table = main.get_alarms_table("4", timeout=20_000)
-        print(f"table: {table}")  
-        table = main.get_alarms_table("ETH 2", timeout=20_000)
-        print(f"table: {table}")  
-
-        if not isinstance(table, list):
-            raise AssertionError("get_alarms_table('System') did not return a list")
-
-    run_step(12, "Main Screen: get alarms table for System", step_12)
-
-    # ----------------------------
-    # Step 13: Set admin status of a port
-    # ----------------------------
-    def step_13():
-        port = "1"
-        status = "up"
-        ok, dialog_text = main.set_admin_status(port, status, timeout=20_000)
-        print(f"set_admin_status returned: ok={ok}, dialog_text='{dialog_text}'")
-        if ok is not True:
-            raise AssertionError(f"set_admin_status() returned False. Dialog text: '{dialog_text}'")
+            raise AssertionError(f"set_provisioning() returned False. Dialog text: '{dialog_text}'")
         if not dialog_text:
             raise AssertionError("Expected a confirmation dialog message but got empty text")
-        
-        ok, dialog_text = main.set_admin_status(port, "down", timeout=20_000)
 
-    run_step(13, "Main Screen: set admin status of a port", step_13)
+    run_step(17, "Main Screen: set provisioning", step_17)
 
-    # ----------------------------
-    # Step 14: get product name
-    # ----------------------------
-    def step_14():
-        product_name = main.get_system_product_name()
-        print(f"get_system_product_name returned: '{product_name}'")
-        if not product_name:
-            raise AssertionError("get_system_product_name() returned empty string")
+    # # ----------------------------
+    # # Step 18: Remove provisioning
+    # # ----------------------------
+    # def step_18():
+    #     port = "2"
+    #     ok, dialog_text = main.remove_provisioning(port, timeout=20_000)
+    #     print(f"remove_provisioning returned: ok={ok}, dialog_text='{dialog_text}'")
+    #     if ok is not True:
+    #         raise AssertionError(f"remove_provisioning() returned False. Dialog text: '{dialog_text}'")
+    #     if not dialog_text:
+    #         raise AssertionError("Expected a confirmation dialog message but got empty text")
 
-    run_step(14, "Main Screen: get system product name", step_14)
+    # run_step(18, "Main Screen: remove provisioning", step_18)
 
     # # ----------------------------
     # # Step 13: Restart dialog smoke (DISMISS so we don't actually reboot)
@@ -211,6 +274,8 @@ def test_main_screen_POM(page):
     #         raise AssertionError("Expected a confirmation dialog message but got empty text")
 
     # run_step(13, "Main Screen: factory restart dialog (dismiss)", step_13)
+
+
 
     # Cleanup: logout (best-effort)
     try:

@@ -1,33 +1,89 @@
-automation/
-├─ core/
-│  ├─ config.py
-│  ├─ browser.py
-│  ├─ base_page.py
-│  ├─ base_component.py
-│  └─ assertions.py
+LightWatch_WEB/ (Project Root)
 │
-├─ components/
-│  ├─ sidebar.py
-│  ├─ topbar.py
-│  └─ dialogs.py
+├── .venv/                     # Python Virtual Environment (e.g., Python 3.11/3.14)
+├── .vscode/                   # VS Code workspace configurations
+├── Credentials for LW Web Server PC.txt # Server credentials configuration file
 │
-├─ pages/
-│  ├─ login_page.py
-│  ├─ management_map_page.py
-│  ├─ service_list_page.py
-│  ├─ inventory_page.py
-│  └─ alarms_page.py
+├── Pages/                     # Page Object Model (POM) files for the main web application
+│   ├── alarms_and_events.py
+│   ├── device_discovery.py
+│   ├── domain_management.py
+│   ├── inventory.py
+│   ├── left_panel_page.py     # Left navigation panel component
+│   ├── login_page.py
+│   ├── network_topology.py
+│   ├── performance.py
+│   ├── service_list.py
+│   ├── service_provisioning.py
+│   ├── system_configuration.py
+│   ├── system_operations.py
+│   ├── task_manager.py
+│   ├── upper_panel.py        # Upper panel/header component
+│   └── user_management.py
 │
-├─ flows/
-│  ├─ login_flow.py
-│  ├─ service_provision_flow.py
-│  └─ device_discovery_flow.py
+├── Tests/                     # Standalone Playwright / Pytest test files (mapping to standard web pages)
+│   ├── test_alarms_and_events.py
+│   ├── test_device_discovery.py
+│   ├── test_domaim_management.py
+│   ├── test_left_panel.py
+│   ├── test_login.py
+│   ├── test_network_topology.py
+│   ├── test_service_list.py
+│   ├── test_service_provisioning.py
+│   ├── test_system_operations.py
+│   ├── test_upper_panel.py
+│   └── test_utils.py          # Test assertions and utility validations
 │
-├─ tests/
-│  ├─ test_login.py
-│  ├─ test_navigation.py
-│  ├─ test_management_map.py
-│  └─ test_services.py
+├── PL_Devices/                # Physical Layer / Payload (PL) Device pages and tests
+│   ├── PL_Pages/              # POM files for PL-specific screens
+│   │   ├── PL_login_page.py
+│   │   ├── PL_main_screen_POM.py
+│   │   ├── PL_SNMP_page.py
+│   │   ├── PL_security_page.py
+│   │   └── PL_upper_panel.py
+│   ├── PL_Tests/              # Pytest test files for PL-specific screens
+│   │   ├── test_PL_login.py
+│   │   ├── test_PL_main_screen_POM.py
+│   │   ├── test_PL_SNMP_tab.py
+│   │   ├── test_PL_security_page.py
+│   │   └── test_PL_upper_panel.py
+│   └── HTML.txt
 │
-├─ conftest.py
-└─ pytest.ini
+├── Utils/                     # Common utilities and helper modules
+│   ├── Logger.py              # Custom logger configuration and logging setup
+│   ├── map_locators.py        # Centralized UI locators mapping definitions
+│   └── utils.py               # Common helper functions (navigation, screenshots, frame HTML dumps, etc.)
+│
+├── Scripts/                   # Quality Center (QC / ALM) Integration Scripts & Configuration
+│   ├── Alarms_And_Events/
+│   ├── Device_Discovery/
+│   │   └── SNMP/
+│   │       ├── Design/
+│   │       ├── ParametersFiles/ # Parameter files for test execution
+│   │       └── PythonScripts/  # Python scripts invoked by Quality Center
+│   │           ├── SNMPv2.py
+│   │           ├── SNMPv3.py
+│   │           ├── start_discovery_for_ip_range_SNMPv2.py
+│   │           └── start_discovery_for_ip_range_SNMPv3.py
+│   ├── Domain_Management/
+│   ├── Inventory/
+│   ├── Management_Map/
+│   ├── Performance/
+│   ├── Service_List/
+│   ├── Service_Provisioning/
+│   └── QC_Launch_Example.txt  # VBScript wrapper code for launching Python scripts from Quality Center
+│
+├── Requirements/              # Project Python dependency files
+│   ├── requirements_311.txt   # Dependencies for Python 3.11 environment
+│   └── requirements_314.txt   # Dependencies for Python 3.14 environment
+│
+├── Text_files/                # Helper documentation & reference guides
+│   ├── Activate_Virtual_Environment_VS.txt # Steps for configuring venv in VS Code
+│   ├── Automation Structure.txt            # [This File] Project structure and details
+│   ├── requirements_venv_LW.txt            # General virtual environment dependency reference
+│   └── Venv commands.txt                   # Quick references for virtual environment creation/management
+│
+├── Docs/                      # Additional documents, spreadsheets, slides, and manuals
+├── Images/                    # Media/Screenshots referenced in documentation or tests
+└── frames_dump/               # Temporary dumps of frame source HTML (used for test debugging)
+

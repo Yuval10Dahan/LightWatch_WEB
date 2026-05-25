@@ -1,0 +1,101 @@
+Adjust the script 'show_chassis_alarms_via_SNMPv2.py' in Scripts --> Alarms_And_Events --> Chassis_Alarms --> PythonScripts, by this steps:
+
+step 1: 
+go to 'Domain Management' page.
+add domain under 'Inventory' called "ScriptDomain".
+
+step 2:
+for ip in DEVICES_LIST:
+login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+do factory default reset to the device.
+after that wait for all devices from DEVICES_LIST to be up.
+
+step 3:
+for ip in DEVICES_LIST:
+login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+set chassis id to empty.
+add SNTP server = GOOGLE_SNTP_SERVER.
+set SNTP configuration to Enabled with GMT = GMT+2.
+refresh the page.
+
+step 4:
+Go to "Device Discovery" page.
+click on SNMPv2.
+for ip in DEVICES_LIST:
+Set IP-address: ip
+click on "Start Discovery".
+refresh the page.
+after the loop refresh the page once again.
+
+step 5: 
+go to 'Domain Management' page.
+for ip in DEVICES_LIST:
+ if ip == DEVICES_LIST[0]:
+  change chassis id -> new chassis id -> id = 67
+ else:
+  change chassis id -> existing chassis id -> chassis 67
+move chassis 67 under "ScriptDomain" via move to domain.
+
+step 6:
+go to 'Management Map' page.
+open navigation info via "show_navigation_info()" in Pages -> management_map.
+get the list of elements via "get_navigation_info_elements_list(visible_only=True)" in Pages -> management_map and save it as element_list.
+example of list of elements: ['Chassis: 1/1', 'Chassis: 2/2', 'Chassis: 4/4', 'Chassis: 8/8']
+make a side function that for each element of this list that is "Chassis" type, adjust this list to the following list: ['Chassis: 1', 'Chassis: 2', 'Chassis: 4', 'Chassis: 8'] to include only the Chassis elements and save it as chassis_list.
+close the navigation info via "hide_navigation_info" Pages -> management_map.
+for chassis in chassis_list:
+ click_on_element_via_the_map(element_name=element) in Pages -> management_map.
+ element_details_click_on_faults() in Pages -> management_map.
+ get the alarms of that element via element_details_faults_get_all_alarms() in Pages -> management_map and store them as map_chassis_alarms.
+ element_details_faults_view_all_alarms() in Pages -> management_map.
+ get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events' and store them as 'alarms_and_events_chassis_alarms'.
+ compare between the alarms of the chassis called 'map_chassis_alarms' to the alarms of the chassis called 'alarms_and_events_chassis_alarms'.
+ if the alarms 'map_chassis_alarms' is not as 'alarms_and_events_chassis_alarms', break from the loop, fail the step and continue to the next step. if they are the same continue the loop.
+ go to 'Management Map' page.
+
+navigation_info_close_element_details() in Pages -> management_map.
+
+
+step 7:
+go to 'Management Map' page.
+open navigation info via "show_navigation_info()" in Pages -> management_map.
+get the list of elements via "get_navigation_info_elements_list(visible_only=False)" in Pages -> management_map.
+example of list of elements: ['Chassis: 1/1', 'Chassis: 2/2', 'PL-1000TECrypto (172.16.40.24)', 'PL-1000RO2 (172.16.40.122)', 'Chassis: 4/4', 'PL-1000TECrypto (172.16.30.22)', 'PL-4000M (172.16.30.124)', 'PL-1000TN (172.16.40.12)', 'Chassis: 8/8', 'PL-2000 (172.16.20.112)']
+make a side function that for each Chassis store the elements under that chassis (the elements if any that comes after the Chassis in the list) and save it as "elements_per_chassis".
+navigation_info_close_element_details() in Pages -> management_map.
+
+for chassis in chassis_list:
+ for ip in elements_per_chassis[chassis]:
+  go to Alarm & Events page on LW server.
+  set Faults type to "Alarms".
+  set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+  select the ip via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+  get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events' and append them to 'chassis_alarms_list[chassis]'.
+  
+compare between 'map_chassis_alarms' to 'chassis_alarms_list'.
+if 'map_chassis_alarms' is not as 'chassis_alarms_list', fail the step and continue to the next step. 
+
+step8:
+go to 'Management Map' page.
+change domain to "ScriptDomain" via "select_domain" in Pages -> upper_panel.
+open navigation info via "show_navigation_info()" in Pages -> management_map.
+get the list of elements via "get_navigation_info_elements_list(visible_only=False)" in Pages -> management_map.
+use the side function that for each Chassis store the elements under that chassis (the elements if any that comes after the Chassis in the list) and save it as "elements_per_chassis".
+navigation_info_close_element_details() in Pages -> management_map.
+for chassis in chassis_list:
+ for ip in elements_per_chassis[chassis]:
+  go to Alarm & Events page on LW server.
+  set Faults type to "Alarms".
+  set filter by to "Devices" via 'set_filterBy' in 'Pages -> alarms_and_events'
+  select the ip via 'select_device_filterBy_devices(ip)' in 'Pages -> alarms_and_events'
+  get the alarms from LW Server via 'get_all_alarms' in 'Pages -> alarms_and_events' and append them to 'new_domain_chassis_alarms_list[chassis]'.
+  
+compare between 'map_chassis_alarms' to 'new_domain_chassis_alarms_list'.
+if 'map_chassis_alarms' is not as 'new_domain_chassis_alarms_list', fail the step and continue to the next step.
+
+step 9:
+
+
+collect if each step passed.
+if one of them failed then say that the test failed.
+if all of them are pass then say that the test passed.

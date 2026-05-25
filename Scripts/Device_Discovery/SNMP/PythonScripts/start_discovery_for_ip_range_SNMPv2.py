@@ -14,7 +14,7 @@ from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery
-from Pages.management_map import ManagementMap
+from Pages.network_topology import NetworkTopology
 from Pages.domain_management import DomainManagement
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_SNMP_page import PL_SNMPPage
@@ -65,8 +65,8 @@ else:
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    DEVICE_IP1 = "172.16.30.123"
-    DEVICE_IP2 = "172.16.30.124"
+    DEVICE_IP1 = "172.16.30.15"
+    DEVICE_IP2 = "172.16.30.16"
     DEVICE_IP_USER = "tech"
     DEVICE_IP_PASS = "packetlight"
 
@@ -137,7 +137,7 @@ def open_device_discovery(left_panel: LeftPanel):
 
 def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, report):
     device_discovery  = DeviceDiscovery(page)
-    management_map  = ManagementMap(page)
+    network_topology  = NetworkTopology(page)
     login  = LoginPage(page)
 
     results = {}
@@ -176,6 +176,14 @@ def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, repo
     stored_defaults = {}
 
     def step_2():
+        device_discovery.set_SNMPv2_read_community("admin")
+        device_discovery.set_SNMPv2_write_community("admin")
+        device_discovery.set_SNMPv2_admin_community("admin")
+        device_discovery.set_SNMPv2_contact_port(int(161))
+        device_discovery.click_save_as_default()
+        device_discovery.confirm_default_override()
+        sleep(5)
+
         stored_defaults["readCommunity"]  = device_discovery.get_SNMPv2_read_community()
         stored_defaults["writeCommunity"] = device_discovery.get_SNMPv2_write_community()
         stored_defaults["adminCommunity"] = device_discovery.get_SNMPv2_admin_community()
@@ -332,27 +340,6 @@ def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, repo
     def step_6():
         refresh_page(page)
 
-        for ip in DEVICE_IPS_RANGE_LIST:
-            device_page = page.context.new_page()
-
-            try:
-                pl_login = PL_LoginPage(device_page)
-                pl_login.goto(f"http://{ip}/")
-                ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-                assert ok, f"Login to {ip} GUI failed."
-
-                pl_SNMP = PL_SNMPPage(device_page)
-                ok_tab = pl_SNMP.open_SNMP_tab()
-                assert ok_tab, f"Failed to open SNMP tab on {ip}."
-
-                success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v2c")
-                assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-                refresh_page(page)
-
-            finally:
-                device_page.close()
-
-
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv2()
         device_discovery.click_start_discovery_for_ip_range()
@@ -371,20 +358,20 @@ def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, repo
     ########################################################################################
 
     def step_7():
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
+        network_topology.show_navigation_info()
 
         missing_devices = []
 
         for ip in DEVICE_IPS_RANGE_LIST:
-            in_nav = management_map.is_element_exist_on_navigation_info_list(ip)
+            in_nav = network_topology.is_element_exist_on_navigation_info_list(ip)
             if not in_nav:
                 missing_devices.append(ip)
             else:
                 # Optional: open details only if found
-                management_map.navigation_info_open_element_details(ip)
+                network_topology.navigation_info_open_element_details(ip)
 
         if missing_devices:
             raise AssertionError(
@@ -685,14 +672,14 @@ def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, repo
         refresh_page(page)
 
         # Verify blocked devices NOT added to LW Navigation Info
-        ok = left_panel.click_management_map()
-        assert ok, "Failed to navigate to Management Map."
+        ok = left_panel.click_network_topology()
+        assert ok, "Failed to navigate to Network Topology."
 
-        management_map.show_navigation_info()
+        network_topology.show_navigation_info()
 
         found_in_nav = []
         for ip in blocked_devices:
-            if management_map.is_element_exist_on_navigation_info_list(ip):
+            if network_topology.is_element_exist_on_navigation_info_list(ip):
                 found_in_nav.append(ip)
 
         if found_in_nav:
@@ -714,8 +701,8 @@ def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, repo
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv2()
 
-        device_discovery.set_SNMPv2_read_community(ADMIN_COMMUNITY)
-        device_discovery.set_SNMPv2_write_community(ADMIN_COMMUNITY)
+        device_discovery.set_SNMPv2_read_community(READ_COMMUNITY)
+        device_discovery.set_SNMPv2_write_community(WRITE_COMMUNITY)
         device_discovery.set_SNMPv2_admin_community(ADMIN_COMMUNITY)
         device_discovery.set_SNMPv2_contact_port(CONTACT_PORT)
 
@@ -740,11 +727,11 @@ def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, repo
         got_port  = int(device_discovery.get_SNMPv2_contact_port())
 
         errors = []
-        if got_read != ADMIN_COMMUNITY:
-            errors.append(f"readCommunity: expected='{ADMIN_COMMUNITY}' got='{got_read}'")
+        if got_read != READ_COMMUNITY:
+            errors.append(f"readCommunity: expected='{READ_COMMUNITY}' got='{got_read}'")
 
-        if got_write != ADMIN_COMMUNITY:
-            errors.append(f"writeCommunity: expected='{ADMIN_COMMUNITY}' got='{got_write}'")
+        if got_write != WRITE_COMMUNITY:
+            errors.append(f"writeCommunity: expected='{WRITE_COMMUNITY}' got='{got_write}'")
 
         if got_admin != ADMIN_COMMUNITY:
             errors.append(f"adminCommunity: expected='{ADMIN_COMMUNITY}' got='{got_admin}'")

@@ -14,6 +14,7 @@ from datetime import timedelta
 from time import perf_counter
 import time, requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 
 
 # ✅
@@ -32,6 +33,22 @@ def refresh_page(page: Page, timeout: int = 30_000) -> bool:
     except TimeoutError:
         return False
     
+def create_frame_html(page: Page):
+    """
+    Create html files for each frame in the page.
+    """
+    os.makedirs("frames_dump", exist_ok=True)
+
+    for i, fr in enumerate(page.frames):
+        try:
+            name = fr.name or f"frame_{i}"
+            safe_name = "".join(c if c.isalnum() or c in "_-" else "_" for c in name)
+            with open(f"frames_dump/{i}_{safe_name}.html", "w", encoding="utf-8") as f:
+                f.write(fr.content())
+            print(f"Saved: {i}_{safe_name}.html | url={fr.url}")
+        except Exception as e:
+            print(f"Failed frame {i}: {e}")
+
 # ✅
 def countdown_sleep(total_seconds: int, message: str = "Waiting", update_every: float = 1.0, end_message=""):
     """
@@ -335,16 +352,8 @@ def normalize_url_for_device(url: str) -> str:
     return url
 
 # ✅
-def countdown_timer(
-    page: Page,
-    *,
-    seconds: Optional[float] = None,
-    minutes: Optional[float] = None,
-    hours: Optional[float] = None,
-    new_line: bool = True,
-    msg: Optional[str] = None,
-    silent: bool = False,
-) -> None:
+def countdown_timer(page: Page, *, seconds: Optional[float] = None, minutes: Optional[float] = None, hours: Optional[float] = None,
+    new_line: bool = True, msg: Optional[str] = None, silent: bool = False) -> None:
     """
     Playwright-based countdown (uses page.wait_for_timeout).
     """
@@ -421,14 +430,7 @@ def devices_are_up(ips, wait_time):
             print(f"{ip}: device is UP after {restart_time:.1f} seconds")
 
 # ✅
-def Device_Is_Up(
-    page: Page,
-    URL: str,
-    waitBefore: int = 0,
-    extra_delay: int = 0,
-    wait4ever: bool = False,
-    silent: bool = False,
-):
+def Device_Is_Up(page: Page, URL: str, waitBefore: int = 0, extra_delay: int = 0, wait4ever: bool = False, silent: bool = False):
     """
     Playwright version of Device_Is_Up.
 

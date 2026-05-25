@@ -110,11 +110,11 @@ class MapLocators:
     # ==========================================================
     
     # ✅
-    def enable_drag_button(self):
+    def unlock_map_button(self):
         """
         Left-bottom button:
         """
-        loc = self.controls_left_bottom.locator("div.btn:has-text('Enable drag')")
+        loc = self.controls_left_bottom.locator("div.btn:has-text('Unlock Map')")
         return loc  # don't force visible: it may disappear when already enabled
 
     # ✅
@@ -135,6 +135,14 @@ class MapLocators:
         self.must_be_visible(loc, f"Discard & Lock button")
         return loc
     
+    # ✅
+    def zoom_in_button(self):
+        return self.zoom_controls.locator("button:has(svg image[href*='plus.svg'])").first
+
+    # ✅
+    def zoom_out_button(self):
+        return self.zoom_controls.locator("button:has(svg image[href*='minus.svg'])").first
+
     # ==========================================================
     # Tabs
     # ==========================================================
