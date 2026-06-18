@@ -7,11 +7,13 @@ from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.service_provisioning import ServiceProvisioning
+from Pages.upper_panel import UpperPanel
 import time
-from Utils.utils import refresh_page
+from Utils.utils import refresh_page, create_frame_html, create_page
 
 
 SERVER_HOST_IP = "172.16.10.22:8080"
+# SERVER_HOST_IP = "10.30.2.20:8080"
 BASE_URL = f"http://{SERVER_HOST_IP}/"
 USERNAME = "administrator"
 PASSWORD = "administrator" 
@@ -40,6 +42,7 @@ def open_service_provisioning(left_panel: LeftPanel):
 
 def test_service_provisioning(page, left_panel):
     sp = ServiceProvisioning(page)
+    up = UpperPanel(page)
 
     # # ----------------------------
     # # Step 1: Open modal + Exit
@@ -57,24 +60,44 @@ def test_service_provisioning(page, left_panel):
     # # Step 2: Create ROADM service
     # # ----------------------------
     # def step_2():
+    #     up.select_domain("roadm_domain")
+
     #     open_service_provisioning(left_panel)
     #     sp.create_ROADM_service()
-    #     sp.set_ROADM_mode("Uplink to Uplink")
-    #     sp.set_ROADM_protection("1+1")
-    #     sp.set_ROADM_A_chassis("Chassis: 4")
-    #     sp.set_ROADM_Z_chassis("Chassis: 8")
-    #     sp.set_ROADM_provisioning_type("Flex Grid")
-    #     sp.set_ROADM_bandwidth("75GHz (m = 6)")
+    #     sp.set_ROADM_mode("Chassis to chassis")
+    #     sp.set_ROADM_protection("Protected")
+    #     sp.set_ROADM_A_chassis("Chassis: 65")
+    #     sp.set_ROADM_Z_chassis("Chassis: 67")
+    #     sp.set_ROADM_provisioning_type("Fixed Grid")
+    #     sp.set_ROADM_bandwidth("50GHz (m = 4)")
     #     sp.set_ROADM_service_name("Yuval-Test-ROADM")
     #     sp.enable_ROADM_path_restriction()
     #     sp.disable_ROADM_path_restriction()
     #     sp.ROADM_service_click_next()
 
+    #     sp.set_ROADM_path2_A_device("172.16.40.118 (Flex-Grid WSS)")
+    #     sp.set_ROADM_path2_A_port("Port 3 (Fixed Grid)")
+    #     sp.set_ROADM_path2_Z_device("172.16.40.119 (Flex-Grid WSS)")
+    #     sp.set_ROADM_path2_Z_port("Port 5 (Flex Grid)")
     #     sp.ROADM_service_click_back()
-    #     # sp.set_ROADM_path1_A_device()
-    #     # sp.set_ROADM_path1_A_port()
-    #     # sp.set_ROADM_path1_Z_device()
-    #     # sp.set_ROADM_path1_Z_port()
+    #     sp.set_ROADM_protection("Unprotected")
+    #     sp.ROADM_service_click_next()
+
+    #     sp.set_ROADM_path1_A_device("172.16.40.118 (Flex-Grid WSS)")
+    #     sp.set_ROADM_path1_A_port("Port 2 (Fixed Grid)")
+    #     sp.set_ROADM_path1_Z_device("172.16.40.119 (Flex-Grid WSS)")
+    #     sp.set_ROADM_path1_Z_port("Port 2 (Fixed Grid)")
+    #     sp.ROADM_service_click_next()
+
+    #     table_path1 = sp.get_ROADM_path1_routes_table()
+    #     print(f"table path 1: {table_path1}")
+    #     sp.ROADM_path1_click_on_route(0)
+    #     sp.ROADM_service_click_next()
+
+    #     sp.set_ROADM_path1_channel("# 14")
+    #     sp.ROADM_service_create()
+
+    #     # create_frame_html(page)
 
     # run_step(2, "Provisioning: create ROADM service", step_2)
 
@@ -99,25 +122,52 @@ def test_service_provisioning(page, left_panel):
 
     # run_step(3, "Provisioning: create OTN service", step_3)
 
+    # # ----------------------------
+    # # Step 4: Create CHASSIS service
+    # # ----------------------------
+    # def step_4():
+    #     open_service_provisioning(left_panel)
+    #     sp.create_CHASSIS_service()
+
+    # run_step(4, "Provisioning: create CHASSIS service", step_4)
+
+    # # ----------------------------
+    # # Step 5: 
+    # # ----------------------------
+    # def step_5():
+    #     open_service_provisioning(left_panel)
+    #     sp.create_OTN_service()
+    #     # create_frame_html(page)
+    #     # sp.set_OTN_A_node("PL-2000M (172.16.40.17)")
+    #     sp.set_OTN_A_node("PL-4000M (10.60.100.103)")
+    #     sp.set_OTN_A_port("Port 29")
+    #     sp.set_OTN_service_type("GBE10LAN")
+    #     sp.set_OTN_limit_to("6")
+
+    # run_step(5, "...", step_5)
+
     # ----------------------------
-    # Step 4: Create CHASSIS service
+    # Step 5: 
     # ----------------------------
-    def step_4():
+    def step_5():
         open_service_provisioning(left_panel)
-        sp.create_CHASSIS_service()
+        sp.create_OTN_service()
+        # create_frame_html(page)
+        sp.set_OTN_service_name("Yuval test ROADM service 1")
+        sp.enable_OTN_auto_path()
+        sp.disable_OTN_auto_path()
 
-    run_step(4, "Provisioning: create CHASSIS service", step_4)
+    run_step(5, "...", step_5)
 
-    print("Test Finished ✅")
+    print("Test Finished ✅") 
 
 
 if __name__ == "__main__":
+
     start_time = time.perf_counter()
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-        page = context.new_page()
+        browser, context, page = create_page(p, max_size=True)
 
         login_page = LoginPage(page)
         login_page.goto(BASE_URL)

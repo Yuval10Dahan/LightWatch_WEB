@@ -18,6 +18,32 @@ import os
 
 
 # ✅
+def create_page(playwright_object, max_size=True) -> Page:
+    """
+    Create a new page with optional maximized window size.
+    The best values are: Width: 1920 , Height: 937, Force Scale Factor: 1
+    
+    Args:
+        playwright_object: The playwright object (p)
+        max_size (bool): Whether to maximize the window (default: True)
+        
+    Returns:
+        Page: The new page
+    """
+
+    if max_size:
+        browser = playwright_object.chromium.launch(headless=False, args=["--window-size=1920,937", "--force-device-scale-factor=1"])
+        context = browser.new_context(viewport={"width": 1920, "height": 937}, device_scale_factor=1)
+    
+    else:
+        browser = playwright_object.chromium.launch(headless=False)
+        context = browser.new_context()
+
+    page = context.new_page()
+
+    return browser, context, page
+
+# ✅
 def refresh_page(page: Page, timeout: int = 30_000) -> bool:
     """
     Refresh the current page regardless of UI.
@@ -33,6 +59,7 @@ def refresh_page(page: Page, timeout: int = 30_000) -> bool:
     except TimeoutError:
         return False
     
+# ✅
 def create_frame_html(page: Page):
     """
     Create html files for each frame in the page.

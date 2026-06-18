@@ -38,7 +38,7 @@ from Pages.upper_panel import UpperPanel
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_security_page import PL_SecurityPage
 from PL_Devices.PL_Pages.PL_main_screen_POM import PL_Main_Screen_POM
-from Utils.utils import refresh_page, devices_are_up
+from Utils.utils import refresh_page, devices_are_up, create_page
 import time
 from time import sleep
 from Utils.Logger import create_logger
@@ -492,9 +492,7 @@ if __name__ == "__main__":
         logger = create_logger(LOGGER_ROOT_DIRECTORY, LOG_FILE_NAME, directory_name=LOGGER_DIRECTORY_NAME)
         report = open_report(path=REPORT_PATH)
 
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-        page = context.new_page()
+        browser, context, page = create_page(p, max_size=True)
 
         login_page = LoginPage(page)
         login_page.goto(BASE_URL)

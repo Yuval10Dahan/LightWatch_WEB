@@ -8,7 +8,7 @@ from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.domain_management import DomainManagement
 import time
-from Utils.utils import refresh_page
+from Utils.utils import refresh_page, create_page
 from time import sleep
 
 
@@ -82,7 +82,7 @@ def test_domain_management(page, left_panel):
     run_step(1, "Domain Management: add_domain (create A + B)", step_1)
 
     # ----------------------------
-    # Step 2: rename_domain (A -> A2)
+    # Step 2: rename_chassis (A -> A2)
     # ----------------------------
     chassis_a = "BS-12/12"
     chassis_b = "Chassis: 35/35"
@@ -90,13 +90,13 @@ def test_domain_management(page, left_panel):
     chassis_b2 = f"RENAMED_Chassis: 35"
 
     def step_2():
-        dm.rename_domain(chassis_a, chassis_a2, new_description="renamed by automation")
-        dm.rename_domain(chassis_b, chassis_b2, new_description="renamed by automation2")
+        dm.rename_chassis(chassis_a, chassis_a2, new_description="renamed by automation")
+        dm.rename_chassis(chassis_b, chassis_b2, new_description="renamed by automation2")
 
-        dm.rename_domain(chassis_a2, "BS-12", new_description="")
-        dm.rename_domain(chassis_b2, "Chassis: 35", new_description="")
+        dm.rename_chassis(chassis_a2, "BS-12", new_description="")
+        dm.rename_chassis(chassis_b2, "Chassis: 35", new_description="")
 
-    run_step(2, "Domain Management: rename_domain (A -> A2)", step_2)
+    run_step(2, "Domain Management: rename_chassis (A -> A2)", step_2)
 
     # ----------------------------
     # Step 3: move_to_domain (best-effort)
@@ -180,9 +180,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-        page = context.new_page()
+        browser, context, page = create_page(p, max_size=True)
 
         login_page = LoginPage(page)
         login_page.goto(BASE_URL)

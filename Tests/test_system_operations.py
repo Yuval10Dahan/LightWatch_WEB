@@ -4,7 +4,7 @@ Date: 20/01/2026
 '''
 
 
-
+from Utils.utils import create_page
 from playwright.sync_api import sync_playwright
 from Pages.system_operations import SystemOperationsPage
 from Pages.login_page import LoginPage
@@ -51,9 +51,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-        page = context.new_page()
+        browser, context, page = create_page(p, max_size=True)
 
         login_page = LoginPage(page)
         login_page.goto(BASE_URL)

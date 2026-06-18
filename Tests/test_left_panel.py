@@ -5,6 +5,7 @@ Date: 20/01/2026
 
 
 
+from Utils.utils import create_page
 from playwright.sync_api import sync_playwright, expect
 from Pages.left_panel_page import LeftPanel
 from Pages.login_page import LoginPage
@@ -77,9 +78,7 @@ def test_navigation_left_panel(page):
 def run_tests():
     with sync_playwright() as p:
         # Launch browser and context
-        browser = p.chromium.launch(headless=False)  # Set headless=False for debugging
-        context = browser.new_context()
-        page = context.new_page()
+        browser, context, page = create_page(p, max_size=True)
 
         login_page = LoginPage(page)
         login_page.goto(BASE_URL)

@@ -10,7 +10,7 @@ from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.domain_management import DomainManagement
 import time
-from Utils.utils import refresh_page
+from Utils.utils import refresh_page, create_page
 
 
 SERVER_HOST_IP = "172.16.10.22:8080"
@@ -25,9 +25,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-        page = context.new_page()
+        browser, context, page = create_page(p, max_size=True)
 
         login_page = LoginPage(page)
         login_page.goto(BASE_URL)

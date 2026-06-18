@@ -1606,7 +1606,7 @@ class DomainManagement:
             raise AssertionError(f"submit_rename_chassis('{new_name}') failed. Problem: {e}")
 
     # ✅        
-    def rename_domain(self, old_chassis_name: str, new_chassis_name: str, new_description: str | None = None, timeout: int = 5000):
+    def rename_chassis(self, old_chassis_name: str, new_chassis_name: str, new_description: str | None = None, timeout: int = 5000):
         """
         Rename a chassis and verify the tree updates correctly.
         """
@@ -1631,7 +1631,7 @@ class DomainManagement:
             countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")  # Allow UI to stabilize
 
         except Exception as e:
-            raise AssertionError(f"rename_domain('{old_chassis_name}' -> '{new_chassis_name}') failed. Problem: {e}")
+            raise AssertionError(f"rename_chassis('{old_chassis_name}' -> '{new_chassis_name}') failed. Problem: {e}")
 
     # ==========================================================
     # Change Chassis ID

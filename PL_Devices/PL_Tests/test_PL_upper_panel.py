@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright
 
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_upper_panel import PL_Upper_Panel
+from Utils.utils import create_page
 
 # NOTE: adjust to your device / environment
 SERVER_HOST_IP = "172.16.20.113"
@@ -103,9 +104,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-        page = context.new_page()
+        browser, context, page = create_page(p, max_size=True)
 
         test_PL_upper_panel(page)
 
