@@ -595,8 +595,15 @@ class PL_Main_Screen_POM:
                 expect(chassis_input).to_be_visible(timeout=timeout)
 
                 current_value = (chassis_input.input_value() or "").strip()
-                if current_value == chassis_id_str:
+                # Older products (e.g. PL-2000) render this field permanently
+                # disabled with no value attribute -- an empty value there means "0".
+                effective_current = current_value or "0"
+
+                if effective_current == chassis_id_str:
                     return True, ""
+
+                if chassis_input.is_disabled():
+                    return False, "Chassis ID field is disabled on this device/firmware - not supported"
 
                 chassis_input.fill(chassis_id_str)
 
@@ -1970,7 +1977,8 @@ class PL_Main_Screen_POM:
         return False, ""
 
     # ✅
-    def add_sntp_server(self, ip: str, protocol: str = "SNTP", key_id=None, key_value=None, retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
+    def add_sntp_server(self, ip: str, protocol: str = "SNTP", key_id=None, key_value=None, 
+    skip_protocol_and_key_and_value=False, retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
         """
         Add a time server (SNTP/NTP) with optional symmetric key authentication.
 
@@ -1986,6 +1994,9 @@ class PL_Main_Screen_POM:
 
             key_value:
                 Optional Key Value. If None/empty -> left blank.
+
+            skip_protocol_and_key_and_value:
+                If True -> skip protocol selection, key_id selection and key_value fill.
 
         Returns:
             tuple[bool, str]:
@@ -2056,28 +2067,32 @@ class PL_Main_Screen_POM:
                 row = ip_field.locator("xpath=./ancestor::tr[1]")
                 sleep(0.5)
 
-                # IP
+                # IP 
                 ip_field.fill(ip)
 
-                # Protocol
-                protocol_select = row.locator("xpath=./td[position()=2]//select").first
-                sleep(0.5)
-                expect(protocol_select).to_be_visible(timeout=timeout)
-                protocol_select.select_option(label=protocol)
-
-                # Key ID
-                if key_id not in (None, ""):
-                    key_id_el = row.locator("xpath=./td[position()=3]//input[not(@type='hidden')]").first
+                if skip_protocol_and_key_and_value == False:
+                    # Protocol
+                    protocol_select = row.locator("xpath=./td[position()=2]//select").first
                     sleep(0.5)
-                    expect(key_id_el).to_be_visible(timeout=timeout)
-                    key_id_el.fill(str(key_id))
+                    expect(protocol_select).to_be_visible(timeout=timeout)
+                    protocol_select.select_option(label=protocol)
 
-                # Key Value
-                if key_value not in (None, ""):
-                    key_value_el = row.locator("xpath=./td[position()=4]//input[not(@type='hidden')]").first
-                    sleep(0.5)
-                    expect(key_value_el).to_be_visible(timeout=timeout)
-                    key_value_el.fill(str(key_value))
+                    # Key ID
+                    if key_id not in (None, ""):
+                        key_id_el = row.locator("xpath=./td[position()=3]//input[not(@type='hidden')]").first
+                        sleep(0.5)
+                        expect(key_id_el).to_be_visible(timeout=timeout)
+                        key_id_el.fill(str(key_id))
+
+                    # Key Value
+                    if key_value not in (None, ""):
+                        key_value_el = row.locator("xpath=./td[position()=4]//input[not(@type='hidden')]").first
+                        sleep(0.5)
+                        expect(key_value_el).to_be_visible(timeout=timeout)
+                        key_value_el.fill(str(key_value))
+
+                else:
+                    pass
 
                 # ---- Click Add ----
                 add_btn = row.locator(
@@ -2501,7 +2516,7 @@ class PL_Main_Screen_POM:
             try:
                 # Navigate using your Playwright helpers if present
                 if hasattr(self, "click_system_btn"):
-                    if not self.click_system_btn(timeout=timeout):
+                    if not self.upper_panel.click_system(timeout=timeout): 
                         raise AssertionError("click_system_btn failed")
 
                 if hasattr(self, "click_maintenance"):

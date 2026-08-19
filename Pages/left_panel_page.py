@@ -90,9 +90,13 @@ class LeftPanel:
     # ✅
     def click_device_discovery(self) -> bool:
         try:
-            self.device_discovery.click()
+            refresh_page(self.page)
+            for click in range(5):
+                self.device_discovery.click()
+                sleep(1)
+
             expect(self.device_discovery).to_have_class('active')
-            sleep(5)
+
             return True
         
         except TimeoutError:

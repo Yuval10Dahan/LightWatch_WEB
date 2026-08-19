@@ -13,7 +13,7 @@ from time import sleep
 from Utils.utils import refresh_page, countdown_sleep
 
 
-RENDER_WAIT_TIME = 15
+RENDER_WAIT_TIME = 5
 
 
 class DomainManagement:
@@ -274,7 +274,7 @@ class DomainManagement:
             rx = self.nav_text_regex(target)
 
         rows = tree.locator(", ".join([f"div.inventory-tree-level-title[type='{t}']" for t in device_types]))
-        sleep(0.5)
+        sleep(2)
 
         return rows.filter(has_text=rx).first
 
@@ -470,7 +470,7 @@ class DomainManagement:
         Expand Chassis and click on the desired device.
         """
         try:
-            sleep(1)
+            sleep(0.5)
             target = (device_id or "").strip()
             if not target:
                 raise ValueError("chassis_id is empty")
@@ -482,10 +482,13 @@ class DomainManagement:
             is_ip_only = re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", target) is not None
             if is_ip_only:
                 # dev_rx = re.compile(rf"\(\s*{re.escape(target)}\s*\)")
+                sleep(0.5)
                 dev_rx = re.compile(rf"(^|\()\s*{re.escape(target)}\s*(\)|$)")
             else:
-                if re.search(r"\(\s*\d{1,3}(?:\.\d{1,3}){3}\s*\)", target) is None:
-                    raise AssertionError(f"'{target}' does not look like a device row. Use 'NAME (IP)' or IP only.")
+                # Supports:
+                # 1) "NAME (IP)"
+                # 2) "NAME" only
+                sleep(0.5)
                 dev_rx = self.nav_text_regex(target)
 
             # Default: search whole tree (domain case where devices already visible)
@@ -501,12 +504,12 @@ class DomainManagement:
                 sleep(0.5)
 
                 parent_row = tree.locator("div.inventory-tree-level-title[type='CHASSIS']").filter(has_text=parent_rx).first
-                sleep(0.5)
+                sleep(1)
 
                 if parent_row.count() == 0:
                     # fallback: if in some builds it isn't typed as CHASSIS
                     parent_row = tree.locator("div.inventory-tree-level-title").filter(has_text=parent_rx).first
-                    sleep(0.5)
+                    sleep(1)
 
                 if parent_row.count() == 0:
                     raise AssertionError(f"parent_chassis '{parent}' not found in 'From' tree.")
@@ -519,10 +522,10 @@ class DomainManagement:
 
                 # Scope future device lookup ONLY inside this chassis subtree
                 search_root = parent_row.locator("xpath=ancestor::app-inventory-tree-level[1]")
-                sleep(0.5)
+                sleep(1)
 
             device_rows = search_root.locator(", ".join([f"div.inventory-tree-level-title[type='{t}']" for t in device_types]))
-            sleep(0.5)
+            sleep(1)
             row = device_rows.filter(has_text=dev_rx).first
 
             if row.count() == 0:
@@ -535,6 +538,7 @@ class DomainManagement:
             # Click device -> enable button
             row.scroll_into_view_if_needed()
             expect(row).to_be_visible(timeout=timeout)
+            sleep(2)
             row.click(force=True)
     
         except Exception as e:
@@ -959,6 +963,7 @@ class DomainManagement:
         """
         # Validate domain exists
         row = self.row_locator(domain_name, tree_title="From")
+        sleep(1)
         if row.count() == 0:
             raise AssertionError(f"remove_domain('{domain_name}') failed: element not found in tree.")
 
@@ -969,6 +974,7 @@ class DomainManagement:
         rm = self.action_btn("Remove")
         expect(rm).to_be_visible(timeout=timeout)
         expect(rm).to_be_enabled(timeout=timeout)
+        sleep(5)
         rm.click()
 
     # ✅
@@ -1002,6 +1008,7 @@ class DomainManagement:
             raise ValueError("chassis_name is empty")
 
         row = self.chassis_row_locator(name, tree_title="From")
+        sleep(1)
         if row.count() == 0:
             raise AssertionError(f"remove_chassis('{chassis_name}') failed: chassis not found in tree.")
 
@@ -1011,6 +1018,7 @@ class DomainManagement:
         rm = self.action_btn("Remove")
         expect(rm).to_be_visible(timeout=timeout)
         expect(rm).to_be_enabled(timeout=timeout)
+        sleep(5)
         rm.click(force=True)
 
     # ✅
@@ -1019,6 +1027,7 @@ class DomainManagement:
         Select a device and click the Remove button.
         """
         row = self.device_row_locator(device_name_or_ip, tree_title="From")
+        sleep(1)
         if row.count() == 0:
             raise AssertionError(f"remove_device('{device_name_or_ip}') failed: device not found in tree.")
 
@@ -1027,6 +1036,7 @@ class DomainManagement:
         rm = self.action_btn("Remove")
         expect(rm).to_be_visible(timeout=timeout)
         expect(rm).to_be_enabled(timeout=timeout)
+        sleep(5)
         rm.click()
 
     # ✅
@@ -1086,7 +1096,7 @@ class DomainManagement:
                 return
 
             refresh_page(self.page)
-            sleep(10)
+            sleep(5)
 
             # Re-check after refresh
             if self.verify_element_deleted(target, element_type="domain", tree_title="From", refresh=False):
@@ -1248,7 +1258,7 @@ class DomainManagement:
                 return
 
             refresh_page(self.page)
-            sleep(10)
+            sleep(5)
 
             # Re-check after refresh
             if self.verify_element_deleted(name, element_type="chassis", tree_title="From", refresh=False):
@@ -1304,7 +1314,7 @@ class DomainManagement:
             sleep(1)
             yes.click()
             refresh_page(self.page)
-            sleep(10)
+            sleep(5)
 
             # After confirming, sometimes a Message modal can still appear.
             # Give it a short chance before assert disappearance.
@@ -1351,7 +1361,6 @@ class DomainManagement:
                 return
             
             refresh_page(self.page)
-            sleep(10)
 
             # Re-check after refresh
             if self.verify_element_deleted(target, element_type="device", tree_title="From", refresh=False):
@@ -1363,8 +1372,10 @@ class DomainManagement:
 
             if parent_chassis:
                 self.expand_chassis_and_click_on_device(device_id=device_name_or_ip, parent_chassis=parent_chassis)
+                sleep(5)
             else:
                 self.expand_chassis_and_click_on_device(device_id=device_name_or_ip)
+                sleep(5)
 
             # Click Remove
             self.click_remove_device_btn(target, timeout=timeout)
@@ -1395,6 +1406,7 @@ class DomainManagement:
 
                 ok = self.message_ok_btn()
                 expect(ok).to_be_visible(timeout=timeout)
+                sleep(5)
                 ok.click()
 
                 raise AssertionError(f"remove_device('{target}') failed (Message modal): {msg_text}")
@@ -1405,6 +1417,7 @@ class DomainManagement:
             yes = self.warning_yes_btn()
             expect(yes).to_be_visible(timeout=timeout)
             expect(yes).to_be_enabled(timeout=timeout)
+            sleep(5)
             yes.click()
 
             # After confirming, sometimes a Message modal can still appear (blocked by dependencies)
@@ -1420,6 +1433,7 @@ class DomainManagement:
 
                 ok = self.message_ok_btn()
                 expect(ok).to_be_visible(timeout=timeout)
+                sleep(0.2)
                 ok.click()
 
                 raise AssertionError(f"remove_device('{target}') failed after confirmation (Message modal): {msg_text}")
@@ -1438,6 +1452,9 @@ class DomainManagement:
         """
         Verify that a domain / chassis / device is no longer present
         in the Domain Management tree.
+
+        element_type: "domain", "chassis", "device", or "any" (default)
+        tree_title: "From" or "To"
 
         Returns:
             True  -> element is not found
@@ -2000,7 +2017,7 @@ class DomainManagement:
                     pass
 
                 refresh_page(self.page)
-                countdown_sleep(20, message="Wait for the system to render")
+                countdown_sleep(10, message="Wait for the system to render")
                 return
 
             except Exception as e:

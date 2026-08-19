@@ -8,14 +8,23 @@ from playwright.sync_api import Page, TimeoutError
 from time import sleep
 import sys
 from playwright.sync_api import expect
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Sequence, List
 from ipaddress import ip_address
 from datetime import timedelta
 from time import perf_counter
 import time, requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
+import builtins
 
+
+
+_CLI_PRIV_WARNING = "Not enough privileges"
+_CLI_LOGIN_DENIED = "Login denied"
+_CLI_PASSWORD_EXPIRED = "Password expired. Set new password:"
+_CLI_LOGIN_FAILED_MARKERS = ("Failed", "Login denied", "Login incorrect")
+# CLI root ">>" and vxWorks shell "-> " prompts for this product line.
+_CLI_DEFAULT_PROMPTS = (">>", "-> ")
 
 # ✅
 def create_page(playwright_object, max_size=True) -> Page:
@@ -32,11 +41,11 @@ def create_page(playwright_object, max_size=True) -> Page:
     """
 
     if max_size:
-        browser = playwright_object.chromium.launch(headless=False, args=["--window-size=1920,937", "--force-device-scale-factor=1"])
+        browser = playwright_object.chromium.launch(channel="chrome", headless=False, args=["--window-size=1920,937", "--force-device-scale-factor=1"])
         context = browser.new_context(viewport={"width": 1920, "height": 937}, device_scale_factor=1)
-    
+
     else:
-        browser = playwright_object.chromium.launch(headless=False)
+        browser = playwright_object.chromium.launch(channel="chrome", headless=False)
         context = browser.new_context()
 
     page = context.new_page()
@@ -498,3 +507,305 @@ def Device_Is_Up(page: Page, URL: str, waitBefore: int = 0, extra_delay: int = 0
         return end - start
 
     return True
+
+# ✅
+def _cli_drain(session, idle_timeout: float = 0.4, idle_rounds: int = 2, max_wait: float = 5.0,
+               stop_markers: Optional[Sequence[str]] = None) -> str:
+    """
+    telnetlib3 replacement for the legacy telnetlib `session.read_very_eager()`:
+    keeps reading whatever the device has already sent until the session
+    has gone quiet for `idle_rounds` consecutive reads (instead of a blind
+    sleep(N) followed by a single non-blocking read).
+
+    Args:
+        stop_markers: optional strings (e.g. a CLI prompt) that end the
+            read as soon as any of them shows up, instead of waiting out
+            the full quiet period or `max_wait`.
+    """
+    chunks = []
+    misses = 0
+    start = perf_counter()
+    while perf_counter() - start < max_wait:
+        try:
+            chunk = session.read_some(timeout=idle_timeout)
+            sleep(1.5)
+        except builtins.TimeoutError:
+            # NOTE: this module imports `TimeoutError` from playwright.sync_api,
+            # which shadows the builtin -- telnetlib3 raises the real builtin
+            # one, so it must be caught via `builtins.TimeoutError` here.
+            misses += 1
+            if misses >= idle_rounds:
+                break
+            continue
+        except EOFError:
+            # Peer closed the session -- whatever we already have is final.
+            break
+        if not chunk:
+            break
+        chunks.append(chunk)
+        misses = 0
+        # Check the whole buffer, not just this chunk -- a marker can land
+        # split across two reads.
+        if stop_markers and any(marker in "".join(chunks) for marker in stop_markers):
+            break
+    return "".join(chunks)
+
+# ✅
+def CLI_Login(session, user: str, password: str, verify: bool = False, new_password: Optional[str] = None,
+              retries: int = 3, admin_fallback_password: str = "Admin123!") -> bool:
+    """
+    Log in to a PL device's CLI over an already-open telnet session.
+
+    Args:
+        session: an already-connected telnetlib3 sync telnet session.
+
+        user: CLI username.
+
+        password: CLI password.
+
+        verify: probe-only mode -- checks whether the credentials are
+            accepted without performing the "password expired" reset flow.
+
+        new_password: when the device reports "Password expired. Set new
+            password:", send this value. Falls back to
+            `admin_fallback_password` for the default admin account when
+            not given.
+
+        retries: number of times to retry the full login exchange if the
+            device rejects it (e.g. a transient "Login incorrect").
+
+        admin_fallback_password: password to retry with when the device
+            denies the default admin account's own password (mirrors the
+            legacy helper's hardcoded 'Admin123!' recovery path).
+
+    Returns:
+        True on a confirmed successful login (or verified-good credentials
+        under verify=True), False otherwise.
+    """
+    is_admin = user.strip().lower() == "admin"
+
+    for attempt in range(1, max(retries, 1) + 1):
+        try:
+            # Some devices only show the "User:" prompt after a bare "login"
+            # (the legacy code looped on this forever -- bounded here instead).
+            banner = ""
+            for _ in range(6):
+                banner += _cli_drain(session, max_wait=5.0)
+                if "User:" in banner:
+                    break
+                session.write("login\n")
+                sleep(1)
+            else:
+                print(f"CLI_Login (attempt {attempt}/{retries}): 'User:' prompt never appeared")
+                continue
+
+            session.write(f"{user}\n")
+            sleep(1)
+            session.write(f"{password}\n")
+            sleep(1)
+            session.write("\n")
+            response = _cli_drain(session, max_wait=5.0)
+
+            if _CLI_PRIV_WARNING in response and is_admin:
+                # Device arbitrarily didn't recognize the admin user -- retry once.
+                session.write("login\n")
+                sleep(1)
+                session.write(f"{user}\n")
+                sleep(1)
+                session.write(f"{password}\n")
+                sleep(1)
+                session.write("\n")
+                response = _cli_drain(session, max_wait=8.0)
+
+            if _CLI_LOGIN_DENIED in response and is_admin:
+                session.write(f"{user}\n")
+                sleep(1)
+                session.write(f"{admin_fallback_password}\n")
+                sleep(1)
+                session.write("\n")
+                response = _cli_drain(session, max_wait=8.0)
+
+            if verify:
+                if any(marker in response for marker in _CLI_LOGIN_FAILED_MARKERS):
+                    sleep(10)  # let a delayed "Login timed out" message land
+                    return False
+                return True
+
+            effective_new_password = new_password
+            if _CLI_PASSWORD_EXPIRED in response and is_admin and not effective_new_password:
+                effective_new_password = admin_fallback_password
+
+            if _CLI_PASSWORD_EXPIRED in response and effective_new_password:
+                session.write(f"{effective_new_password}\n")
+                sleep(1)
+                session.write(f"{effective_new_password}\n")
+                sleep(1)
+                session.write("Y\n")
+                sleep(1)
+                session.write("\n")
+                _cli_drain(session, max_wait=5.0)
+                return True
+
+            if any(marker in response for marker in _CLI_LOGIN_FAILED_MARKERS):
+                print(f"CLI_Login (attempt {attempt}/{retries}): login rejected -> {response!r}")
+                continue
+
+            return True
+
+        except Exception as e:
+            print(f"CLI_Login (attempt {attempt}/{retries}) raised: {e}")
+
+    return False
+
+# ✅
+def open_connection(host: str, port: int, timeout: float = 5, retries: int = 5, retry_delay: float = 2.0,
+                     drain_banner: bool = True):
+    """
+    Open a telnet connection to a device's CLI.
+
+    Args:
+        host: device IP/hostname.
+
+        port: telnet port (23 for direct telnet).
+
+        timeout: seconds to wait for the TCP connection itself.
+
+        retries: number of connection attempts before giving up.
+        
+        retry_delay: seconds to wait between failed attempts.
+
+        drain_banner: read and discard whatever banner the device sends
+            right after connecting.
+
+    Returns:
+        A connected `TelnetConnection`, or None if every attempt failed.
+    """
+    try:
+        from telnetlib3.sync import TelnetConnection
+    except ImportError:
+        print("open_connection: telnetlib3 is not installed in this environment")
+        return None
+
+    for attempt in range(1, max(retries, 1) + 1):
+        try:
+            conn = TelnetConnection(host, port, timeout=timeout)
+            conn.connect()
+
+            if drain_banner:
+                _cli_drain(conn, max_wait=3.0)
+
+            return conn
+
+        except Exception as e:
+            print(f"open_connection: failed at attempt {attempt}/{retries}: {e}")
+            if attempt < retries:
+                sleep(retry_delay)
+
+    return None
+
+# ✅
+def close_connection(session) -> bool:
+    """
+    Close a telnet session opened by `open_connection`.
+
+    Args:
+        session: the telnetlib3 sync session to close. Safe to call with
+            None (e.g. when `open_connection` already returned None) --
+            it's a no-op in that case.
+
+    Returns:
+        True if the session was already closed or is now closed cleanly,
+        False if `close()` itself raised.
+    """
+    if session is None:
+        return True
+
+    try:
+        session.close()
+        return True
+    except Exception as e:
+        print(f"close_connection: failed to close cleanly: {e}")
+        return False
+
+# ✅
+def send_cli_command(session, command: str, timeout: float = 10.0,
+                      prompts: Sequence[str] = _CLI_DEFAULT_PROMPTS, strip_echo: bool = True) -> str:
+    """
+    Send a single CLI command over an already logged-in telnet session
+    (see `CLI_Login`) and return the device's response text.
+
+    Args:
+        session: an already-connected, already logged-in telnetlib3 sync
+            telnet session.
+
+        command: the CLI command to send (no trailing newline needed).
+
+        timeout: max seconds to wait for the response before giving up on
+            it (falls back to this if no prompt marker ever shows up).
+
+        prompts: prompt markers that end the read as soon as any of them
+            appears, instead of always waiting out the full `timeout` like
+            a blind sleep would. Defaults to this product line's CLI root
+            (">>") and vxWorks shell ("-> ") prompts.
+
+        strip_echo: most devices echo the command line back before its
+            output; when True (default) that leading echoed line, and a
+            trailing prompt marker, are removed from the returned text.
+
+    Returns:
+        The command's output, with the echoed command line, trailing
+        prompt, and surrounding whitespace stripped by default.
+    """
+    sleep(1)
+    session.write(f"{command}\n")
+    response = _cli_drain(session, max_wait=timeout, stop_markers=prompts)
+
+    if strip_echo:
+        lines = response.splitlines()
+        if lines and command.strip() in lines[0]:
+            lines = lines[1:]
+
+        # The trailing prompt (e.g. "PL-2000:172.16.20.111>debug>memory>>")
+        # is echoed back on its own line -- drop that whole line, not just
+        # the marker characters at its end.
+        if lines and any(lines[-1].rstrip().endswith(marker) for marker in prompts):
+            lines = lines[:-1]
+
+        response = "\n".join(lines)
+
+    return response.strip()
+
+# ✅
+def send_cli_commands(session, commands: List[str], timeout: float = 10.0,
+                       prompts: Sequence[str] = _CLI_DEFAULT_PROMPTS, strip_echo: bool = True,
+                       stop_on_error: bool = False) -> List[str]:
+    """
+    Send multiple CLI commands in sequence over the same session -- same as
+    calling `send_cli_command` once per command, in order.
+
+    Args:
+        session, timeout, prompts, strip_echo: see `send_cli_command`.
+
+        stop_on_error: if True, re-raise as soon as one command's send/read
+            fails (e.g. the session dropped) instead of continuing
+            best-effort through the rest of the list.
+
+    Returns:
+        A list of response strings, one per command, in the same order as
+        `commands`. When `stop_on_error` is False, a command that raised
+        gets an "<error: ...>" placeholder in its slot instead of aborting
+        the remaining commands.
+    """
+    responses = []
+    for command in commands:
+        try:
+            responses.append(
+                send_cli_command(session, command, timeout=timeout, prompts=prompts, strip_echo=strip_echo)
+            )
+        except Exception as e:
+            print(f"send_cli_commands: '{command}' failed: {e}")
+            if stop_on_error:
+                raise
+            responses.append(f"<error: {e}>")
+
+    return responses

@@ -26,7 +26,7 @@ from time import sleep
 from Utils.Logger import create_logger
 import sys
 from sys import argv
-from Utilities.QCreporter import open_report, close_report, step_passed, step_failed
+from Utilities.QCreporter import open_report, close_report, step_passed, step_failed 
 
 
 
@@ -146,6 +146,7 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     #############################################################
     # Step 1 – Facrory default reset for all devices.           # 
+    # Remove devices from LW via Domain Management.             #
     # Open Device Discovery and navigate to SNMPv2 tab.         # 
     #############################################################
     def step_1():
@@ -164,6 +165,12 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
 
         # Wait for devices to come back up after factory default reset
         devices_are_up(ips_to_reset, wait_time=WAIT)
+
+        # Remove devices from LW via Domain Management
+        left_panel.click_domain_management()
+        for ip in ips_to_reset:
+            domain_management.remove_device(ip)
+            sleep(5)
 
         open_device_discovery(left_panel)
         assert device_discovery.container().is_visible(), "Device Discovery container is not visible."
@@ -509,8 +516,8 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     ###########################################################################
     # Step 13 – Set a device to SNMPv3 only.                                  #
-    # Add the LW server to the BLOCKED_DEVICE SNMP Traps table                #
     # Start Discovery.                                                        #
+    # Verify that the LW server was not added to the device snmp traps table  #
     # Verify that the device was not added to the LW server                   #
     ###########################################################################
 
@@ -533,15 +540,15 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
             ok_version = pl_SNMP_blocked_device.set_SNMP_protocol_version("v3 only")
             assert ok_version, (f"set_SNMP_protocol_version('v3 only') returned False for {BLOCKED_DEVICE_IP}.")
 
-            success, _ = pl_SNMP_blocked_device.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-            assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
             refresh_page(blocked_device_page)
 
         finally:
             blocked_device_page.close()
 
         # Run SNMPv2 discovery against device with SNMPv3
+        refresh_page(page)
         open_device_discovery(left_panel)
+        sleep(5)
         device_discovery.click_SNMPv2()
 
         device_discovery.set_ip_address(BLOCKED_DEVICE_IP)
@@ -566,6 +573,11 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
 
             pl_SNMP_blocked_device2 = PL_SNMPPage(blocked_device_page2)
             pl_SNMP_blocked_device2.open_SNMP_tab()
+
+            found = pl_SNMP_blocked_device2.manager_address_added_to_SNMP_traps(LW_SERVER_HOST_IP.split(":")[0])
+            assert not found, (
+                f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was found "
+                f"in the SNMP Traps table of {BLOCKED_DEVICE_IP}.")
             
             # Verify that BLOCKED_DEVICE_URL is not displaying on LW navigation info
             ok = left_panel.click_network_topology()
@@ -579,11 +591,6 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
                 f"It should not be there.")
 
         finally:
-            # Remove the LW server from the device
-            is_deleted = pl_SNMP_blocked_device2.Delete_Trap_Manager_eq_IP(IP=LW_SERVER_HOST_IP.split(":")[0])
-            assert is_deleted, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not deleted")
-            refresh_page(page)
-
             blocked_device_page2.close()
 
     results[13] = run_step(13, step_13, logger, report)
@@ -594,8 +601,8 @@ def test_snmpv2_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     def step_14():
         refresh_page(page)
-
         open_device_discovery(left_panel)
+        sleep(5)
         device_discovery.click_SNMPv2()
 
         device_discovery.set_SNMPv2_read_community(READ_COMMUNITY)

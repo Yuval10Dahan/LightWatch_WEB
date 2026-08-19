@@ -1,0 +1,432 @@
+Adjust the script '' in Scripts -->  -->  --> PythonScripts, by this steps:
+
+side functions:
+
+extract_port_name_from_list(device_name, ports_list):
+it gets the device_name and look it in ports_list.
+when it find it, it return the port name.
+
+match_pm_between_lw_and_pl_device(device_ip, device_name, pm_period_type, pm_type):
+
+login to the GUI of device_ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+save variable in the name 'port1' by calling extract_port_name_from_list(device_name, PORT_PER_PRODUCT).
+set PM Period via set_PM_Period(port_number=port1, period=pm_period_type) in PL_Devices -> PL_Pages ->PL_performance_page.py.  
+set Type via set_PM_Type(port_number=port1, pm_type=pm_type) in PL_Devices -> PL_Pages ->PL_performance_page.py.
+click on Get PM via click_on_Get_PM(port_number=port1).
+get PM table of port 1 of the device_ip via get_PM_table(port_number=port1) in PL_Devices -> PL_Pages -> PL_performance_page.py and save it as device_pm_table.
+go to 'Performance' page in LightWatch.
+take device_name, add it " (device_ip)" and store it as device_full_name.
+set device via set_device(device=device_full_name) in Pages -> performance.py.
+set the right port name via set_port(port=extract_port_name_from_list(device_name, PORT_PER_PRODUCT)) in Pages -> performance.py.
+set the pm period type via set_pm_period_type(pm_period_type=pm_period_type).
+set the pm type via set_pm_type(pm_type=pm_type).
+get LW 32 intervals PM table via get_pm_table_number_of_intervals(number_of_intervals=INTERVALS_NUMBER) in Pages -> performance.py and save it as lw_pm_table.
+match between device_pm_table and lw_pm_table.
+if they are not equal raise an exception.
+
+step 1:
+for ip in DEVICES_LIST:
+login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+do factory default reset to the device.
+after that wait for all devices from DEVICES_LIST to be up.
+
+step 2: 
+Go into 'Device Discovery' page.
+click on SNMPv2.
+fill Read Community: read-only
+fill Write Community: read-write
+fill Admin Community: admin
+fill Contact Port: 161
+click on Save as Default.
+
+step 3:
+Go into 'Device Discovery' page.
+for each ip in DEVICES_LIST:
+    click on SNMPv2.
+    set IP address = ip
+    click on Start Discovery
+    refresh the page.
+
+step 4:
+Go into 'Network Topology' page.
+Open Navigation Info window.
+Get Navigation Info list of elements.
+Verify that each device in DEVICES_LIST is inside the Navigation Info list of elements.
+if at least one of the devices isn't there, raise exception.
+
+step 5:
+go to 'Domain Management' page.
+add domain under 'Inventory' called "PM_domain" (the value of the variable DOMAIN_NAME will be "PM_domain").
+Go into 'Network Topology' page.
+Select domain via select_domain(domain=DOMAIN_NAME) in Pages -> upper_panel.py.
+go to 'Domain Management' page.
+for each ip in DEVICES_LIST:
+    move the ip to the domain DOMAIN_NAME via move_to_domain(source_item_name=ip , target_domain_name=DOMAIN_NAME) in Pages -> domain_management.py.
+    sleep(1)
+
+step 6: 
+for ip in DEVICES_LIST:
+    login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+    each device has a different name for the port 1 -> use PORT_PER_PRODUCT to do that and store it as port1_name.
+    for that ip get pm type current dropdown values via get_device_pm_type_current_dropdown_options(port_number=port1_name) in PL_Devices -> PL_Pages ->PL_performance_page.py and save it as pl_pm_type_dropdown_values in a list called pl_pm_type_dropdown_values_per_product.
+    go to 'Performance' page in LightWatch.
+    get the product name for ip using DEVICES_NAMES corresponding location, add it " (ip)" and store it as device_name.
+    set device via set_device(device=device_name) in Pages -> performance.py.
+    get the device pm type current dropdown values via get_pm_type_current_dropdown_options in Pages -> performance.py and save it as lw_pm_type_dropdown_values in a list called lw_pm_type_dropdown_values_per_product.
+    match between pl_pm_type_dropdown_values and lw_pm_type_dropdown_values.
+    if they are not equal raise an exception.
+
+# PL_1000D
+step 7:
+device_name = DEVICES_NAMES[0]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+
+# PL_1000GD
+step 8:
+device_name = DEVICES_NAMES[1]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000GIL
+step 9:
+device_name = DEVICES_NAMES[2]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000GR
+step 10:
+device_name = DEVICES_NAMES[3]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000GRO
+step 11:
+device_name = DEVICES_NAMES[4]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000GRO_R
+step 12:
+device_name = DEVICES_NAMES[5]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000IL
+step 13:
+device_name = DEVICES_NAMES[6]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000R
+step 14:
+device_name = DEVICES_NAMES[7]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000RO
+step 15:
+device_name = DEVICES_NAMES[8]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000TE
+step 16:
+device_name = DEVICES_NAMES[9]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000TE_CRYPTO
+step 17:
+device_name = DEVICES_NAMES[10]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_1000TN
+step 18:
+device_name = DEVICES_NAMES[11]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000
+step 19:
+device_name = DEVICES_NAMES[12]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000AD_LH
+step 20:
+device_name = DEVICES_NAMES[13]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000_AD_METRO
+step 21:
+device_name = DEVICES_NAMES[14]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000ADS
+step 22:
+device_name = DEVICES_NAMES[15]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000GA
+step 23:
+device_name = DEVICES_NAMES[16]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000GM
+step 24:
+device_name = DEVICES_NAMES[17]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000M
+step 25:
+device_name = DEVICES_NAMES[18]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_2000T
+step 26:
+device_name = DEVICES_NAMES[19]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_4000G
+step 27:
+device_name = DEVICES_NAMES[20]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_4000M
+step 28:
+device_name = DEVICES_NAMES[21]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_4000T
+step 29:
+device_name = DEVICES_NAMES[22]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_8000G
+step 30:
+device_name = DEVICES_NAMES[23]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+# PL_8000M
+step 31:
+device_name = DEVICES_NAMES[24]
+device_pm_type_values = pl_pm_type_dropdown_values_per_product[device_name]
+
+if device_name == "":
+    continue to the next step
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_MINUTES, pm_type=type_value)
+
+for type_value in device_pm_type_values:
+    match_pm_between_lw_and_pl_device(device_ip=PL_1000D_IP, device_name=device_name, pm_period_type=PM_TYPE_DAYS, pm_type=type_value)
+
+collect if each step passed.
+if one of them failed then say that the test failed.
+if all of them are pass then say that the test passed.

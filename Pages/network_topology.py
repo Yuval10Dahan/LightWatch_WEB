@@ -483,12 +483,12 @@ class NetworkTopology:
                 raise ValueError("Provide at least one of: element_name, element_ip.")
 
             tile.scroll_into_view_if_needed()
-            refresh_page(self.page)
+            # refresh_page(self.page)
             sleep(2)
             tile.dblclick(timeout=timeout, force=True)
             sleep(2)
-            tile.dblclick(timeout=timeout, force=True)
-            sleep(5)
+            # tile.dblclick(timeout=timeout, force=True)
+            # sleep(5)
 
             return True
 
@@ -955,7 +955,9 @@ class NetworkTopology:
 
         # Prefer matching on the whole title element
         rx = self.nav_text_regex(element_name)
-        return container.locator("div.inventory-tree-level-title", has_text=rx).first
+        container = container.locator("div.inventory-tree-level-title", has_text=rx).first
+        sleep(1)
+        return container
     
     # ✅
     def normalize_nav_label(self, s: str) -> str:
@@ -1145,6 +1147,7 @@ class NetworkTopology:
         Opens the element details panel by single-clicking the element
         in the Navigation Info tree.
         """
+        self.show_navigation_info()
         row = self.nav_row_locator(element_name)
         expect(row).to_be_visible(timeout=timeout)
 
@@ -1156,15 +1159,17 @@ class NetworkTopology:
             panel_title = self.page.locator(
                 "xpath=//div[contains(@class,'details') or contains(@class,'modal')]"
                 "//span[contains(normalize-space(.), '{}')]".format(element_name.split("/")[0]))
+            
+            sleep(1)
 
             # Fallback: close button visibility means panel is open
             close_btn = self.page.locator(
                 "xpath=//*[name()='svg']"
                 "/ancestor::*[self::button or self::div][1]")
+            
+            sleep(1)
 
             self.wait_until(lambda: panel_title.count() > 0 or close_btn.count() > 0, timeout_ms=timeout,interval_ms=200)
-
-            sleep(1)
 
         except Exception as e:
             raise AssertionError(f"navigation_info_open_element_details('{element_name}') failed: {e}")

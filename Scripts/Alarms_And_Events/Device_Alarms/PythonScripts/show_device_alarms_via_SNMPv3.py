@@ -85,17 +85,19 @@ else:
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    DEVICES_LIST = ['172.16.30.15', '172.16.30.13']
+    # DEVICES_LIST = ['172.16.30.15', '172.16.30.13']
+    DEVICES_LIST = ['172.16.20.121', '172.16.30.13']
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
 
-    DUT_IP_NAMES = ["PL-2000ADS (172.16.30.15)", "PL-1000IL2 (172.16.30.13)"]
+    # DUT_IP_NAMES = ["PL-2000ADS (172.16.30.15)", "PL-1000IL2 (172.16.30.13)"]
+    DUT_IP_NAMES = ["PL-2000M (172.16.20.121)", "PL-1000IL2 (172.16.30.13)"]
 
     NEW_CHASSIS_ID = "67"
     DOMAIN_NAME = "Script_Domain"
     SUB_DOMAIN_NAME = "Script_Sub_Domain"
 
-    CATEGORY_TEST_DEVICE = "172.16.40.31"
+    CATEGORY_TEST_DEVICE = "172.16.20.126"
     
 
 # ================================================================
@@ -108,6 +110,9 @@ WAIT = 30
 SNMPV3_USERNAME = "admin3"
 SNMPV3_PASSWORD = "Admin1234!"
 AUTH_TYPE = "SHA1"
+LW_AUTH_TYPE = "SHA-1"
+
+AUTH_NO_PRIV = "Authentication, No Privacy"
 
 CATEGORIES_LIST = ["Device", "Syslog", "System", "Configuration Event", "Inventory",
                     "Discovery", "Provisioning", "Security", "Service", "OTN Service", 
@@ -381,9 +386,14 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
             sleep(0.5)
             device_discovery.set_SNMPv3_user_name(SNMPV3_USERNAME)
             sleep(0.5)
+            device_discovery.set_SNMPv3_security_level(AUTH_NO_PRIV)
+            sleep(0.5)
+            device_discovery.set_SNMPv3_authentication_protocol(LW_AUTH_TYPE)
+            sleep(0.5)
+            device_discovery.set_SNMPv3_authentication_password(SNMPV3_PASSWORD)
+            sleep(0.5)
             device_discovery.click_start_discovery()
             refresh_page(page)
-            sleep(2)
 
         refresh_page(page)
 
@@ -437,17 +447,27 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
     # Go to Alarm & Events on LW server, compare alarms list.   # 
     #############################################################
     def step_6():
-        
+
+        # Normalize time (ignore seconds) for sorting to compare regardless of order
+        def normalize_time(ts: str) -> str:
+            try:
+                dt = datetime.strptime(ts, "%m/%d/%Y %I:%M:%S %p")
+                return dt.strftime("%m/%d/%Y %I:%M %p")
+            except Exception:
+                return ts
+
+        def sort_key(alarm):
+            return (normalize_time(alarm[0]), alarm[1], alarm[2], alarm[3])
+
         for ip in DEVICES_LIST:
             device_page = page.context.new_page()
             pl_login = PL_LoginPage(device_page)
             pl_login.goto(f"http://{ip}/")
             pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
             pl_main = PL_Main_Screen_POM(device_page)
-            
+
             try:
                 pl_alarms_stored[ip] = pl_main.get_alarms_table("ALL")
-                print(f"Alarms from {ip} GUI: {pl_alarms_stored[ip]}")
             except Exception:
                 pl_alarms_stored[ip] = []
 
@@ -457,20 +477,27 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
             alarms_and_events.set_faults_type("Alarms")
             alarms_and_events.set_filterBy("Devices")
             alarms_and_events.select_device_filterBy_devices(ip)
-            
+            alarms_and_events.close_devices_dropdown()
+            sleep(1)
+
             try:
                 lw_alarms = alarms_and_events.get_all_alarms()
                 lw_formatted_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_alarms)
-                print(f"Alarms from {ip} LW (GUI format): {lw_formatted_alarms}")
 
             except Exception:
                 lw_alarms = []
                 lw_formatted_alarms = []
-            
-            is_match = compare_device_and_lw_alarms(ip, pl_alarms_stored[ip], lw_formatted_alarms)
+
+            pl_alarms_sorted = sorted(pl_alarms_stored[ip], key=sort_key)
+            lw_formatted_alarms_sorted = sorted(lw_formatted_alarms, key=sort_key)
+
+            # print(f"Alarms from {ip} GUI: {pl_alarms_sorted}")
+            # print(f"Alarms from {ip} LW (GUI format): {lw_formatted_alarms_sorted}")
+
+            is_match = compare_device_and_lw_alarms(ip, pl_alarms_sorted, lw_formatted_alarms_sorted)
             if not is_match:
                 raise AssertionError(f"Alarms content mismatch for {ip} between Device GUI and LW.")
-            
+
             refresh_page(page)
 
     results[6] = run_step(6, step_6, logger, report)
@@ -479,6 +506,18 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
     # Step 7 – Select Chassis and compare alarms. # 
     ###############################################
     def step_7():
+
+        # Normalize time (ignore seconds) for sorting to compare regardless of order
+        def normalize_time(ts: str) -> str:
+            try:
+                dt = datetime.strptime(ts, "%m/%d/%Y %I:%M:%S %p")
+                return dt.strftime("%m/%d/%Y %I:%M %p")
+            except Exception:
+                return ts
+
+        def sort_key(alarm):
+            return (normalize_time(alarm[0]), alarm[1], alarm[2], alarm[3])
+
         for ip in DEVICES_LIST:
             device_page = page.context.new_page()
             pl_login = PL_LoginPage(device_page)
@@ -488,7 +527,7 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
             
             try:
                 pl_alarms_stored[ip] = pl_main.get_alarms_table("ALL")
-                print(f"Alarms from {ip} GUI: {pl_alarms_stored[ip]}")
+                # print(f"Alarms from {ip} GUI: {pl_alarms_stored[ip]}")
             except Exception:
                 pl_alarms_stored[ip] = []
 
@@ -508,15 +547,18 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
         for ip in DEVICES_LIST:
             lw_source_alarms = [a for a in lw_alarms if ip in a.get('source', '')]
             lw_formatted_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_source_alarms)
-            print(f"Alarms from {ip} LW (GUI format, filtered): {lw_formatted_alarms}")
-            
-            is_match = compare_device_and_lw_alarms(ip, pl_alarms_stored[ip], lw_formatted_alarms)
+            # print(f"Alarms from {ip} LW (GUI format, filtered): {lw_formatted_alarms}")
+
+            pl_alarms_sorted = sorted(pl_alarms_stored[ip], key=sort_key)
+            lw_formatted_alarms_sorted = sorted(lw_formatted_alarms, key=sort_key)
+
+            is_match = compare_device_and_lw_alarms(ip, pl_alarms_sorted, lw_formatted_alarms_sorted)
             if not is_match:
                 all_match = False
-                
+
         if not all_match:
             raise AssertionError("Alarms content mismatch between Device GUI and LW Server.")
-            
+
         refresh_page(page)
 
     results[7] = run_step(7, step_7, logger, report)
@@ -527,6 +569,17 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
     #############################################################
     def step_8():
         all_match = True
+
+        # Normalize time (ignore seconds) for sorting to compare regardless of order
+        def normalize_time(ts: str) -> str:
+            try:
+                dt = datetime.strptime(ts, "%m/%d/%Y %I:%M:%S %p")
+                return dt.strftime("%m/%d/%Y %I:%M %p")
+            except Exception:
+                return ts
+
+        def sort_key(alarm):
+            return (normalize_time(alarm[0]), alarm[1], alarm[2], alarm[3])
 
         for ip in DEVICES_LIST:
             device_page = page.context.new_page()
@@ -569,7 +622,10 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
             lw_source_alarms = [a for a in lw_alarms if ip in a.get('source', '')]
             lw_formatted_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_source_alarms)
 
-            is_match = compare_device_and_lw_alarms(ip, pl_alarms_stored[ip], lw_formatted_alarms)
+            pl_alarms_sorted = sorted(pl_alarms_stored[ip], key=sort_key)
+            lw_formatted_alarms_sorted = sorted(lw_formatted_alarms, key=sort_key)
+
+            is_match = compare_device_and_lw_alarms(ip, pl_alarms_sorted, lw_formatted_alarms_sorted)
             if not is_match:
                 all_match = False
 
@@ -586,6 +642,17 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
     ###########################################################
     def step_9():
         refresh_page(page)
+
+        # Normalize time (ignore seconds) for sorting to compare regardless of order
+        def normalize_time(ts: str) -> str:
+            try:
+                dt = datetime.strptime(ts, "%m/%d/%Y %I:%M:%S %p")
+                return dt.strftime("%m/%d/%Y %I:%M %p")
+            except Exception:
+                return ts
+
+        def sort_key(alarm):
+            return (normalize_time(alarm[0]), alarm[1], alarm[2], alarm[3])
 
         for ip in DEVICES_LIST:
             device_page = page.context.new_page()
@@ -624,7 +691,9 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
                 f"{ip} {port_number}" in a.get('source', ''))]
             lw_formatted_critical_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_critical_port1)
             pl_critical_port1 = [a for a in pl_alarms_port_1[ip] if len(a) > 2 and a[2] == 'Critical']
-            is_match = compare_device_and_lw_alarms(ip, pl_critical_port1, lw_formatted_critical_alarms, section="Critical")
+            pl_critical_port1_sorted = sorted(pl_critical_port1, key=sort_key)
+            lw_formatted_critical_alarms_sorted = sorted(lw_formatted_critical_alarms, key=sort_key)
+            is_match = compare_device_and_lw_alarms(ip, pl_critical_port1_sorted, lw_formatted_critical_alarms_sorted, section="Critical")
             if not is_match:
                 raise AssertionError(f"Critical Alarms mismatch for {ip}")
 
@@ -637,7 +706,9 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
                 f"{ip} {port_number}" in a.get('source', ''))]
             lw_formatted_major_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_major_port1)
             pl_major_port1 = [a for a in pl_alarms_port_1[ip] if len(a) > 2 and a[2] == 'Major']
-            is_match = compare_device_and_lw_alarms(ip, pl_major_port1, lw_formatted_major_alarms, section="Major")
+            pl_major_port1_sorted = sorted(pl_major_port1, key=sort_key)
+            lw_formatted_major_alarms_sorted = sorted(lw_formatted_major_alarms, key=sort_key)
+            is_match = compare_device_and_lw_alarms(ip, pl_major_port1_sorted, lw_formatted_major_alarms_sorted, section="Major")
             if not is_match:
                 raise AssertionError(f"Major Alarms mismatch for {ip}")
 
@@ -650,7 +721,9 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
                 f"{ip} {port_number}" in a.get('source', ''))]
             lw_formatted_minor_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_minor_port1)
             pl_minor_port1 = [a for a in pl_alarms_port_1[ip] if len(a) > 2 and a[2] == 'Minor']
-            is_match = compare_device_and_lw_alarms(ip, pl_minor_port1, lw_formatted_minor_alarms, section="Minor")
+            pl_minor_port1_sorted = sorted(pl_minor_port1, key=sort_key)
+            lw_formatted_minor_alarms_sorted = sorted(lw_formatted_minor_alarms, key=sort_key)
+            is_match = compare_device_and_lw_alarms(ip, pl_minor_port1_sorted, lw_formatted_minor_alarms_sorted, section="Minor")
             if not is_match:
                 raise AssertionError(f"Minor Alarms mismatch for {ip}")
 
@@ -690,6 +763,7 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
 
         union_lw_alarms = []
         for category in CATEGORIES_LIST:
+            alarms_and_events.clear_category_field()
             alarms_and_events.set_category(category)
             sleep(0.5)
             lw_category_alarms = [a for a in lw_alarms if a.get('category', a.get('Category')) == category]
@@ -739,7 +813,7 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
                 continue
 
             target_alarm = lw_alarms[0]
-            timestamp_str = target_alarm.get('creation_timestamp')
+            timestamp_str = target_alarm.get('detection_timestamp')
             
             try:
                 dt = datetime.strptime(timestamp_str, "%d.%m.%Y, %H:%M:%S")
@@ -866,7 +940,7 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
                     print(f"IP {ip}: Element color is not green: {color}")
                     logger.info(f"IP {ip}: Element color is not green: {color}")
 
-                    raise AssertionError(f"IP {ip}: Element color is not green")
+                    raise AssertionError(f"IP {ip}: Element color is not green") 
 
             except Exception as e:
                 raise AssertionError(f"IP {ip}: Error while checking element color: {e}")
@@ -874,10 +948,10 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
 
     results[13] = run_step(13, step_13, logger, report)
 
-    #############################################################
-    # Step 14 – Remove devices from LW.                         # 
-    # Apply factory defaults to devices and wait for them.      # 
-    #############################################################
+    #################################################################
+    # Step 14 – Remove devices from LW, remove chassis and domains. # 
+    # Apply factory defaults to devices and wait for them.          # 
+    #################################################################
     def step_14():
         refresh_page(page)
         left_panel.click_domain_management()
@@ -921,6 +995,11 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
         deleted = domain_management.verify_element_deleted(element_name=CATEGORY_TEST_DEVICE, element_type="device")
         if not deleted:
             raise AssertionError(f"{CATEGORY_TEST_DEVICE}: Element not deleted")
+
+        # Remove chassis and domains
+        domain_management.remove_chassis(chassis_name=f"Chassis: {NEW_CHASSIS_ID}", parent_domain_name=SUB_DOMAIN_NAME)
+        domain_management.remove_domain(domain_name=SUB_DOMAIN_NAME)
+        domain_management.remove_domain(domain_name=DOMAIN_NAME)
 
         # Factory Default
         for ip in ALL_DEVICES:

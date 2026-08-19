@@ -5,6 +5,8 @@ Date: 04/03/2026
 =====================================================
 Tests the Start Discovery for IP Range for SNMPv3.
 
+Note: The test requires two devices with consecutive IP addresses. (e.g. DEVICE_IP1 = "172.16.30.15", DEVICE_IP2 = "172.16.30.16")
+
 *** Runtime: approximately == minutes ***
 """
 
@@ -60,9 +62,9 @@ else:
     DEVICE_IP_USER = "tech"
     DEVICE_IP_PASS = "packetlight"
 
-    # Range devices
-    DEVICE_IP_1 = "172.16.30.123"
-    DEVICE_IP_2 = "172.16.30.124"
+    # Range devices - must be consecutive IPs
+    DEVICE_IP_1 = "172.16.30.15"
+    DEVICE_IP_2 = "172.16.30.16"
 
     AUTHENTICATION_PASSWORD = "Z@qqaz$$2"
     PRIVACY_PASSWORD = "Z@qqaz$$2"
@@ -86,6 +88,7 @@ SNMPv3_DEFAULT_VALUES = {
 
 BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
 WAIT = 30
+DISCOVERY_WAIT = 10
 
 LOGGER_ROOT_DIRECTORY = r'G:\Python\PacketLight Automation\LightWatch_WEB\Scripts\Device_Discovery\SNMP\LogFiles'
 LOGGER_DIRECTORY_NAME = "discovery_for_ip_range_SNMPv3"
@@ -93,6 +96,8 @@ LOG_FILE_NAME = 'discovery_for_ip_range_SNMPv3.log'
 REPORT_PATH = None
 
 RANGE_DEVICES = [DEVICE_IP_1, DEVICE_IP_2]
+NUMBER_OF_USERS = 3
+LW_RENDER_WAIT = 5
 
 
 # ================================================================
@@ -132,27 +137,18 @@ def open_device_discovery(left_panel: LeftPanel):
             "(Device Discovery did not open)."
         )
 
-def add_lw_trap_snmpv3(page, device_ip: str):
-    """
-    Add LW server as SNMPv3 trap manager on a device.
-    """
-    server_ip = LW_SERVER_HOST_IP.split(":")[0]
-    device_page = page.context.new_page()
+def open_domain_management(left_panel: LeftPanel):
+    """Open Domain Management via LeftPanel and assert it opened."""
     try:
-        pl_login = PL_LoginPage(device_page)
-        pl_login.goto(f"http://{device_ip}/")
-        ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-        assert ok, f"Login to {device_ip} GUI failed."
+        ok = left_panel.click_domain_management()
+    except Exception as e:
+        raise AssertionError(f"Failed to call left_panel.click_domain_management(). Error: {e}")
 
-        pl_snmp = PL_SNMPPage(device_page)
-        ok_tab = pl_snmp.open_SNMP_tab()
-        assert ok_tab, f"Failed to open SNMP tab on {device_ip}."
-
-        success, _ = pl_snmp.Add_Trap_Manager(IP=server_ip, SNMP_Version="SNMP v3")
-        assert success, f"Server IP ({server_ip}) was not added to SNMPv3 Traps table on {device_ip}."
-        refresh_page(device_page)
-    finally:
-        device_page.close()
+    if ok is not True:
+        raise AssertionError(
+            "left_panel.click_domain_management() returned False "
+            "(Domain Management did not open)."
+        )
 
 def verify_lw_trap_exists_snmpv3(page, device_ip: str):
     """
@@ -168,14 +164,17 @@ def verify_lw_trap_exists_snmpv3(page, device_ip: str):
 
         pl_snmp = PL_SNMPPage(device_page)
         ok_tab = pl_snmp.open_SNMP_tab()
+        sleep(5)
+        refresh_page(device_page)
         assert ok_tab, f"Failed to open SNMP tab on {device_ip}."
 
+        refresh_page(device_page)
         found = pl_snmp.manager_address_added_to_SNMP_traps(server_ip)
         assert found, f"Server IP ({server_ip}) was NOT found in SNMP Traps table of {device_ip}."
     finally:
         device_page.close()
 
-def add_snmpv3_user(page, device_ip: str, user_name: str, snmpv3_auth: str, snmpv3_priv: str):
+def add_snmpv3_user(page, device_ip: str, user_name: str, snmpv3_auth: str, snmpv3_priv: str, password_auth: str = None, password_priv: str = None):
     """
     Add SNMPv3 user on device.
     """
@@ -189,6 +188,7 @@ def add_snmpv3_user(page, device_ip: str, user_name: str, snmpv3_auth: str, snmp
         pl_sec = PL_SecurityPage(device_page)
         pl_sec.open_security_tab()
         pl_sec.click_on_users()
+        refresh_page(device_page)
 
         ok_add = pl_sec.add_new_user(
             user_name=user_name,
@@ -196,8 +196,11 @@ def add_snmpv3_user(page, device_ip: str, user_name: str, snmpv3_auth: str, snmp
             password=NEW_USER_PASSWORD,
             verify_password=NEW_USER_PASSWORD,
             snmpv3_auth=snmpv3_auth,
-            snmpv3_priv=snmpv3_priv
+            snmpv3_priv=snmpv3_priv,
+            password_auth=password_auth,
+            password_priv=password_priv
         )
+        sleep(0.5)
         assert ok_add, f"Failed to add new user '{user_name}' on {device_ip}."
     finally:
         device_page.close()
@@ -217,9 +220,11 @@ def verify_user_parameters(page, device_ip: str, user_name: str, expected_auth_c
         pl_sec = PL_SecurityPage(device_page)
         pl_sec.open_security_tab()
         pl_sec.click_on_users()
+        refresh_page(device_page)
         table = pl_sec.get_users_table()
 
         params = pl_sec.return_user_parameters(user_name, table)
+        sleep(0.5)
         if params is None or len(params) == 0:
             raise AssertionError(f"No parameters found for user '{user_name}' on {device_ip}.")
 
@@ -263,6 +268,8 @@ def run_snmpv3_range_discovery(device_discovery: DeviceDiscovery, start_ip: str,
 
     device_discovery.set_SNMPv3_contact_port(contact_port)
 
+    sleep(2)
+
     device_discovery.click_start_discovery()
 
 
@@ -281,7 +288,7 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
 
     ###################################################
     # Step 1 – Factory default reset for all devices. #
-    # Open Device Discovery.                          #
+    # Remove devices from LW via Domain Management.   #
     ###################################################
     def step_1():
         ips_to_reset = [DEVICE_IP_1, DEVICE_IP_2]
@@ -301,9 +308,11 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
 
         devices_are_up(ips_to_reset, wait_time=WAIT)
 
-        open_device_discovery(left_panel)
-        assert device_discovery.container().is_visible(), "Device Discovery container is not visible."
-        device_discovery.click_SNMPv3()
+        # Remove devices from LW via Domain Management
+        left_panel.click_domain_management()
+        for ip in ips_to_reset:
+            domain_management.remove_device(ip)
+            sleep(5)
 
     results[1] = run_step(1, step_1, logger, report)
 
@@ -312,6 +321,8 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     # Store those values.                           #
     #################################################
     def step_2():
+        open_device_discovery(left_panel)
+        assert device_discovery.container().is_visible(), "Device Discovery container is not visible."
         device_discovery.click_SNMPv3()
 
         # Force-save factory defaults (like SNMPv3.py does)
@@ -320,7 +331,7 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
         device_discovery.set_SNMPv3_contact_port(SNMPv3_DEFAULT_VALUES["contactPort"])
         device_discovery.click_save_as_default()
         device_discovery.confirm_default_override()
-        refresh_page(5)
+        refresh_page(page)
 
         stored_defaults["userName"] = device_discovery.get_SNMPv3_user_name()
         stored_defaults["securityLevel"] = device_discovery.get_SNMPv3_security_level()
@@ -422,10 +433,6 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     ##################################################################
     def step_6():
         refresh_page(page)
-
-        # for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-        #     add_lw_trap_snmpv3(page, ip)
-
         open_device_discovery(left_panel)
 
         run_snmpv3_range_discovery(device_discovery=device_discovery, start_ip=DEVICE_IP_1, end_ip=DEVICE_IP_2, user_name="admin", security_level=NO_AUTH_NO_PRIV,
@@ -490,10 +497,6 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     #############################################################
     def step_11():
         refresh_page(page)
-
-        # for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-        #     add_lw_trap_snmpv3(page, ip)
-
         open_device_discovery(left_panel)
 
         run_snmpv3_range_discovery(
@@ -577,10 +580,6 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     ###################################################
     def step_16():
         refresh_page(page)
-
-        # for ip in [DEVICE_IP_1, DEVICE_IP_2]:
-        #     add_lw_trap_snmpv3(page, ip)
-
         open_device_discovery(left_panel)
 
         run_snmpv3_range_discovery(
@@ -645,6 +644,7 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
     # Step 20 – Remove devices from LW via Domain Management #
     ##########################################################
     def step_20():
+        open_domain_management(left_panel)
         ips_to_remove = [DEVICE_IP_1, DEVICE_IP_2]
         for ip in ips_to_remove:
             domain_management.remove_device(ip)
@@ -675,94 +675,229 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
 
     results[21] = run_step(21, step_21, logger, report)
 
-    ##################################################
-    # Step 22 – Combinatorics of Auth/Priv Protocols #
-    ##################################################
+    ######################################################
+    # Step 22 – Combinatorics of Auth/ No Priv Protocols #
+    ######################################################
 
-    def do_combo_test(target_ip, auth_proto, priv_proto):
-        # Add user on the target device
+    def do_combo_test(target_start_ip, target_end_ip, auth_proto, priv_proto, user_index):
+        print(f"Running combo test for {target_start_ip} and {target_end_ip} with Auth: {auth_proto}, Priv: {priv_proto}, User Index: {user_index}")
+
+        # Add user on the target start ip device
         add_snmpv3_user(
             page=page,
-            device_ip=target_ip,
-            user_name="Alpha",
-            snmpv3_auth=auth_proto.replace("-", ""),  # e.g. SHA-256 -> SHA256
-            snmpv3_priv=priv_proto,
+            device_ip=target_start_ip,
+            user_name="Alpha" + str(user_index),
+            snmpv3_auth=auth_proto,
+            snmpv3_priv=priv_proto
         )
 
-        # # Add LW trap on the target device
-        # add_lw_trap_snmpv3(page, target_ip)
+        # Add user on the target end ip device
+        add_snmpv3_user(
+            page=page,
+            device_ip=target_end_ip,
+            user_name="Alpha" + str(user_index),
+            snmpv3_auth=auth_proto,
+            snmpv3_priv=priv_proto
+        )
 
         # Discovery (RANGE mode with Start == End)
-        refresh_page(page)
         open_device_discovery(left_panel)
+        refresh_page(page)
 
         run_snmpv3_range_discovery(
             device_discovery=device_discovery,
-            start_ip=target_ip,
-            end_ip=target_ip,
-            user_name="Alpha",
+            start_ip=target_start_ip,
+            end_ip=target_end_ip,
+            user_name="Alpha" + str(user_index),
+            security_level=AUTH_NO_PRIV,
+            auth_protocol=auth_proto,
+            auth_password=AUTHENTICATION_PASSWORD,
+            contact_port=CONTACT_PORT
+        )
+
+        countdown_sleep(DISCOVERY_WAIT, message=f"Wait for discovery of {target_start_ip} and {target_end_ip}")
+        refresh_page(page)
+
+        # Verify devices appears in Management Map
+        ok_map = left_panel.click_network_topology()
+        assert ok_map, "Failed to navigate to Network Topology."
+
+        network_topology.show_navigation_info()
+        start_ip_in_nav = network_topology.is_element_exist_on_navigation_info_list(target_start_ip)
+        end_ip_in_nav = network_topology.is_element_exist_on_navigation_info_list(target_end_ip)
+        assert start_ip_in_nav and end_ip_in_nav, f"One or both of {target_start_ip} and {target_end_ip} were not found in Navigation Info."
+
+        # Verify LW trap still exists in both devices
+        verify_lw_trap_exists_snmpv3(page, target_start_ip)
+        verify_lw_trap_exists_snmpv3(page, target_end_ip)
+
+        # Verify user parameters in start ip device
+        verify_user_parameters(
+            page=page,
+            device_ip=target_start_ip,
+            user_name="Alpha" + str(user_index),
+            expected_auth_contains=auth_proto,
+            expected_priv_contains=priv_proto,
+        )
+
+        # Verify user parameters in end ip device
+        verify_user_parameters(
+            page=page,
+            device_ip=target_end_ip,
+            user_name="Alpha" + str(user_index),
+            expected_auth_contains=auth_proto,
+            expected_priv_contains=priv_proto,
+        )
+
+        open_domain_management(left_panel)
+        ips_to_remove = [target_start_ip, target_end_ip]
+        for ip in ips_to_remove:
+            domain_management.remove_device(ip)
+            sleep(1)
+            deleted = domain_management.verify_element_deleted(element_name=ip, element_type="device")
+            if not deleted:
+                refresh_page(page)
+                sleep(5)
+                domain_management.remove_device(ip)
+
+                make_sure_deleted = domain_management.verify_element_deleted(element_name=ip, element_type="device")
+                if not make_sure_deleted:
+                    raise AssertionError(f"{ip}: Element not deleted")
+
+    def step_22():
+        devices = [DEVICE_IP_1, DEVICE_IP_2]
+        auths = ["SHA-256", "SHA-384", "SHA-512"]
+        index = 1
+
+        for auth_proto in auths:
+            priv_proto = "No Priv"
+            do_combo_test(devices[0], devices[1], auth_proto, priv_proto, index)
+            index += 1
+            sleep(LW_RENDER_WAIT)  # Wait for LW to render after removing devices
+
+        # Cleanup after this step
+        step_21()
+
+    results[22] = run_step(22, step_22, logger, report)
+
+    ##################################################
+    # Step 23 – Combinatorics of Auth/Priv Protocols #
+    ##################################################
+
+    def do_combo_test(target_start_ip, target_end_ip, auth_proto, priv_proto, user_index):
+        print(f"Running combo test for {target_start_ip} and {target_end_ip} with Auth: {auth_proto}, Priv: {priv_proto}, User Index: {user_index}")
+
+        # Add user on the target start ip device
+        add_snmpv3_user(
+            page=page,
+            device_ip=target_start_ip,
+            user_name="Alpha" + str(user_index),
+            snmpv3_auth=auth_proto,
+            snmpv3_priv=priv_proto,
+            password_auth=AUTHENTICATION_PASSWORD,
+            password_priv=PRIVACY_PASSWORD
+        )
+
+        # Add user on the target end ip device
+        add_snmpv3_user(
+            page=page,
+            device_ip=target_end_ip,
+            user_name="Alpha" + str(user_index),
+            snmpv3_auth=auth_proto,
+            snmpv3_priv=priv_proto,
+            password_auth=AUTHENTICATION_PASSWORD,
+            password_priv=PRIVACY_PASSWORD
+        )
+
+        # Discovery (RANGE mode with Start == End)
+        open_device_discovery(left_panel)
+        refresh_page(page)
+
+        run_snmpv3_range_discovery(
+            device_discovery=device_discovery,
+            start_ip=target_start_ip,
+            end_ip=target_end_ip,
+            user_name="Alpha" + str(user_index),
             security_level=AUTH_PRIV,
             auth_protocol=auth_proto,
             auth_password=AUTHENTICATION_PASSWORD,
             priv_protocol=priv_proto,
             priv_password=PRIVACY_PASSWORD,
-            contact_port=CONTACT_PORT,
+            contact_port=CONTACT_PORT
         )
 
-        countdown_sleep(WAIT, message=f"Wait for discovery of {target_ip}")
+        countdown_sleep(DISCOVERY_WAIT, message=f"Wait for discovery of {target_start_ip} and {target_end_ip}")
         refresh_page(page)
 
-        # Verify device appears in Management Map
+        # Verify devices appears in Management Map
         ok_map = left_panel.click_network_topology()
         assert ok_map, "Failed to navigate to Network Topology."
 
         network_topology.show_navigation_info()
-        in_nav = network_topology.is_element_exist_on_navigation_info_list(target_ip)
-        assert in_nav, f"{target_ip} was not found in Navigation Info."
+        start_ip_in_nav = network_topology.is_element_exist_on_navigation_info_list(target_start_ip)
+        end_ip_in_nav = network_topology.is_element_exist_on_navigation_info_list(target_end_ip)
+        assert start_ip_in_nav and end_ip_in_nav, f"One or both of {target_start_ip} and {target_end_ip} were not found in Navigation Info."
 
-        # Verify LW trap still exists
-        verify_lw_trap_exists_snmpv3(page, target_ip)
+        # Verify LW trap still exists in both devices
+        verify_lw_trap_exists_snmpv3(page, target_start_ip)
+        verify_lw_trap_exists_snmpv3(page, target_end_ip)
 
-        # Verify user parameters
+        # Verify user parameters in start ip device
         verify_user_parameters(
             page=page,
-            device_ip=target_ip,
-            user_name="Alpha",
+            device_ip=target_start_ip,
+            user_name="Alpha" + str(user_index),
             expected_auth_contains=auth_proto,
             expected_priv_contains=priv_proto,
         )
 
-    def step_22():
-        auths = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"]
-        privs = ["AES-128", "AES-192", "AES-256"]
+        # Verify user parameters in end ip device
+        verify_user_parameters(
+            page=page,
+            device_ip=target_end_ip,
+            user_name="Alpha" + str(user_index),
+            expected_auth_contains=auth_proto, 
+            expected_priv_contains=priv_proto,
+        )
 
-        # SHA-1 + AES-128 already covered in earlier steps, so skip it here
-        combinations = [
-            (auth_proto, priv_proto)
-            for auth_proto in auths
-            for priv_proto in privs
-            if not (auth_proto == "SHA-1" and priv_proto == "AES-128")
-        ]
+        open_domain_management(left_panel)
+        ips_to_remove = [target_start_ip, target_end_ip]
+        for ip in ips_to_remove:
+            domain_management.remove_device(ip)
+            sleep(1)
+            deleted = domain_management.verify_element_deleted(element_name=ip, element_type="device")
+            if not deleted:
+                refresh_page(page)
+                sleep(5)
+                domain_management.remove_device(ip)
 
-        available_ips = [DEVICE_IP_1, DEVICE_IP_2]
-        batch_size = len(available_ips)
+                make_sure_deleted = domain_management.verify_element_deleted(element_name=ip, element_type="device")
+                if not make_sure_deleted:
+                    raise AssertionError(f"{ip}: Element not deleted")
 
-        for batch_start in range(0, len(combinations), batch_size):
-            batch = combinations[batch_start:batch_start + batch_size]
-
-            for ip, (auth_proto, priv_proto) in zip(available_ips, batch):
-                do_combo_test(ip, auth_proto, priv_proto)
-
-            # Cleanup after every batch so the same 2 devices can be reused
-            step_20()
-            step_21()
-
-    results[22] = run_step(22, step_22, logger, report)
-
-    #############################################################
-    # Step 23 – Invalid IP Checks (Range Start/End fields)      #
-    #############################################################
     def step_23():
+        devices = [DEVICE_IP_1, DEVICE_IP_2]
+
+        auths = ["SHA-256", "SHA-384", "SHA-512"]
+        privs = ["AES-128", "AES-192", "AES-256"]
+        index = 1
+
+        combinations = [(a, p) for a in auths for p in privs]
+
+        for auth_proto, priv_proto in combinations:
+            do_combo_test(devices[0], devices[1], auth_proto, priv_proto, index)
+            index += 1
+            sleep(LW_RENDER_WAIT)  # Wait for LW to render after removing devices
+
+        # Cleanup after this step
+        step_21()
+
+    results[23] = run_step(23, step_23, logger, report)
+
+    #############################################################
+    # Step 24 – Invalid IP Checks (Range Start/End fields)      #
+    #############################################################
+    def step_24():
         refresh_page(page)
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv3()
@@ -790,7 +925,7 @@ def test_discovery_for_ip_range_snmpv3(page, left_panel: LeftPanel, logger, repo
                 msg_parts.append(f"End IP field accepted invalid values: {failed_end}")
             raise AssertionError("; ".join(msg_parts))
 
-    results[23] = run_step(23, step_23, logger, report)
+    results[24] = run_step(24, step_24, logger, report)
 
     ###################
     # Overall Results #

@@ -9,7 +9,7 @@ from typing import Callable
 import time
 import re
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 from Utils.utils import refresh_page
 
 
@@ -251,8 +251,211 @@ class AlarmsAndEvents:
         try:
             self.dropdown_pick("Category", category, timeout=timeout)
             sleep(1) 
+
+            self.close_category_dropdown(timeout=timeout)
         except Exception as e:
             raise AssertionError(f"set_category('{category}') failed. Problem: {e}")
+
+    # ✅
+    def unset_category(self, category: str, timeout: int = 10000):
+        """
+        Unselect a specific category in the Category filter (if selected).
+        """
+        try:
+            target = self._clean(category)
+            if not target:
+                raise ValueError("category is empty")
+
+            dropdown = self.page.locator("app-dropdown[label='Category']").first
+            if dropdown.count() == 0:
+                raise AssertionError("Category dropdown not found (app-dropdown[label='Category']).")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle], button#button-basic").first
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.scroll_into_view_if_needed()
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Category']").first
+
+            # Open ONLY if not already open
+            if menu.count() == 0 or not menu.is_visible():
+                attempts = [
+                    lambda: btn.click(force=True),
+                    lambda: btn.click(force=True),
+                    lambda: btn.press("ArrowDown"),
+                    lambda: btn.press("Enter"),
+                    lambda: btn.press("Space"),
+                ]
+                opened = False
+                for act in attempts:
+                    try:
+                        act()
+                    except Exception:
+                        pass
+                    try:
+                        self.wait_until(lambda: menu.count() > 0 and menu.is_visible(),
+                                        timeout_ms=min(timeout, 2000),
+                                        interval_ms=150)
+                        if menu.is_visible():
+                            opened = True
+                            break
+                    except Exception:
+                        pass
+
+                if not opened:
+                    raise AssertionError("Category dropdown menu did not open (menu stayed hidden).")
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            def is_checked(cat_li) -> bool:
+                return cat_li.locator("svg.unchecked").count() == 0
+
+            row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(rf"^\s*{re.escape(target)}\s*$", re.IGNORECASE)).first
+
+            if row.count() == 0:
+                options = [self._clean(x) for x in menu.locator("li.dropdown-item.multiple").all_inner_texts()]
+                raise AssertionError(f"Category '{target}' not found in Category dropdown. Available: {options}")
+
+            row.scroll_into_view_if_needed()
+            if is_checked(row):
+                row.click(force=True)
+                self.wait_until(lambda: not is_checked(row), timeout_ms=timeout, interval_ms=200)
+
+            sleep(1)
+
+            self.close_category_dropdown(timeout=timeout)
+
+        except Exception as e:
+            raise AssertionError(f"unset_category('{category}') failed. Problem: {e}")
+
+    # ✅
+    def clear_category_field(self, timeout: int = 10000):
+        """
+        Clear all selected categories at once by clicking the 'All' item in the Category dropdown.
+        """
+        try:
+            dropdown = self.page.locator("app-dropdown[label='Category']").first
+            if dropdown.count() == 0:
+                raise AssertionError("Category dropdown not found (app-dropdown[label='Category']).")
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle], button#button-basic").first
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.scroll_into_view_if_needed()
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='Category']").first
+
+            # Open ONLY if not already open
+            if menu.count() == 0 or not menu.is_visible():
+                def try_open():
+                    try:
+                        btn.click(force=True)
+                    except Exception:
+                        pass
+
+                opened = False
+                for _ in range(3):
+                    try_open()
+                    try:
+                        self.wait_until(lambda: menu.count() > 0 and menu.is_visible(),
+                                        timeout_ms=min(timeout, 2000),
+                                        interval_ms=150)
+                        opened = True
+                        break
+                    except Exception:
+                        pass
+
+                if not opened:
+                    raise AssertionError("Category dropdown menu did not open (menu stayed hidden).")
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            selected_rows = menu.locator("li.dropdown-item.multiple.selected")
+            if selected_rows.count() == 0:
+                self.close_category_dropdown(timeout=timeout)
+                return  # nothing to clear
+
+            all_row = menu.locator("li.dropdown-item.multiple", has_text=re.compile(r"^\s*All\s*$", re.IGNORECASE)).first
+            expect(all_row).to_be_visible(timeout=timeout)
+            all_row.scroll_into_view_if_needed()
+
+            # Click All until nothing is selected
+            cleared = False
+            for _ in range(3):
+                all_row.click(force=True)
+                try:
+                    self.wait_until(lambda: selected_rows.count() == 0,
+                                    timeout_ms=min(timeout, 3000),
+                                    interval_ms=200)
+                    cleared = True
+                    break
+                except Exception:
+                    pass
+
+            self.close_category_dropdown(timeout=timeout)
+
+            if not cleared:
+                raise AssertionError(f"Failed to clear Category selection. Still selected: {selected_rows.count()}")
+
+        except Exception as e:
+            raise AssertionError(f"clear_category_field failed. Problem: {e}")
+
+    # ✅
+    def close_category_dropdown(self, timeout: int = 5000):
+        """
+        Close the Category dropdown if it is open.
+        """
+        try:
+            dropdown = self.page.locator("app-dropdown[label='Category']").first
+            sleep(0.5)
+            if dropdown.count() == 0:
+                return
+
+            container = dropdown.locator("div.dropdown-container").first
+            sleep(0.5)
+            menu = dropdown.locator("div.dropdown-menu[data-label='Category']").first
+            sleep(0.5)
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle], button#button-basic").first
+            sleep(0.5)
+
+            def is_open() -> bool:
+                try:
+                    container_cls = container.get_attribute("class") or ""
+                    menu_cls = menu.get_attribute("class") or ""
+                    return ("open" in container_cls and "show" in container_cls) or ("show" in menu_cls)
+                except Exception:
+                    return False
+
+            # Already closed
+            if not is_open():
+                return
+
+            expect(btn).to_be_visible(timeout=timeout)
+            btn.scroll_into_view_if_needed()
+
+            # Selecting an item near the bottom of the scrollable list (e.g. "Provisioning",
+            # "Security") can leave re-clicking the toggle button unreliable, so also fall
+            # back to Escape / an outside click, same as other overlay dropdowns in this class.
+            attempts = [
+                lambda: btn.click(force=True),
+                lambda: self.page.keyboard.press("Escape"),
+                lambda: self.filters_root().click(force=True, position={"x": 0, "y": 0}),
+            ]
+            for act in attempts:
+                if not is_open():
+                    break
+                try:
+                    act()
+                except Exception:
+                    pass
+                try:
+                    self.wait_until(lambda: not is_open(), timeout_ms=min(timeout, 3000), interval_ms=150)
+                    break
+                except Exception:
+                    pass
+
+            self.wait_until(lambda: not is_open(), timeout_ms=timeout, interval_ms=150)
+
+        except Exception as e:
+            raise AssertionError(f"close_category_dropdown failed. Problem: {e}")
 
     # ✅
     def get_category(self) -> str:
@@ -702,9 +905,37 @@ class AlarmsAndEvents:
 
             expect(btn).to_be_visible(timeout=timeout)
             btn.scroll_into_view_if_needed()
+            sleep(2)
 
-            # Click the toggle button to close
-            btn.click(force=True)
+            def click_toggle_caret():
+                """
+                When devices are selected, the toggle button also renders each selected
+                device as a chip with its own 'x' remove icon. Clicking the button's
+                bounding-box center can land on a chip's 'x' instead of the caret,
+                unselecting a device instead of closing the menu. Click near the
+                button's right edge (where the caret icon sits) to avoid that.
+                """
+                box = btn.bounding_box()
+                if box:
+                    x = box["x"] + box["width"] - 10
+                    y = box["y"] + box["height"] / 2
+                    self.page.mouse.click(x, y)
+                else:
+                    btn.click(force=True)
+
+            # Prefer the precise caret click; never re-click the broad button again,
+            # since that risks landing on a chip's 'x'. Fall back to Escape instead.
+            click_toggle_caret()
+            try:
+                self.wait_until(lambda: not is_open(), timeout_ms=min(timeout, 3000), interval_ms=150)
+                return
+            except Exception:
+                pass
+
+            try:
+                self.page.keyboard.press("Escape")
+            except Exception:
+                pass
 
             self.wait_until(lambda: not is_open(), timeout_ms=timeout, interval_ms=150)
 
@@ -1091,6 +1322,44 @@ class AlarmsAndEvents:
         except Exception as e:
             raise AssertionError(f"set_from_date('{from_date_and_time}') failed. Problem: {e}")
     
+    # ✅
+    def set_from_date_relative_to_now(self, days=0, hours=0, minutes=0):
+        """
+        Reads the current 'To Date' from the page and sets the 'From Date'
+        to the requested time before it.
+
+        Examples:
+            set_from_date_relative_to_now(minutes=10) 
+            set_from_date_relative_to_now(hours=3)
+            set_from_date_relative_to_now(days=2, hours=6)
+        """
+        to_date_str = self.get_to_date()
+
+        formats = (
+            "%d/%m/%Y %H:%M:%S",
+            "%m/%d/%Y %H:%M:%S",
+            "%d/%m/%Y %I:%M:%S %p",
+            "%m/%d/%Y %I:%M:%S %p",
+            "%Y-%m-%d %H:%M:%S",
+        )
+
+        for fmt in formats:
+            try:
+                to_dt = datetime.strptime(to_date_str, fmt)
+                break
+            except ValueError:
+                continue
+        else:
+            raise ValueError(f"Could not parse date: {to_date_str}")
+
+        from_dt = to_dt - timedelta(
+            days=days,
+            hours=hours,
+            minutes=minutes
+        )
+
+        self.set_from_date(from_dt.strftime("%Y-%m-%d %H:%M:%S"))
+
     # ✅   
     def get_from_date(self) -> str:
         """
@@ -1144,7 +1413,7 @@ class AlarmsAndEvents:
             raise AssertionError(f"set_to_date('{to_date_and_time}') failed. Problem: {e}")
     
     # ✅   
-    def get_to_date(self) -> str:
+    def get_to_date_old(self) -> str:
         """
         Return the currently selected 'To date' string.
         """
@@ -1154,7 +1423,43 @@ class AlarmsAndEvents:
         except Exception:
             return (inp.get_attribute("value") or "").strip()
 
+    # ✅
+    def get_to_date(self, timeout: int = 5000) -> str:
+        """
+        Return the currently selected 'To date' string.
 
+        On first page load the input may be visually empty until it receives focus.
+        If the value is empty, click the input once to trigger the UI to populate it.
+        """
+        inp = self.page.locator("#datepickerTo input[formcontrolname='dateRangeTo']").first
+        expect(inp).to_be_visible(timeout=timeout)
+
+        def read_value() -> str:
+            try:
+                return (inp.input_value() or "").strip()
+            except Exception:
+                return (inp.get_attribute("value") or "").strip()
+
+        value = read_value()
+
+        if not value:
+            inp.click(force=True)
+
+            self.wait_until(
+                lambda: read_value() != "",
+                timeout_ms=timeout,
+                interval_ms=100,
+            )
+
+            value = read_value()
+
+            # Close the date picker again so the page state stays unchanged
+            try:
+                self.page.keyboard.press("Escape")
+            except Exception:
+                pass
+
+        return value
     # ==========================================================
     # Message Filter
     # ==========================================================

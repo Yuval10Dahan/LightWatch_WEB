@@ -8,6 +8,7 @@ from playwright.sync_api import Page, Frame, TimeoutError, expect
 import re
 from typing import List, Dict, Any, Optional
 from time import sleep, time
+from Utils.utils import create_frame_html, refresh_page
 from playwright.sync_api import Error as PlaywrightError
 
  
@@ -372,7 +373,7 @@ class PL_SNMPPage:
         return False
 
     # ✅
-    def get_SNMP_traps_table(self, timeout: int = 10_000) -> List[Dict[str, Any]]:
+    def get_SNMP_traps_table_old(self, timeout: int = 10_000) -> List[Dict[str, Any]]:
         """
         Read the SNMP Traps table rows and return them as a list of dicts.
 
@@ -386,6 +387,8 @@ class PL_SNMPPage:
         # Ensure we're on SNMP tab and frame is available
         if hasattr(self, "open_snmp_tab"):
             self.open_SNMP_tab(timeout=timeout)
+
+        refresh_page(self.page)
 
         fr = getattr(self, "config_sys_frame", None)
         fr = fr() if callable(fr) else fr  # allow both property or method style
@@ -452,12 +455,84 @@ class PL_SNMPPage:
         return out
     
     # ✅
+    def get_SNMP_traps_table(self, timeout: int = 10_000) -> List[Dict[str, Any]]:
+        """
+        Read the SNMP Traps table rows and return them as a list of dicts.
+
+        Returns:
+            [
+            {"manager_address": "172.16.10.22", "snmp_version": "SNMP v2c", "v3_user": "", "trap_port": "162"},
+            ...
+            ]
+        """
+
+        # Open SNMP tab and make sure config_sys iframe is loaded
+        ok = self.open_SNMP_tab(retries=3, timeout=timeout)
+        if not ok:
+            raise AssertionError("SNMP tab could not be opened")
+
+        fr = self.page.frame(name="config_sys")
+        if fr is None:
+            raise AssertionError("config_sys frame not found (SNMP page not loaded)")
+
+        try:
+            fr.wait_for_load_state("domcontentloaded", timeout=timeout)
+        except Exception:
+            pass
+
+        table = fr.locator("table#snmp_trap_table").first
+        expect(table).to_be_visible(timeout=timeout)
+
+        rows = table.locator("tr")
+        out: List[Dict[str, Any]] = []
+
+        for i in range(rows.count()):
+            row = rows.nth(i)
+
+            # Skip header row
+            try:
+                row_class = (row.get_attribute("class") or "").strip()
+                if "title_tr" in row_class:
+                    continue
+            except Exception:
+                pass
+
+            # Skip the Add row
+            if (
+                row.locator("input[name='ip_address']").count() > 0
+                or row.locator("input[name='snmp_add']").count() > 0
+            ):
+                continue
+
+            cells = row.locator("td")
+            if cells.count() < 4:
+                continue
+
+            manager_address = (cells.nth(0).inner_text() or "").strip()
+            snmp_version = (cells.nth(1).inner_text() or "").strip()
+            v3_user = (cells.nth(2).inner_text() or "").strip()
+            trap_port = (cells.nth(3).inner_text() or "").strip()
+
+            if not manager_address:
+                continue
+
+            out.append(
+                {
+                    "Manager Address": manager_address,
+                    "SNMP Version": snmp_version,
+                    "v3 User": v3_user,
+                    "Trap Port": trap_port,
+                }
+            )
+
+        return out
+
+    # ✅
     def manager_address_added_to_SNMP_traps(self, desired_address: str, exact: bool = True) -> bool:
         """
         Search in SNMP traps table for desired manager address.
 
         Args:
-            traps_table: output of get_SNMP_traps_table()
             desired_address: IP/host string to search
             exact: True = exact match, False = substring match
 

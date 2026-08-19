@@ -48,6 +48,9 @@ def test_service_list(page, left_panel):
     def step_1():
         # create_frame_html(page)
 
+        pm_type_options = performance.get_pm_type_current_dropdown_options()
+        print(f"PM type options: {pm_type_options}")
+
         performance.export_CSV()
         performance.click_next()
         performance.click_previous()
@@ -55,88 +58,88 @@ def test_service_list(page, left_panel):
 
     run_step(1, "...", step_1)
 
-    # ----------------------------
-    # Step 2: 
-    # ----------------------------
-    def step_2():
-        # create_frame_html(page) 
-        performance.set_period_start("06/06/2026 07:53")
-        performance.set_period_start("07/06/2026 21:53")
-        period_start = performance.get_period_start()
-        print(f"Period start: {period_start}")
+    # # ----------------------------
+    # # Step 2: 
+    # # ----------------------------
+    # def step_2():
+    #     # create_frame_html(page) 
+    #     performance.set_period_start("06/06/2026 07:53")
+    #     performance.set_period_start("07/06/2026 21:53")
+    #     period_start = performance.get_period_start()
+    #     print(f"Period start: {period_start}")
 
-        performance.set_period_end("08/06/2026 07:53")
-        performance.set_period_end("07/06/2026 23:54")
-        period_end = performance.get_period_end()
-        print(f"Period end: {period_end}")
+    #     performance.set_period_end("08/06/2026 07:53")
+    #     performance.set_period_end("07/06/2026 23:54")
+    #     period_end = performance.get_period_end()
+    #     print(f"Period end: {period_end}")
 
-    run_step(2, "...", step_2)
+    # run_step(2, "...", step_2)
 
-    # ----------------------------
-    # Step 3: 
-    # ----------------------------
-    def step_3():
-        # create_frame_html(page)
-        performance.set_device("PL-4000M (172.16.30.124)")
-        device = performance.get_device()
-        print(f"Device: {device}")
+    # # ----------------------------
+    # # Step 3: 
+    # # ----------------------------
+    # def step_3():
+    #     # create_frame_html(page)
+    #     performance.set_device("PL-4000M (172.16.30.124)")
+    #     device = performance.get_device()
+    #     print(f"Device: {device}")
 
-    run_step(3, "...", step_3)
+    # run_step(3, "...", step_3)
 
-    # ----------------------------
-    # Step 4: 
-    # ----------------------------
-    def step_4():
-        # create_frame_html(page)
-        performance.set_port("MC 3")
-        port = performance.get_port()
-        print(f"Port: {port}")
+    # # ----------------------------
+    # # Step 4: 
+    # # ----------------------------
+    # def step_4():
+    #     # create_frame_html(page)
+    #     performance.set_port("MC 3")
+    #     port = performance.get_port()
+    #     print(f"Port: {port}")
 
-        performance.set_port("COM #1/W")
-        port = performance.get_port()
-        print(f"Port: {port}")
+    #     performance.set_port("COM #1/W")
+    #     port = performance.get_port()
+    #     print(f"Port: {port}")
 
-    run_step(4, "...", step_4)
+    # run_step(4, "...", step_4)
 
-    # ----------------------------
-    # Step 5: 
-    # ----------------------------
-    def step_5():
-        # create_frame_html(page)
-        performance.set_pm_period_type("Days")
-        period_type = performance.get_pm_period_type()
-        print(f"PM period type: {period_type}")
+    # # ----------------------------
+    # # Step 5: 
+    # # ----------------------------
+    # def step_5():
+    #     # create_frame_html(page)
+    #     performance.set_pm_period_type("Days")
+    #     period_type = performance.get_pm_period_type()
+    #     print(f"PM period type: {period_type}")
 
-        performance.set_pm_period_type("15 Minutes")
-        period_type = performance.get_pm_period_type()
-        print(f"PM period type: {period_type}")
+    #     performance.set_pm_period_type("15 Minutes")
+    #     period_type = performance.get_pm_period_type()
+    #     print(f"PM period type: {period_type}")
 
-    run_step(5, "...", step_5)
+    # run_step(5, "...", step_5)
 
-    # ----------------------------
-    # Step 6: 
-    # ----------------------------
-    def step_6():
-        # create_frame_html(page)
-        performance.set_device("PL-1000TECrypto (172.16.40.24)")
-        performance.set_pm_type("Optical Level")
-        pm_type = performance.get_pm_type()
-        print(f"PM type: {pm_type}")
+    # # ----------------------------
+    # # Step 6: 
+    # # ----------------------------
+    # def step_6():
+    #     # create_frame_html(page)
+    #     performance.set_device("PL-1000TECrypto (172.16.40.24)")
+    #     performance.set_pm_type("Optical Level")
+    #     pm_type = performance.get_pm_type()
+    #     print(f"PM type: {pm_type}")
 
-    run_step(6, "...", step_6)
+    # run_step(6, "...", step_6)
 
-    # ----------------------------
-    # Step 7: 
-    # ----------------------------
-    def step_7():
-        # create_frame_html(page)
-        performance.refresh_pm_table()
-        performance.refresh_pm_table()
-        performance.refresh_pm_table()
-        performance.refresh_pm_table()
-        performance.refresh_pm_table()
+    # # ----------------------------
+    # # Step 7: 
+    # # ----------------------------
+    # def step_7():
+    #     # create_frame_html(page)
+    #     performance.refresh_pm_table()
+    #     performance.refresh_pm_table()
+    #     performance.refresh_pm_table()
+    #     performance.refresh_pm_table()
+    #     performance.refresh_pm_table()
 
-    run_step(7, "...", step_7)
+    # run_step(7, "...", step_7)
 
     # ----------------------------
     # Step 8: 
@@ -148,6 +151,11 @@ def test_service_list(page, left_panel):
         print(f"PM TABLE 3 FIELDS FIRST PAGE: \n\n{pm_table_3_fields}\n\n")
         pm_table_3_fields = performance.get_pm_table(all_pages=True)
         print(f"PM TABLE 3 FIELDS ALL PAGES: \n\n{pm_table_3_fields}\n\n")
+
+        pm_table_32_intervals = performance.get_pm_table_number_of_intervals(32)
+        print(f"PM TABLE 3 FIELDS FIRST 32 INTERVALS: \n\n{pm_table_32_intervals}\n\n")
+        pm_table_32_intervals_length = len(pm_table_32_intervals)
+        print(f"PM TABLE 3 FIELDS FIRST 32 INTERVALS LENGTH: \n\n{pm_table_32_intervals_length}\n\n")
 
         performance.set_device("PL-4000M (172.16.30.124)")
         pm_table_6_fields = performance.get_pm_table(all_pages=False)

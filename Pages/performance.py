@@ -597,6 +597,52 @@ class Performance:
         except Exception as e:
             raise AssertionError(f"get_pm_type failed. Problem: {e}")
 
+    # ✅
+    def get_pm_type_current_dropdown_options(self, timeout: int = 8000) -> list[str]:
+        """
+        Return the currently available options in the PM type dropdown.
+
+        Example:
+            ["Native signal", "Optical Level", "Layer 2"]
+        """
+
+        try:
+            dropdown = self.page.locator(
+                "app-dropdown[formcontrolname='pmType'], "
+                "app-dropdown[label='PM type'], "
+                "app-dropdown:has(.label:text-is('PM type'))"
+            ).first
+
+            expect(dropdown).to_be_visible(timeout=timeout)
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+
+            expect(btn).to_be_visible(timeout=timeout)
+            expect(btn).to_be_enabled(timeout=timeout)
+
+            # Open dropdown
+            btn.click(force=True)
+
+            menu = dropdown.locator("div.dropdown-menu[data-label='PM type'], div.dropdown-menu").first
+
+            expect(menu).to_be_visible(timeout=timeout)
+
+            items = menu.locator("li.dropdown-item")
+
+            options = []
+            for i in range(items.count()):
+                text = self._clean(items.nth(i).inner_text())
+                if text and text not in options:
+                    options.append(text)
+
+            # Close dropdown
+            btn.click(force=True)
+
+            return options
+
+        except Exception as e:
+            raise AssertionError(f"get_pm_type_current_dropdown_options failed. Problem: {e}")
+
     # =========================
     # PM Table
     # =========================
@@ -675,6 +721,21 @@ class Performance:
             if not all_pages:
                 return read_current_page()
 
+            # all_pages must always mean the FULL table from the start -- without
+            # this, a prior call (by this method or any other caller) can leave the
+            # pager sitting on the last page, "Next" comes back disabled on the
+            # very first loop iteration below, and only that one page gets read.
+            while True:
+                before_fp = first_row_fingerprint()
+                if not self.click_previous(timeout=timeout):
+                    break
+                self.wait_until(
+                    lambda: first_row_fingerprint() != before_fp,
+                    timeout_ms=timeout,
+                    interval_ms=200
+                )
+                expect(table).to_be_visible(timeout=timeout)
+
             all_data = []
             seen = set()
 
@@ -715,6 +776,27 @@ class Performance:
 
         except Exception as e:
             raise AssertionError(f"get_pm_table failed. Problem: {e}")
+
+    # ✅
+    def get_pm_table_number_of_intervals(self, number_of_intervals: int, timeout: int = 8000) -> list[dict]:
+        """
+        Return the first `number_of_intervals` intervals of the PM table.
+
+        Example:
+            get_pm_table_number_of_intervals(32) -> first 32 rows of get_pm_table(all_pages=True)
+        """
+
+        try:
+            number_of_intervals = int(number_of_intervals)
+            if number_of_intervals <= 0:
+                raise ValueError("number_of_intervals must be greater than 0")
+
+            table = self.get_pm_table(all_pages=True, timeout=timeout)
+
+            return table[:number_of_intervals]
+
+        except Exception as e:
+            raise AssertionError(f"get_pm_table_number_of_intervals({number_of_intervals}) failed. Problem: {e}")
 
     # =========================
     # Pagination

@@ -66,7 +66,7 @@ class DeviceDiscovery:
         Return the device discovery container.
         """
         container = self.page.locator("div.device-discovery-container").first
-        sleep(3)
+        sleep(1)
         if container.count() == 0:
             raise AssertionError("DeviceDiscovery: container not found (div.device-discovery-container).")
         return container
@@ -431,6 +431,7 @@ class DeviceDiscovery:
 
             # Assert the tab pane became active (this is more stable than the <a>.active)
             tab_pane = tabset.locator(f"div.tab-content tab[heading='{tab_name}']").first
+            sleep(0.5)
 
             self.wait_until(lambda: tab_pane.count() > 0 and tab_pane.is_visible() and ("active" in (tab_pane.get_attribute("class") or "")), timeout_ms=timeout)
 
@@ -461,7 +462,7 @@ class DeviceDiscovery:
     # ==========================================================
     # app-input helpers
     # ==========================================================
-
+ 
     # ✅
     def active_tab_pane(self):
         """
@@ -504,7 +505,7 @@ class DeviceDiscovery:
             expect(inp).to_be_visible(timeout=timeout)
             inp.click(force=True)
             inp.fill("")
-            sleep(3)
+            sleep(1.5)
             inp.type(str(value), delay=5)
         except Exception as e:
             raise AssertionError(f"set_app_input_value('{formcontrolname}', '{value}') failed. Problem: {e}")
@@ -1207,9 +1208,11 @@ class DeviceDiscovery:
         """
         try:
             toast = self.page.locator(f"text={success_text}")
+            sleep(0.1)
             expect(toast).to_be_visible(timeout=timeout)
 
             overlay = self.page.locator("div.cdk-global-overlay-wrapper").first
+            sleep(0.1)
             expect(overlay).to_be_visible(timeout=timeout)
 
             # wait toast disappear + overlay disappear
@@ -1298,7 +1301,8 @@ class DeviceDiscovery:
 
             if btn.get_attribute("disabled") is not None:
                 raise AssertionError("Start Discovery button is disabled.")
-
+            
+            sleep(2)
             btn.click(force=True)
 
             # Verify success message

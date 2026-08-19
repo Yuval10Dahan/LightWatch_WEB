@@ -225,6 +225,7 @@ class PL_LoginPage:
     # ==========================================================
     # Reload Action
     # ==========================================================
+
     # ✅
     def click_reload_button(self) -> bool:
         """
@@ -255,5 +256,21 @@ class PL_LoginPage:
                         pass
 
                     return True
+        except Exception:
+            return False
+        
+    # ✅
+    def refresh(self, timeout: int = 30_000) -> bool:
+        """
+        Reload the current browser page.
+
+        Returns:
+            True  -> Page reloaded successfully
+            False -> Reload failed
+        """
+        try:
+            self.page.reload(wait_until="domcontentloaded", timeout=timeout)
+            sleep(5)
+            return True
         except Exception:
             return False

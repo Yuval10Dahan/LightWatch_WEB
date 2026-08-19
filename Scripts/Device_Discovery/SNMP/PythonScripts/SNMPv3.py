@@ -7,7 +7,7 @@ Comprehensive SNMPv3 Test
 Tests the SNMPv3 tab inside Device Discovery.
 
 
-*** Runtime: approximately == minutes ***
+*** Runtime: approximately 110 minutes ***
 """ 
 
 
@@ -22,7 +22,8 @@ from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_SNMP_page import PL_SNMPPage
 from PL_Devices.PL_Pages.PL_security_page import PL_SecurityPage
 from PL_Devices.PL_Pages.PL_main_screen_POM import PL_Main_Screen_POM
-from Utils.utils import refresh_page, countdown_sleep, devices_are_up, create_page
+from PL_Devices.PL_Pages.PL_upper_panel import PL_Upper_Panel
+from Utils.utils import refresh_page, countdown_sleep, devices_are_up, create_page, create_frame_html
 import time
 from time import sleep
 from Utils.Logger import create_logger
@@ -59,8 +60,8 @@ else:
     DEVICE_IP_USER = "tech"
     DEVICE_IP_PASS = "packetlight"
 
-    DEVICE_IP_1 = "172.16.30.15"
-    DEVICE_IP_2 = "172.16.20.113"
+    DEVICE_IP_1 = "172.16.30.16"
+    DEVICE_IP_2 = "172.16.30.113"
     DEVICE_IP_3 = "172.16.40.21"
     DEVICE_IP_4 = "172.16.20.111"
 
@@ -109,9 +110,12 @@ def run_step(step_num, step_function, logger, report) -> bool:
 
 def open_device_discovery(left_panel: LeftPanel):
     try:
-        ok = left_panel.click_device_discovery()
+        for i in range(3):
+            ok = left_panel.click_device_discovery()
+
     except Exception as e:
         raise AssertionError(f"Failed to call left_panel.click_device_discovery(). Error: {e}")
+    
     if not ok:
         raise AssertionError("left_panel.click_device_discovery() returned False.")
 
@@ -126,7 +130,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     ###################################################
     # Step 1 – Facrory default reset for all devices. #
-    # Open Device Discovery.                          #
+    # Remove devices from LW via Domain Management.   #
     ###################################################
     def step_1():
         ips_to_reset = [DEVICE_IP_1, DEVICE_IP_2, DEVICE_IP_3, DEVICE_IP_4]
@@ -145,8 +149,11 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         # Wait for devices to come back up after factory default reset
         devices_are_up(ips_to_reset, wait_time=WAIT)
 
-        open_device_discovery(left_panel)
-        assert device_discovery.container().is_visible(), "Device Discovery container is not visible."
+        # Remove devices from LW via Domain Management
+        left_panel.click_domain_management()
+        for ip in ips_to_reset:
+            domain_management.remove_device(ip)
+            sleep(5)
 
     results[1] = run_step(1, step_1, logger, report)
 
@@ -155,6 +162,9 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     # Store those values.                           #
     #################################################
     def step_2():
+        open_device_discovery(left_panel)
+        assert device_discovery.container().is_visible(), "Device Discovery container is not visible."
+
         device_discovery.click_SNMPv3()
 
         device_discovery.set_SNMPv3_user_name(SNMPv3_DEFAULT_VALUES["userName"]) 
@@ -162,7 +172,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         device_discovery.set_SNMPv3_contact_port(SNMPv3_DEFAULT_VALUES["contactPort"])
         device_discovery.click_save_as_default()
         device_discovery.confirm_default_override()
-        refresh_page(5)
+        refresh_page(page) 
 
         stored_defaults["userName"]  = device_discovery.get_SNMPv3_user_name()
         stored_defaults["securityLevel"] = device_discovery.get_SNMPv3_security_level()
@@ -253,30 +263,11 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     results[5] = run_step(5, step_5, logger, report)
 
     ##################################################################
-    # Step 6 – Add the LW server to the DEVICE_IP_1 SNMP Traps table #
-    # Start discovery with No Authentication and No Privacy          #
+    # Step 6 – Start discovery with No Authentication and No Privacy #
     ##################################################################
     def step_6():
         refresh_page(page)
-        # device_page = page.context.new_page()
-
-        # try:
-        #     pl_login = PL_LoginPage(device_page)
-        #     pl_login.goto(DEVICE_IP_1)
-        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-        #     assert ok, f"Login to {DEVICE_IP_1} GUI failed."
-
-        #     pl_SNMP = PL_SNMPPage(device_page)
-        #     ok_tab = pl_SNMP.open_SNMP_tab()
-        #     assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_1}."
-
-        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-        #     refresh_page(page)
-
-        # finally:
-        #     device_page.close()
-
+        countdown_sleep(WAIT, message="Rendering page")
 
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv3()
@@ -286,7 +277,9 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         device_discovery.set_SNMPv3_security_level(NO_AUTH_NO_PRIV)
         device_discovery.set_SNMPv3_contact_port(CONTACT_PORT)
         
-        device_discovery.click_start_discovery()
+        for i in range(3):
+            device_discovery.click_start_discovery()
+
         countdown_sleep(WAIT, message="Wait for the discovery process to complete")
         refresh_page(page)
 
@@ -322,6 +315,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
             ok_tab = pl_SNMP.open_SNMP_tab()
             assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_1}."
 
+            pl_login.refresh()
             found = pl_SNMP.manager_address_added_to_SNMP_traps(LW_SERVER_HOST_IP.split(":")[0])
             assert found, f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was NOT found in SNMP Traps."
         finally:
@@ -343,6 +337,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
             pl_security = PL_SecurityPage(device_page)
             pl_security.open_security_tab()
             pl_security.click_on_users()
+            sleep(1)
             table = pl_security.get_users_table()
             
             params = pl_security.return_user_parameters("admin", table)
@@ -366,7 +361,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         device_page = page.context.new_page()
         try:
             pl_login = PL_LoginPage(device_page)
-            pl_login.goto(f"http://{DEVICE_IP_1}/")
+            pl_login.goto(f"http://{DEVICE_IP_2}/")
             pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
 
             pl_sec = PL_SecurityPage(device_page)
@@ -388,25 +383,6 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     #############################################################
     def step_11():
         refresh_page(page)
-        # device_page = page.context.new_page()
-
-        # try:
-        #     pl_login = PL_LoginPage(device_page)
-        #     pl_login.goto(DEVICE_IP_2)
-        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-        #     assert ok, f"Login to {DEVICE_IP_2} GUI failed."
-
-        #     pl_SNMP = PL_SNMPPage(device_page)
-        #     ok_tab = pl_SNMP.open_SNMP_tab()
-        #     assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_2}."
-
-        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-        #     refresh_page(page)
-
-        # finally:
-        #     device_page.close()
-
 
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv3()
@@ -419,7 +395,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         device_discovery.set_SNMPv3_contact_port(CONTACT_PORT)
         
         device_discovery.click_start_discovery()
-        countdown_sleep(WAIT, message="Wait for the discovery process")
+        countdown_sleep(WAIT/2, message="Wait for the discovery process")
         refresh_page(page)
 
     results[11] = run_step(11, step_11, logger, report)
@@ -438,9 +414,9 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     results[12] = run_step(12, step_12, logger, report)
 
-    #############################################
-    # Step 13 – Verify LW is stillin SNMP Traps #
-    #############################################
+    ##############################################
+    # Step 13 – Verify LW is still in SNMP Traps #
+    ##############################################
     def step_13():
         refresh_page(page)
         device_page = page.context.new_page()
@@ -518,25 +494,6 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     ###################################################
     def step_16():
         refresh_page(page)
-        # device_page = page.context.new_page()
-
-        # try:
-        #     pl_login = PL_LoginPage(device_page)
-        #     pl_login.goto(DEVICE_IP_3)
-        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-        #     assert ok, f"Login to {DEVICE_IP_3} GUI failed."
-
-        #     pl_SNMP = PL_SNMPPage(device_page)
-        #     ok_tab = pl_SNMP.open_SNMP_tab()
-        #     assert ok_tab, f"Failed to open SNMP tab on {DEVICE_IP_3}."
-
-        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-        #     refresh_page(page)
-
-        # finally:
-        #     device_page.close()
-
 
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv3()
@@ -551,7 +508,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         device_discovery.set_SNMPv3_contact_port(CONTACT_PORT)
         
         device_discovery.click_start_discovery()
-        countdown_sleep(WAIT, message="Wait for discovery")
+        countdown_sleep(WAIT/2, message="Wait for discovery")
         refresh_page(page)
 
     results[16] = run_step(16, step_16, logger, report)
@@ -626,6 +583,8 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
     ##########################################################
     def step_20():
         ips_to_remove = [DEVICE_IP_1, DEVICE_IP_2, DEVICE_IP_3, DEVICE_IP_4]
+        left_panel.click_domain_management()
+
         for ip in ips_to_remove:
             domain_management.remove_device(ip)
             sleep(5)
@@ -655,12 +614,12 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
 
     results[21] = run_step(21, step_21, logger, report)
 
-    ##################################################
-    # Step 22 – Combinatorics of Auth/Priv Protocols #
-    ##################################################
+    #######################################################
+    # Step 22 – Combinatorics of Auth / No Priv Protocols #
+    #######################################################
     
-    def do_combo_test(target_ip, auth_proto, priv_proto):
-        print(f"Authentication Protocol - {auth_proto}, Privacy Protocol - {priv_proto} combination:")
+    def do_combo_test(target_ip, auth_proto):
+        print(f"Authentication Protocol - {auth_proto}:")
 
         # Add new user
         device_page = page.context.new_page()
@@ -668,6 +627,8 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
             pl_login = PL_LoginPage(device_page)
             pl_login.goto(f"http://{target_ip}/")
             pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            pl_login.refresh()
+            sleep(1)
 
             pl_sec = PL_SecurityPage(device_page)
             pl_sec.open_security_tab()
@@ -675,49 +636,29 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
 
             ok = pl_sec.add_new_user(user_name="Alpha", permission="Administrator",
                 password=NEW_USER_PASSWORD, verify_password=NEW_USER_PASSWORD,
-                snmpv3_auth=auth_proto.replace('-', ''), # e.g. SHA-256 -> SHA256 in GUI sometimes? Just passing as is.
-                snmpv3_priv=priv_proto
+                snmpv3_auth=auth_proto,
+                snmpv3_priv="No Priv"
             )
-            assert ok, f"Failed to add new user Alpha on {target_ip} with {auth_proto}/{priv_proto}"
+
+            assert ok, f"Failed to add new user Alpha on {target_ip} with {auth_proto}"
+
         finally:
             device_page.close()
 
-        # Discovery
         refresh_page(page)
-        # device_page = page.context.new_page()
-
-        # try:
-        #     pl_login = PL_LoginPage(device_page)
-        #     pl_login.goto(target_ip)
-        #     ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-        #     assert ok, f"Login to {target_ip} GUI failed."
-
-        #     pl_SNMP = PL_SNMPPage(device_page)
-        #     ok_tab = pl_SNMP.open_SNMP_tab()
-        #     assert ok_tab, f"Failed to open SNMP tab on {target_ip}."
-
-        #     success, _ = pl_SNMP.Add_Trap_Manager(IP=LW_SERVER_HOST_IP.split(":")[0], SNMP_Version="SNMP v3")
-        #     assert success, (f"Server IP ({LW_SERVER_HOST_IP.split(':')[0]}) was not added")
-        #     refresh_page(page)
-
-        # finally:
-        #     device_page.close()
-
 
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv3()
 
         device_discovery.set_ip_address(target_ip)
         device_discovery.set_SNMPv3_user_name("Alpha")
-        device_discovery.set_SNMPv3_security_level(AUTH_PRIV)
+        device_discovery.set_SNMPv3_security_level(AUTH_NO_PRIV)
         device_discovery.set_SNMPv3_authentication_protocol(auth_proto)
         device_discovery.set_SNMPv3_authentication_password(AUTHENTICATION_PASSWORD)
-        device_discovery.set_SNMPv3_privacy_protocol(priv_proto)
-        device_discovery.set_SNMPv3_privacy_password(PRIVACY_PASSWORD)
         device_discovery.set_SNMPv3_contact_port(CONTACT_PORT)
         
         device_discovery.click_start_discovery()
-        countdown_sleep(WAIT, message=f"Wait for discovery of {target_ip}")
+        countdown_sleep(WAIT/2, message=f"Wait for discovery of {target_ip}")
         refresh_page(page)
 
         # Map verify
@@ -734,6 +675,8 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
             pl_login = PL_LoginPage(device_page2)
             pl_login.goto(f"http://{target_ip}/")
             pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            pl_login.refresh()
+            sleep(1)
 
             pl_SNMP = PL_SNMPPage(device_page2)
             pl_SNMP.open_SNMP_tab()
@@ -749,6 +692,116 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
             pl_login = PL_LoginPage(device_page3)
             pl_login.goto(f"http://{target_ip}/")
             pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            pl_login.refresh()
+            sleep(1)
+
+            pl_sec = PL_SecurityPage(device_page3)
+            pl_sec.open_security_tab()
+            pl_sec.click_on_users()
+            table = pl_sec.get_users_table()
+            refresh_page(page)
+            
+            params = pl_sec.return_user_parameters("Alpha", table)
+            row_str = " ".join([str(x) for x in params])
+            assert "Alpha" in row_str, "User Name Alpha not found in params."
+            assert "Administrator" in row_str, "Permission Administrator not found in params."
+            assert auth_proto in row_str, f"SNMPv3 Auth {auth_proto} not found in params."
+        finally:
+            device_page3.close()
+
+    def step_22():
+        auths = ["SHA-256", "SHA-384", "SHA-512"]
+        ips = [DEVICE_IP_1, DEVICE_IP_2, DEVICE_IP_3]
+
+        # Test each authentication protocol with different device
+        for i in range(len(auths)):
+            do_combo_test(ips[i], auths[i])
+            refresh_page(page)
+                
+        step_20() # remove devices from LW
+        step_21() # reset devices
+
+    results[22] = run_step(22, step_22, logger, report)
+
+    ####################################################
+    # Step 23 – Combinatorics of Auth / Priv Protocols #
+    ####################################################
+    
+    def do_combo_test(target_ip, auth_proto, priv_proto):
+        print(f"Authentication Protocol - {auth_proto}, Privacy Protocol - {priv_proto} combination:")
+
+        # Add new user
+        device_page = page.context.new_page()
+        try:
+            pl_login = PL_LoginPage(device_page)
+            pl_login.goto(f"http://{target_ip}/")
+            pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            pl_login.refresh()
+            sleep(1)
+
+            pl_sec = PL_SecurityPage(device_page)
+            pl_sec.open_security_tab()
+            pl_sec.click_on_users()
+
+            ok = pl_sec.add_new_user(user_name="Alpha", permission="Administrator",
+                password=NEW_USER_PASSWORD, verify_password=NEW_USER_PASSWORD,
+                snmpv3_auth=auth_proto,
+                snmpv3_priv=priv_proto
+            )
+            assert ok, f"Failed to add new user Alpha on {target_ip} with {auth_proto}/{priv_proto}"
+        finally:
+            device_page.close()
+
+        refresh_page(page)
+        open_device_discovery(left_panel)
+        device_discovery.click_SNMPv3()
+
+        device_discovery.set_ip_address(target_ip)
+        device_discovery.set_SNMPv3_user_name("Alpha")
+        device_discovery.set_SNMPv3_security_level(AUTH_PRIV)
+        device_discovery.set_SNMPv3_authentication_protocol(auth_proto)
+        device_discovery.set_SNMPv3_authentication_password(AUTHENTICATION_PASSWORD)
+        device_discovery.set_SNMPv3_privacy_protocol(priv_proto)
+        device_discovery.set_SNMPv3_privacy_password(PRIVACY_PASSWORD)
+        device_discovery.set_SNMPv3_contact_port(CONTACT_PORT)
+        
+        device_discovery.click_start_discovery()
+        countdown_sleep(WAIT/2, message=f"Wait for discovery of {target_ip}")
+        refresh_page(page)
+
+        # Map verify
+        ok_map = left_panel.click_network_topology()
+        assert ok_map, "Failed to navigate to Network Topology."
+        network_topology.show_navigation_info()
+        in_nav = network_topology.is_element_exist_on_navigation_info_list(target_ip)
+        assert in_nav, f"{target_ip} not found in Nav Info."
+
+        # Traps verify
+        refresh_page(page)
+        device_page2 = page.context.new_page()
+        try:
+            pl_login = PL_LoginPage(device_page2)
+            pl_login.goto(f"http://{target_ip}/")
+            pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            pl_login.refresh()
+            sleep(1)
+
+            pl_SNMP = PL_SNMPPage(device_page2)
+            pl_SNMP.open_SNMP_tab()
+            found = pl_SNMP.manager_address_added_to_SNMP_traps(LW_SERVER_HOST_IP.split(":")[0])
+            assert found, f"Trap not found for {target_ip}"
+        finally:
+            device_page2.close()
+            
+        # Params verify
+        refresh_page(page)
+        device_page3 = page.context.new_page()
+        try:
+            pl_login = PL_LoginPage(device_page3)
+            pl_login.goto(f"http://{target_ip}/")
+            pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            pl_login.refresh()
+            sleep(1)
 
             pl_sec = PL_SecurityPage(device_page3)
             pl_sec.open_security_tab()
@@ -764,10 +817,12 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         finally:
             device_page3.close()
 
-    def step_22():
-        auths = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"]
+    def step_23():
+        refresh_page(page)
+        
+        auths = ["SHA-256", "SHA-384", "SHA-512"] # SHA-1 is not included beacuse AES-192 and AES-256 require at least SHA-256 authentication
         privs = ["AES-128", "AES-192", "AES-256"]
-        combinations = [(a, p) for a in auths for p in privs if not (a == "SHA-1" and p == "AES-128")]
+        combinations = [(a, p) for a in auths for p in privs]
         ips = [DEVICE_IP_1, DEVICE_IP_2, DEVICE_IP_3, DEVICE_IP_4]
 
         # reps 1-4
@@ -784,16 +839,16 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         step_20() # remove devices from LW
         step_21() # reset devices
 
-        # reps 9-11
+        # rep 9
         for i in range(8, len(combinations)):
             do_combo_test(ips[i-8], combinations[i][0], combinations[i][1])
 
-    results[22] = run_step(22, step_22, logger, report)
+    results[23] = run_step(23, step_23, logger, report)
 
     #############################################################
-    # Step 23 – Invalid IP Checks
+    # Step 24 – Invalid IP Checks
     #############################################################
-    def step_23():
+    def step_24():
         refresh_page(page)
         open_device_discovery(left_panel)
         device_discovery.click_SNMPv3()
@@ -810,7 +865,7 @@ def test_snmpv3_device_discovery(page, left_panel: LeftPanel, logger, report):
         if failed:
             raise AssertionError(f"Expected to be INVALID but were valid: {failed}")
 
-    results[23] = run_step(23, step_23, logger, report)
+    results[24] = run_step(24, step_24, logger, report)
 
 
     ###################

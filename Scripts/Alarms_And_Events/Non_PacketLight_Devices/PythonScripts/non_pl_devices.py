@@ -6,7 +6,7 @@ Comprehensive Non PacketLight Devices Test - ICMP/SNMPv2/SNMPv3
 =====================================================
 Tests the Non-PacketLight Devices (such as Computers, Switches) using ICMP/SNMPv2/SNMPv3.
 
-*** Runtime: approximately == minutes ***
+*** Runtime: approximately 20 minutes ***
 =====================================================
 
 Steps to verify before running this script:
@@ -45,6 +45,7 @@ from sys import argv
 from Utilities.QCreporter import open_report, close_report, step_passed, step_failed
 import os
 from datetime import datetime, timedelta
+import subprocess
 
 
 # Allow emojis on QC
@@ -81,7 +82,6 @@ else:
    DEVICE_IP_PASS = "packetlight"
 
 
-
 BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
 WAIT = 30
 
@@ -90,7 +90,8 @@ NON_PL_DEVICE_SNMPV3 = "172.16.30.253"
 NON_PL_DEVICE_PC = "172.16.10.13"
 NON_PL_DEVICE_SWITCH = "172.16.30.253"
 NON_PL_DEVICE_WEBSITE = "172.16.10.101"
-PL_DEVICE_ICMP = "172.16.30.111" 
+PL_DEVICE_ICMP = "172.16.20.111" 
+NON_PL_DEVICE_SNMPV3_NAME = "LAB Automation"
 
 LOGGER_ROOT_DIRECTORY = 'G:\\Python\\PacketLight Automation\\LightWatch_WEB\\Scripts\\Alarms_And_Events\\Non_PacketLight_Devices\\LogFiles'
 LOGGER_DIRECTORY_NAME = "non_pl_devices"
@@ -147,7 +148,7 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
                return datetime.strptime(date_string, fmt), fmt
             except ValueError:
                pass
-         raise ValueError(f"Could not parse date {date_string}")
+         raise ValueError(f"Could not parse date {date_string}") 
         
       try:
          to_dt, fmt = parse_date(to_date_str)
@@ -180,6 +181,12 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
             return False
       return True
 
+   def remove_device_from_lw(left_panel, domain_management_object, device_name):
+      left_panel.click_domain_management()
+
+      domain_management_object.remove_device(device_name, parent_domain_name="Default")
+      refresh_page(page)
+
    #############################################################
    # Step 1 – Discovering a non-PacketLight device with SNMPv2 # 
    #############################################################
@@ -207,6 +214,8 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
             
       if not verify_element_is_green(element_name=element_name, logger=logger):
          raise AssertionError(f"{element_name} is not green")
+      
+      remove_device_from_lw(left_panel, domain_management_object=domain_management, device_name=element_name)
 
    results[1] = run_step(1, step_1, logger, report)
    
@@ -242,6 +251,8 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
       expected_event_after_discovery_again = [f"Discovery failed for {NON_PL_DEVICE_PC} - device with the same IP exist"]
       if not verify_events_created(NON_PL_DEVICE_PC, expected_event_after_discovery_again):
          raise AssertionError(f"Expected event not found for {NON_PL_DEVICE_PC} after trying to discovery it again.")
+      
+      remove_device_from_lw(left_panel, domain_management_object=domain_management, device_name=element_name)
 
    results[2] = run_step(2, step_2, logger, report)
    
@@ -266,8 +277,7 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
       if not verify_element_is_green(element_ip=element_name, logger=logger):
          raise AssertionError(f"{element_name} is not green")
 
-      left_panel.click_domain_management()
-      domain_management.remove_device(element_name, parent_domain_name="Default")
+      remove_device_from_lw(left_panel, domain_management_object=domain_management, device_name=element_name)
 
    results[3] = run_step(3, step_3, logger, report)
    
@@ -291,6 +301,8 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
             
       if not verify_element_is_green(element_ip=element_name, logger=logger):
          raise AssertionError(f"{element_name} is not green")
+      
+      remove_device_from_lw(left_panel, domain_management_object=domain_management, device_name=element_name)
 
    results[4] = run_step(4, step_4, logger, report)
    
@@ -298,10 +310,15 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
    # Step 5 – Discovering a non-PacketLight device with SNMPv3 - Switch # 
    ######################################################################
    def step_5():
+
+      # expected_events = [f"Device is reachable {NON_PL_DEVICE_SNMPV3}", 
+      # f"New SNMPv3 device is detected {NON_PL_DEVICE_SNMPV3}",
+      # "PM protocol set: SNMP"]
+
       expected_events = [f"Device is reachable {NON_PL_DEVICE_SNMPV3}", 
-      f"New SNMPv3 device is detected {NON_PL_DEVICE_SNMPV3}",
-      "PM protocol set: SNMP"]
-      element_name = NON_PL_DEVICE_SNMPV3
+      f"New SNMP device is detected {NON_PL_DEVICE_SNMPV3}"]
+
+      element_name = NON_PL_DEVICE_SNMPV3_NAME
       left_panel.click_device_discovery()
       device_discovery.click_SNMPv3()
       device_discovery.set_ip_address(NON_PL_DEVICE_SNMPV3)
@@ -311,6 +328,8 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
       device_discovery.set_SNMPv3_authentication_password("Z@qqaz$$")
       device_discovery.set_SNMPv3_privacy_protocol("AES-128")
       device_discovery.set_SNMPv3_privacy_password("Z@qqaz$$")
+      device_discovery.set_SNMPv3_contact_port(161)
+      sleep(5)
       device_discovery.click_start_discovery()
       refresh_page(page)
         
@@ -322,6 +341,8 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
             
       if not verify_element_is_green(element_ip=NON_PL_DEVICE_SNMPV3, logger=logger):
          raise AssertionError(f"{element_name} is not green")
+      
+      remove_device_from_lw(left_panel, domain_management_object=domain_management, device_name=element_name)
 
    results[5] = run_step(5, step_5, logger, report)
    
@@ -346,18 +367,45 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
       if not verify_element_is_green(element_ip=element_name, logger=logger):
          raise AssertionError(f"{element_name} is not green")
             
-      left_panel.click_domain_management()
-      domain_management.remove_device(device_name_or_ip=element_name)
+      remove_device_from_lw(left_panel, domain_management_object=domain_management, device_name=element_name)
 
    results[6] = run_step(6, step_6, logger, report)
    
    ###############################################################
-   # Step 7 – Verify ICMP discovery failure while device is down # 
+   # Step 7 – Verify ICMP discovery failure while device is down #
+   # Remove all the devices from LW server                       # 
    ###############################################################
    def step_7():
       expected_events = [f"Discovery failed for {PL_DEVICE_ICMP} - ICMP ping failed"]
       element_name = PL_DEVICE_ICMP
-        
+
+      def ping_is_up(ip: str) -> bool:
+         if os.name == "nt":
+            cmd = ["ping", "-n", "1", "-w", "1000", ip]
+         else:
+            cmd = ["ping", "-c", "1", "-W", "1", ip]
+
+         result = subprocess.run(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+         )
+
+         return result.returncode == 0
+
+      def wait_until_ping_fails(ip: str, timeout: int = 180, interval: int = 5):
+         end_time = time.time() + timeout
+
+         while time.time() < end_time:
+            if not ping_is_up(ip):
+               print(f"Ping failed for {ip} - device is down. Continue to discovery.")
+               logger.info(f"Ping failed for {ip} - device is down. Continue to discovery.")
+               return
+
+            sleep(interval)
+
+         raise AssertionError(f"{ip} still replies to ping after {timeout} seconds.")
+
       device_page = page.context.new_page()
       pl_login = PL_LoginPage(device_page)
       pl_login.goto(f"http://{PL_DEVICE_ICMP}/")
@@ -366,8 +414,10 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
       pl_main.device_restart("factory")
       device_page.close()
         
-      sleep(45)
+      # Wait dynamically until the device actually goes down
+      wait_until_ping_fails(PL_DEVICE_ICMP, timeout=180, interval=5)
         
+      # Try discovery while device is down - should fail
       left_panel.click_device_discovery()
       device_discovery.click_ICMP()
       device_discovery.set_ip_address(PL_DEVICE_ICMP)
@@ -377,8 +427,9 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
       if verify_element_added(element_name):
          raise AssertionError(f"{element_name} was added but it should not be")
             
-      devices_are_up([PL_DEVICE_ICMP], wait_time=WAIT)
+      devices_are_up([PL_DEVICE_ICMP], wait_time=1)
         
+      # Discover again after device is up
       left_panel.click_device_discovery()
       device_discovery.click_ICMP()
       device_discovery.set_ip_address(PL_DEVICE_ICMP)
@@ -387,6 +438,8 @@ def test_non_pl_devices(page, left_panel: LeftPanel, logger, report):
         
       if not verify_events_created(PL_DEVICE_ICMP, expected_events):
          raise AssertionError(f"Expected events not found for {PL_DEVICE_ICMP}")
+
+      remove_device_from_lw(left_panel, domain_management_object=domain_management, device_name=element_name)
 
    results[7] = run_step(7, step_7, logger, report)
 

@@ -805,6 +805,22 @@ def test_show_chassis_events_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
 
    results[8] = run_step(8, step_8, logger, report)
 
+   ######################################
+   # Step 9 - Remove devices from LW.   #
+   # Delete the Chassis and the Domain. #
+   ######################################
+   def step_9():
+      left_panel.click_domain_management()
+
+      for ip in DEVICES_LIST:
+         domain_management.remove_device(ip, parent_domain_name=DOMAIN_NAME)
+         refresh_page(page)
+
+      domain_management.remove_chassis(chassis_name=CHASSIS_NAME, parent_domain_name=DOMAIN_NAME)
+      domain_management.remove_domain(domain_name=DOMAIN_NAME)
+
+   results[9] = run_step(9, step_9, logger, report)
+
    # ==========================================================
 
    print("\n" + "=" * 60)

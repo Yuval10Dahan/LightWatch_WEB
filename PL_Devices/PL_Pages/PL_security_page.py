@@ -6,8 +6,9 @@ Date: 26/02/2026
 from __future__ import annotations
 from playwright.sync_api import Page, Frame, expect
 from typing import List, Optional, Tuple, Union
+from Utils.utils import refresh_page
 import re
-from time import time
+from time import time, sleep
 
 
 class PL_SecurityPage:
@@ -57,7 +58,7 @@ class PL_SecurityPage:
             return "vertical_button_active" in cls
         except Exception:
             return False
-
+ 
     # ✅
     def accept_any_dialog_once(self) -> None:
         # Sometimes pops alerts - we accept so it won't block 
@@ -78,6 +79,7 @@ class PL_SecurityPage:
             True  -> Security is selected (active) and main_page navigated to Security.asp
             False -> failed after retries
         """
+        sleep(0.5)
 
         for _ in range(retries):
             try:
@@ -135,6 +137,7 @@ class PL_SecurityPage:
         """
         Click 'Users' tab under Security section (PacketLight GUI),
         """
+        sleep(0.5)
 
         def get_main_page() -> Frame | None:
             try:
@@ -229,6 +232,7 @@ class PL_SecurityPage:
         """
         Collect all Users and their details into a 2D list.
         """
+        sleep(0.5)
 
         def accept_any_dialog_once() -> None:
             try:
@@ -262,16 +266,19 @@ class PL_SecurityPage:
 
                 # Verify header
                 header = sec_fr.locator("#sec_user_header").first
+                sleep(0.5)
                 expect(header).to_be_visible(timeout=timeout)
                 if (header.inner_text() or "").strip() != "Local User Management":
                     raise AssertionError("Not on Users table page")
 
                 # Users table tbody
                 tbody = sec_fr.locator("table#sec_user_table > tbody").first
+                sleep(0.5)
                 expect(tbody).to_be_visible(timeout=timeout)
 
                 # Collect all existing user indices 
                 name_cells = tbody.locator("[id^='name_']")
+                sleep(0.5)
                 count = name_cells.count()
 
                 users_detailed: List[List[str]] = []
@@ -288,8 +295,11 @@ class PL_SecurityPage:
                     username = (cell.inner_text() or "").strip()
 
                     permission_sel = tbody.locator(f"#permission_{idx}").first
+                    sleep(0.5)
                     auth_sel = tbody.locator(f"#slmSnmpv3Auth_{idx}").first
+                    sleep(0.5)
                     priv_sel = tbody.locator(f"#slmSnmpv3Priv_{idx}").first
+                    sleep(0.5)
 
                     expect(permission_sel).to_be_visible(timeout=timeout)
                     expect(auth_sel).to_be_visible(timeout=timeout)
@@ -300,6 +310,7 @@ class PL_SecurityPage:
                     snmpv3_priv = selected_option_text(priv_sel)
 
                     users_detailed.append([username, permission, snmpv3_auth, snmpv3_priv])
+                    sleep(1)
 
                 return users_detailed
 
@@ -324,6 +335,7 @@ class PL_SecurityPage:
 
         Based on get_users_table().
         """
+        sleep(0.5)
 
         if not user_name:
             raise ValueError("user_name must not be empty")
@@ -361,6 +373,7 @@ class PL_SecurityPage:
             List[str] -> if user found
             None      -> if user not found
         """
+        sleep(0.5)
 
         if not user_name:
             raise ValueError("user_name must not be empty")
@@ -375,6 +388,8 @@ class PL_SecurityPage:
 
                     if username.lower() == user_name.strip().lower():
                         return row
+
+                sleep(1)
 
                 return None
 
@@ -403,6 +418,7 @@ class PL_SecurityPage:
             - False : failed
             - (False, 'Blocked from adding New Users') : when username field is readonly/disabled
         """
+        sleep(0.5)
 
         ALERT_USER_NAME = "Specify a User Name"
         ALERT_USER_EXIST = "User Already Exists."
@@ -430,7 +446,11 @@ class PL_SecurityPage:
             raise AssertionError(f"Unsupported permission value: '{p}'")
 
         def select_by_visible_text_contains(select_loc, wanted: str):
-            wanted = (wanted or "").strip()
+            if wanted == "SHA-1":
+                wanted = (wanted or "").strip().replace('-', '') # e.g. SHA-1 -> SHA1 
+            else:
+                wanted = (wanted or "").strip()
+
             if not wanted:
                 return
 
@@ -644,6 +664,8 @@ class PL_SecurityPage:
                     except Exception:
                         pass
 
+                sleep(1)
+
                 return True
 
             except Exception as e:
@@ -661,36 +683,638 @@ class PL_SecurityPage:
         except Exception:
             pass
         return False
-
+    
     # ✅
-    def click_reload_button(self) -> bool:
+    def delete_user(self, user_name: str, retries: int = 5, timeout: int = 10_000) -> bool:
         """
-        Click PacketLight Refresh button.
+        Delete an existing user from Security -> Users table.
 
         Returns:
-            True  -> refresh triggered
-            False -> refresh control not found
+            True  -> user deleted successfully
+            False -> user not found, delete button not available, or delete failed
         """
+        sleep(0.5)
 
-        def refresh_locator(frame):
-            return frame.locator("img#refresh").first
+        if not user_name:
+            raise ValueError("user_name must not be empty")
 
-        # Preferred: box_menu frame
-        try:
-            box_menu = self.page.frame(name="box_menu")
+        def arm_dialog_accept_once():
+            holder = {"text": None}
 
-            if box_menu is not None:
-                refresh = refresh_locator(box_menu)
+            def _handler(dialog):
+                try:
+                    holder["text"] = (dialog.message or "").strip()
+                except Exception:
+                    holder["text"] = None
 
-                if refresh.count() > 0 and refresh.is_visible():
-                    refresh.click(force=True)
+                try:
+                    dialog.accept()
+                except Exception:
+                    pass
 
-                    # wait for main frame reload
+            try:
+                self.page.once("dialog", _handler)
+            except Exception:
+                pass
+
+            return holder
+
+        for _ in range(retries):
+            try:
+                ok = self.click_on_users(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("click_on_users failed")
+
+                sec_fr = self.page.frame(name="Security")
+                if sec_fr is None:
+                    raise AssertionError("Security frame not found")
+
+                header = sec_fr.locator("#sec_user_header").first
+                expect(header).to_be_visible(timeout=timeout)
+
+                table = sec_fr.locator("table#sec_user_table").first
+                expect(table).to_be_visible(timeout=timeout)
+
+                name_cells = table.locator("td[id^='name_']")
+                target_row = None
+
+                for i in range(name_cells.count()):
+                    name_cell = name_cells.nth(i)
+                    username = (
+                        name_cell.get_attribute("title")
+                        or name_cell.inner_text()
+                        or ""
+                    ).strip()
+
+                    if username.lower() == user_name.strip().lower():
+                        target_row = name_cell.locator("xpath=ancestor::tr").first
+                        break
+
+                if target_row is None:
+                    return False
+
+                delete_btn = target_row.locator(
+                    "input[name='Delete'][value='Delete'], input.delete[value='Delete']"
+                ).first
+
+                # Users like tech/admin may not have Delete button
+                if delete_btn.count() == 0:
+                    return False
+
+                expect(delete_btn).to_be_visible(timeout=timeout)
+
+                dialog_holder = arm_dialog_accept_once()
+
+                delete_btn.scroll_into_view_if_needed()
+                delete_btn.click(force=True, timeout=timeout)
+
+                # The button calls SubmitUserChange(1, index), usually causing form submit/reload.
+                try:
+                    sec_fr.wait_for_load_state("domcontentloaded", timeout=timeout)
+                except Exception:
+                    pass
+
+                try:
+                    self.page.wait_for_timeout(500)
+                except Exception:
+                    pass
+
+                # Re-open Users page after submit/reload
+                ok = self.click_on_users(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("Failed returning to Users page after delete")
+
+                sec_fr = self.page.frame(name="Security")
+                if sec_fr is None:
+                    raise AssertionError("Security frame not found after delete")
+
+                table = sec_fr.locator("table#sec_user_table").first
+                expect(table).to_be_visible(timeout=timeout)
+
+                remaining_names = table.locator("td[id^='name_']")
+                for i in range(remaining_names.count()):
+                    username = (
+                        remaining_names.nth(i).get_attribute("title")
+                        or remaining_names.nth(i).inner_text()
+                        or ""
+                    ).strip()
+
+                    if username.lower() == user_name.strip().lower():
+                        return False
+
+                sleep(1)
+
+                return True
+
+            except Exception:
+                try:
+                    self.click_reload_button()
+                except Exception:
                     try:
-                        self.page.wait_for_load_state("domcontentloaded", timeout=10_000)
+                        self.page.reload(wait_until="domcontentloaded")
                     except Exception:
                         pass
 
-                    return True
-        except Exception:
-            return False
+        return False
+
+    # ✅
+    def modify_user(self, user_name: str, permission: Optional[str] = None, password: Optional[str] = None, verify_password: Optional[str] = None,
+        snmpv3_auth: Optional[str] = None, snmpv3_priv: Optional[str] = None, password_auth: Optional[str] = None,
+        verify_password_auth: Optional[str] = None, password_priv: Optional[str] = None, verify_password_priv: Optional[str] = None,
+        retries: int = 5, timeout: int = 10_000) -> bool:
+        """
+        Modify an existing user in Security -> Users table.
+
+        You can change:
+            - permission
+            - password / verify_password
+            - snmpv3_auth
+            - snmpv3_priv
+            - password_auth / verify_password_auth
+            - password_priv / verify_password_priv
+
+        Returns:
+            True  -> modify action submitted successfully
+            False -> user not found, modify failed, or user cannot be modified
+        """
+        sleep(0.5)
+
+        if not user_name:
+            raise ValueError("user_name must not be empty")
+
+        def normalize_permission_to_value(p: str) -> str:
+            s = p.strip().lower()
+
+            if s in {"1", "read only", "readonly", "read-only", "ro"}:
+                return "1"
+            if s in {"2", "read/write", "read write", "read-write", "rw"}:
+                return "2"
+            if s in {"4", "admin", "administrator"}:
+                return "4"
+
+            if "read" in s and "only" in s:
+                return "1"
+            if "read" in s and "write" in s:
+                return "2"
+            if "admin" in s:
+                return "4"
+
+            raise AssertionError(f"Unsupported permission value: '{p}'")
+
+        def select_by_visible_text_contains(select_loc, wanted: str) -> None:
+            wanted = (wanted or "").strip()
+
+            if wanted == "SHA-1":
+                wanted = "SHA1"
+
+            try:
+                select_loc.select_option(label=wanted)
+                return
+            except Exception:
+                pass
+
+            opts = select_loc.locator("option")
+            for i in range(opts.count()):
+                txt = (opts.nth(i).inner_text() or "").strip()
+                if txt and (txt.lower() == wanted.lower() or wanted.lower() in txt.lower()):
+                    select_loc.select_option(label=txt)
+                    return
+
+            raise AssertionError(f"Option not found: '{wanted}'")
+
+        def arm_dialog_accept_once():
+            holder = {"text": None}
+
+            def _handler(dialog):
+                try:
+                    holder["text"] = (dialog.message or "").strip()
+                except Exception:
+                    holder["text"] = None
+
+                try:
+                    dialog.accept()
+                except Exception:
+                    pass
+
+            try:
+                self.page.once("dialog", _handler)
+            except Exception:
+                pass
+
+            return holder
+
+        for _ in range(retries):
+            try:
+                ok = self.click_on_users(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("click_on_users failed")
+
+                sec_fr = self.page.frame(name="Security")
+                if sec_fr is None:
+                    raise AssertionError("Security frame not found")
+
+                header = sec_fr.locator("#sec_user_header").first
+                expect(header).to_be_visible(timeout=timeout)
+
+                table = sec_fr.locator("table#sec_user_table").first
+                expect(table).to_be_visible(timeout=timeout)
+
+                name_cells = table.locator("td[id^='name_']")
+                target_row = None
+                target_idx = None
+
+                for i in range(name_cells.count()):
+                    name_cell = name_cells.nth(i)
+                    username = (
+                        name_cell.get_attribute("title")
+                        or name_cell.inner_text()
+                        or ""
+                    ).strip()
+
+                    if username.lower() == user_name.strip().lower():
+                        cell_id = name_cell.get_attribute("id") or ""
+                        m = re.match(r"name_(\d+)$", cell_id)
+
+                        if not m:
+                            raise AssertionError(f"Could not detect index for user '{user_name}'")
+
+                        target_idx = m.group(1)
+                        target_row = name_cell.locator("xpath=ancestor::tr").first
+                        break
+
+                if target_row is None or target_idx is None:
+                    return False
+
+                modify_btn = target_row.locator("input[name='Modify'][value='Modify'], input.apply[value='Modify']").first
+
+                if modify_btn.count() == 0:
+                    return False
+
+                # Permission
+                if permission is not None:
+                    permission_sel = target_row.locator(f"select#permission_{target_idx}").first
+                    expect(permission_sel).to_be_visible(timeout=timeout)
+
+                    if permission_sel.is_disabled():
+                        return False
+
+                    permission_sel.select_option(value=normalize_permission_to_value(permission))
+
+                # Password
+                if password is not None:
+                    password_in = target_row.locator(f"input#password_{target_idx}").first
+                    verify_in = target_row.locator(f"input#verify_password_{target_idx}").first
+
+                    expect(password_in).to_be_visible(timeout=timeout)
+                    expect(verify_in).to_be_visible(timeout=timeout)
+
+                    password_in.fill(password)
+                    verify_in.fill(verify_password if verify_password is not None else password)
+
+                # SNMPv3 Auth
+                if snmpv3_auth is not None:
+                    auth_sel = target_row.locator(f"select#slmSnmpv3Auth_{target_idx}").first
+                    expect(auth_sel).to_be_visible(timeout=timeout)
+                    select_by_visible_text_contains(auth_sel, snmpv3_auth)
+
+                # SNMPv3 Priv
+                if snmpv3_priv is not None:
+                    priv_sel = target_row.locator(f"select#slmSnmpv3Priv_{target_idx}").first
+                    expect(priv_sel).to_be_visible(timeout=timeout)
+                    select_by_visible_text_contains(priv_sel, snmpv3_priv)
+
+                # SNMPv3 Auth password
+                if password_auth is not None:
+                    auth_pass_in = target_row.locator(f"input#authPass_{target_idx}").first
+                    verify_auth_pass_in = target_row.locator(f"input#verify_authPass_{target_idx}").first
+
+                    expect(auth_pass_in).to_be_visible(timeout=timeout)
+                    expect(verify_auth_pass_in).to_be_visible(timeout=timeout)
+
+                    auth_pass_in.fill(password_auth)
+                    verify_auth_pass_in.fill(verify_password_auth if verify_password_auth is not None else password_auth)
+
+                # SNMPv3 Priv password
+                if password_priv is not None:
+                    priv_pass_in = target_row.locator(f"input#privPass_{target_idx}").first
+                    verify_priv_pass_in = target_row.locator(f"input#verify_privPass_{target_idx}").first
+
+                    expect(priv_pass_in).to_be_visible(timeout=timeout)
+                    expect(verify_priv_pass_in).to_be_visible(timeout=timeout)
+
+                    priv_pass_in.fill(password_priv)
+                    verify_priv_pass_in.fill(verify_password_priv if verify_password_priv is not None else password_priv)
+
+                expect(modify_btn).to_be_visible(timeout=timeout)
+
+                dialog_holder = arm_dialog_accept_once()
+
+                modify_btn.scroll_into_view_if_needed()
+                modify_btn.click(force=True, timeout=timeout)
+
+                try:
+                    sec_fr.wait_for_load_state("domcontentloaded", timeout=timeout)
+                except Exception:
+                    pass
+
+                try:
+                    self.page.wait_for_timeout(500)
+                except Exception:
+                    pass
+
+                sleep(1)
+
+                return True
+
+            except Exception:
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    try:
+                        self.page.reload(wait_until="domcontentloaded")
+                    except Exception:
+                        pass
+
+        return False
+
+    # ✅
+    def disable_user(self, user_name: str, retries: int = 5, timeout: int = 10_000) -> bool:
+        """
+        Disable an existing active user from Security -> Users table.
+
+        Returns:
+            True  -> user disabled successfully
+            False -> user not found, disable button not available, or action failed
+        """
+        sleep(0.5)
+
+        if not user_name:
+            raise ValueError("user_name must not be empty")
+
+        def arm_dialog_accept_once():
+            holder = {"text": None}
+
+            def _handler(dialog):
+                try:
+                    holder["text"] = (dialog.message or "").strip()
+                except Exception:
+                    holder["text"] = None
+
+                try:
+                    dialog.accept()
+                except Exception:
+                    pass
+
+            try:
+                self.page.once("dialog", _handler)
+            except Exception:
+                pass
+
+            return holder
+
+        for _ in range(retries):
+            try:
+                ok = self.click_on_users(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("click_on_users failed")
+
+                sec_fr = self.page.frame(name="Security")
+                if sec_fr is None:
+                    raise AssertionError("Security frame not found")
+
+                header = sec_fr.locator("#sec_user_header").first
+                expect(header).to_be_visible(timeout=timeout)
+
+                table = sec_fr.locator("table#sec_user_table").first
+                expect(table).to_be_visible(timeout=timeout)
+
+                name_cells = table.locator("td[id^='name_']")
+                target_row = None
+
+                for i in range(name_cells.count()):
+                    name_cell = name_cells.nth(i)
+                    username = (
+                        name_cell.get_attribute("title")
+                        or name_cell.inner_text()
+                        or ""
+                    ).strip()
+
+                    if username.lower() == user_name.strip().lower():
+                        target_row = name_cell.locator("xpath=ancestor::tr").first
+                        break
+
+                if target_row is None:
+                    return False
+
+                disable_btn = target_row.locator("input[name='Enable'][value='Disable'], input.apply[value='Disable']").first
+
+                # User may already be disabled, or may not support disable
+                if disable_btn.count() == 0:
+                    return False
+
+                expect(disable_btn).to_be_visible(timeout=timeout)
+
+                dialog_holder = arm_dialog_accept_once()
+
+                disable_btn.scroll_into_view_if_needed()
+                disable_btn.click(force=True, timeout=timeout)
+                self.click_reload_button()
+
+                try:
+                    sec_fr.wait_for_load_state("domcontentloaded", timeout=timeout)
+                except Exception:
+                    pass
+
+                try:
+                    self.page.wait_for_timeout(500)
+                except Exception:
+                    pass
+
+                # Re-open Users page and verify button changed to Enable
+                ok = self.click_on_users(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("Failed returning to Users page after disable")
+
+                sec_fr = self.page.frame(name="Security")
+                if sec_fr is None:
+                    raise AssertionError("Security frame not found after disable")
+
+                table = sec_fr.locator("table#sec_user_table").first
+                expect(table).to_be_visible(timeout=timeout)
+
+                name_cells = table.locator("td[id^='name_']")
+                target_row = None
+
+                for i in range(name_cells.count()):
+                    name_cell = name_cells.nth(i)
+                    username = (
+                        name_cell.get_attribute("title")
+                        or name_cell.inner_text()
+                        or ""
+                    ).strip()
+
+                    if username.lower() == user_name.strip().lower():
+                        target_row = name_cell.locator("xpath=ancestor::tr").first
+                        break
+
+                if target_row is None:
+                    return False
+
+                enable_btn = target_row.locator("input[name='Enable'][value='Enable'], input.apply[value='Enable']").first
+                sleep(1)
+
+                return enable_btn.count() > 0
+
+            except Exception:
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    try:
+                        self.page.reload(wait_until="domcontentloaded")
+                    except Exception:
+                        pass
+
+        return False
+
+    # ✅
+    def enable_user(self, user_name: str, retries: int = 5, timeout: int = 10_000) -> bool:
+        """
+        Enable an existing disabled user from Security -> Users table.
+
+        Returns:
+            True  -> user enabled successfully
+            False -> user not found, enable button not available, or action failed
+        """
+        sleep(0.5)
+
+        if not user_name:
+            raise ValueError("user_name must not be empty")
+
+        def arm_dialog_accept_once():
+            holder = {"text": None}
+
+            def _handler(dialog):
+                try:
+                    holder["text"] = (dialog.message or "").strip()
+                except Exception:
+                    holder["text"] = None
+
+                try:
+                    dialog.accept()
+                except Exception:
+                    pass
+
+            try:
+                self.page.once("dialog", _handler)
+            except Exception:
+                pass
+
+            return holder
+
+        for _ in range(retries):
+            try:
+                ok = self.click_on_users(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("click_on_users failed")
+
+                sec_fr = self.page.frame(name="Security")
+                if sec_fr is None:
+                    raise AssertionError("Security frame not found")
+
+                header = sec_fr.locator("#sec_user_header").first
+                expect(header).to_be_visible(timeout=timeout)
+
+                table = sec_fr.locator("table#sec_user_table").first
+                expect(table).to_be_visible(timeout=timeout)
+
+                name_cells = table.locator("td[id^='name_']")
+                target_row = None
+
+                for i in range(name_cells.count()):
+                    name_cell = name_cells.nth(i)
+                    username = (
+                        name_cell.get_attribute("title")
+                        or name_cell.inner_text()
+                        or ""
+                    ).strip()
+
+                    if username.lower() == user_name.strip().lower():
+                        target_row = name_cell.locator("xpath=ancestor::tr").first
+                        break
+
+                if target_row is None:
+                    return False
+
+                enable_btn = target_row.locator("input[name='Enable'][value='Enable'], input.apply[value='Enable']").first
+
+                # User may already be enabled, or may not support enable
+                if enable_btn.count() == 0:
+                    return False
+
+                expect(enable_btn).to_be_visible(timeout=timeout)
+
+                dialog_holder = arm_dialog_accept_once()
+
+                enable_btn.scroll_into_view_if_needed()
+                enable_btn.click(force=True, timeout=timeout)
+                self.click_reload_button()
+
+                try:
+                    sec_fr.wait_for_load_state("domcontentloaded", timeout=timeout)
+                except Exception:
+                    pass
+
+                try:
+                    self.page.wait_for_timeout(500)
+                except Exception:
+                    pass
+
+                # Re-open Users page and verify button changed to Disable
+                ok = self.click_on_users(retries=2, timeout=timeout)
+                if not ok:
+                    raise AssertionError("Failed returning to Users page after enable")
+
+                sec_fr = self.page.frame(name="Security")
+                if sec_fr is None:
+                    raise AssertionError("Security frame not found after enable")
+
+                table = sec_fr.locator("table#sec_user_table").first
+                expect(table).to_be_visible(timeout=timeout)
+
+                name_cells = table.locator("td[id^='name_']")
+                target_row = None
+
+                for i in range(name_cells.count()):
+                    name_cell = name_cells.nth(i)
+                    username = (
+                        name_cell.get_attribute("title")
+                        or name_cell.inner_text()
+                        or ""
+                    ).strip()
+
+                    if username.lower() == user_name.strip().lower():
+                        target_row = name_cell.locator("xpath=ancestor::tr").first
+                        break
+
+                if target_row is None:
+                    return False
+
+                disable_btn = target_row.locator("input[name='Enable'][value='Disable'], input.apply[value='Disable']").first
+                sleep(1)
+
+                return disable_btn.count() > 0
+
+            except Exception:
+                try:
+                    self.click_reload_button()
+                except Exception:
+                    try:
+                        self.page.reload(wait_until="domcontentloaded")
+                    except Exception:
+                        pass
+
+        return False
+ 
+    # ✅
+    def click_reload_button(self) -> bool:
+        refresh_page(self.page)

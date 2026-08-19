@@ -45,7 +45,7 @@ import sys
 from sys import argv
 from Utilities.QCreporter import open_report, close_report, step_passed, step_failed
 import os
-from datetime import datetime
+from datetime import datetime, date
 import re
 from datetime import timedelta
 
@@ -281,6 +281,18 @@ def extract_device_name_and_device_ip(device_str: str) -> tuple:
     device_ip = device_str.split('(')[-1].split(')')[0].strip()
     return device_name, device_ip
 
+def is_israel_daylight_saving_enabled() -> bool:
+    '''
+    Determines if Israel is currently observing daylight saving time.
+    '''
+    today = date.today()
+    year = today.year
+
+    dst_start = date(year, 3, 27)
+    dst_end = date(year, 10, 25)
+
+    return dst_start <= today < dst_end
+
 def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, report):
     domain_management = DomainManagement(page)
     device_discovery = DeviceDiscovery(page)
@@ -330,6 +342,8 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
     # Set SNTP server and timezone to synchronize device time with LW server time. #                                   
     ################################################################################
     def step_3():
+        daylight_save = "Enabled" if is_israel_daylight_saving_enabled() else "Disabled"
+
         for ip in ALL_DEVICES:
             device_page = page.context.new_page()
             pl_login = PL_LoginPage(device_page)
@@ -344,7 +358,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             pl_main_screen.set_chassis_id(" ") 
 
             pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER)
-            pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2)
+            pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2, daylight_save=daylight_save)
             refresh_page(device_page)
 
             device_page.close()
@@ -356,14 +370,13 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
     #############################################################
     def step_4():
         left_panel.click_device_discovery()
-        device_discovery.click_SNMPv2()
 
         for ip in ALL_DEVICES:
+            device_discovery.click_SNMPv2()
             device_discovery.set_ip_address(ip)
-            sleep(0.5)
+            sleep(3)
             device_discovery.click_start_discovery()
             refresh_page(page)
-            sleep(2)
 
         refresh_page(page)
 
@@ -417,7 +430,18 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
     # Go to Alarm & Events on LW server, compare alarms list.   # 
     #############################################################
     def step_6():
-        
+
+        # Normalize time (ignore seconds) for sorting to compare regardless of order
+        def normalize_time(ts: str) -> str:
+            try:
+                dt = datetime.strptime(ts, "%m/%d/%Y %I:%M:%S %p")
+                return dt.strftime("%m/%d/%Y %I:%M %p")
+            except Exception:
+                return ts
+
+        def sort_key(alarm):
+            return (normalize_time(alarm[0]), alarm[1], alarm[2], alarm[3])
+
         for ip in DEVICES_LIST:
             device_page = page.context.new_page()
             pl_login = PL_LoginPage(device_page)
@@ -446,11 +470,14 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             except Exception:
                 lw_alarms = []
                 lw_formatted_alarms = []
-            
-            is_match = compare_device_and_lw_alarms(ip, pl_alarms_stored[ip], lw_formatted_alarms)
+
+            pl_alarms_sorted = sorted(pl_alarms_stored[ip], key=sort_key)
+            lw_formatted_alarms_sorted = sorted(lw_formatted_alarms, key=sort_key)
+
+            is_match = compare_device_and_lw_alarms(ip, pl_alarms_sorted, lw_formatted_alarms_sorted)
             if not is_match:
                 raise AssertionError(f"Alarms content mismatch for {ip} between Device GUI and LW.")
-            
+
             refresh_page(page)
 
     results[6] = run_step(6, step_6, logger, report)
@@ -468,7 +495,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             
             try:
                 pl_alarms_stored[ip] = pl_main.get_alarms_table("ALL")
-                print(f"Alarms from {ip} GUI: {pl_alarms_stored[ip]}")
+                # print(f"Alarms from {ip} GUI: {pl_alarms_stored[ip]}")
             except Exception:
                 pl_alarms_stored[ip] = []
 
@@ -488,7 +515,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
         for ip in DEVICES_LIST:
             lw_source_alarms = [a for a in lw_alarms if ip in a.get('source', '')]
             lw_formatted_alarms = convert_lw_alarms_to_gui_alarms_format(ip, lw_source_alarms)
-            print(f"Alarms from {ip} LW (GUI format, filtered): {lw_formatted_alarms}")
+            # print(f"Alarms from {ip} LW (GUI format, filtered): {lw_formatted_alarms}")
             
             is_match = compare_device_and_lw_alarms(ip, pl_alarms_stored[ip], lw_formatted_alarms)
             if not is_match:
@@ -597,6 +624,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
             # Critical
             alarms_and_events.set_severity("Critical")
+            sleep(3)
             lw_critical_port1 = [
                 a for a in lw_alarms
                 if a.get('severity') == 'Critical' and 
@@ -610,6 +638,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
             # Major
             alarms_and_events.set_severity("Major")
+            sleep(3)
             lw_major_port1 = [
                 a for a in lw_alarms
                 if a.get('severity') == 'Major' and 
@@ -623,6 +652,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
             # Minor
             alarms_and_events.set_severity("Minor")
+            sleep(3)
             lw_minor_port1 = [
                 a for a in lw_alarms
                 if a.get('severity') == 'Minor' and 
@@ -670,6 +700,7 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
         union_lw_alarms = []
         for category in CATEGORIES_LIST:
+            alarms_and_events.clear_category_field()
             alarms_and_events.set_category(category)
             sleep(0.5)
             lw_category_alarms = [a for a in lw_alarms if a.get('category', a.get('Category')) == category]
@@ -901,6 +932,13 @@ def test_show_device_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
         deleted = domain_management.verify_element_deleted(element_name=CATEGORY_TEST_DEVICE, element_type="device")
         if not deleted:
             raise AssertionError(f"{CATEGORY_TEST_DEVICE}: Element not deleted")
+
+        # Remove chassis and domains
+        domain_management.remove_chassis(chassis_name=f"Chassis: {NEW_CHASSIS_ID}", parent_domain_name=SUB_DOMAIN_NAME)
+        sleep(1)
+        domain_management.remove_domain(domain_name=SUB_DOMAIN_NAME)
+        sleep(1)
+        domain_management.remove_domain(domain_name=DOMAIN_NAME)
 
         # Factory Default
         for ip in ALL_DEVICES:

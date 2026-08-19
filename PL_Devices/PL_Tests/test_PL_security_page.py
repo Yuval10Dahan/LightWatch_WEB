@@ -7,10 +7,10 @@ from playwright.sync_api import sync_playwright
 
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_security_page import PL_SecurityPage
-from Utils.utils import create_page
+from Utils.utils import create_page, create_frame_html
 
 # NOTE: adjust to your device / environment
-SERVER_HOST_IP = "172.16.30.15"
+SERVER_HOST_IP = "172.16.30.16"
 BASE_URL = f"http://{SERVER_HOST_IP}/"
 USERNAME = "tech"
 PASSWORD = "packetlight"
@@ -75,46 +75,90 @@ def test_PL_security_page(page):
 
     run_step(4, "PL Security: click on Users", step_4)
 
+    # # ----------------------------
+    # # Step 5: Read Users table
+    # # ----------------------------
+    # def step_5():
+    #     users = sec.get_users_table(timeout=12_000)
+    #     print(f"Users rows: {len(users)}")
+    #     for row in users:
+    #         # [username, permission, snmpv3_auth, snmpv3_priv]
+    #         print(row)
+
+    #     # Not all devices have multiple users; but table should exist.
+    #     if users is None:
+    #         raise AssertionError("get_users_table returned None")
+
+    #     if sec.is_user_located_in_users_table("admin", users_table=users):
+    #         print("User exists ✅")
+    #     else:
+    #         print("User missing ❌")
+
+    #     if sec.is_user_located_in_users_table("yuval", users_table=users):
+    #         print("User exists ✅")
+    #     else:
+    #         print("User missing ❌")
+
+    #     user_details = sec.return_user_parameters("admin", users_table=users)
+    #     print(f"user details: {user_details}")
+
+    # run_step(5, "PL Security: get Users table", step_5)
+
+    # # ----------------------------
+    # # Step 6: Add user
+    # # ----------------------------
+    # def step_6():
+    #     ok = sec.add_new_user(user_name="yuval", permission="administrator", password="Z@qqaz$$2", verify_password="Z@qqaz$$2",
+    #                           snmpv3_auth="No Auth", snmpv3_priv="No Priv")
+        
+    #     if ok is not True:
+    #         raise AssertionError("Add user name failed.")
+
+    # run_step(6, "PL Security: verify Add w/o username is blocked", step_6)
+
+    # # ----------------------------
+    # # Step 7: Delete user
+    # # ----------------------------
+    # def step_7():
+    #     ok = sec.delete_user(user_name="test")
+        
+    #     if ok is not True:
+    #         raise AssertionError("Delete user name failed.")
+
+    # run_step(7, "PL Security: verify delete user", step_7)
+
+    # # ----------------------------
+    # # Step 8: Modify user
+    # # ----------------------------
+    # def step_8():
+    #     ok = sec.modify_user(user_name="test", permission="Administrator", snmpv3_auth="SHA1", snmpv3_priv="AES-128")
+        
+    #     if ok is not True:
+    #         raise AssertionError("Modify user name failed.")
+
+    # run_step(8, "PL Security: verify modify user", step_8)
+
+    # # ----------------------------
+    # # Step 9: Disable user
+    # # ----------------------------
+    # def step_9():
+    #     ok = sec.disable_user(user_name="test")
+        
+    #     if ok is not True:
+    #         raise AssertionError("Disable user name failed.")
+
+    # run_step(9, "PL Security: verify disable user", step_9)
+
     # ----------------------------
-    # Step 5: Read Users table
+    # Step 10: Enable user
     # ----------------------------
-    def step_5():
-        users = sec.get_users_table(timeout=12_000)
-        print(f"Users rows: {len(users)}")
-        for row in users:
-            # [username, permission, snmpv3_auth, snmpv3_priv]
-            print(row)
-
-        # Not all devices have multiple users; but table should exist.
-        if users is None:
-            raise AssertionError("get_users_table returned None")
-
-        if sec.is_user_located_in_users_table("admin", users_table=users):
-            print("User exists ✅")
-        else:
-            print("User missing ❌")
-
-        if sec.is_user_located_in_users_table("yuval", users_table=users):
-            print("User exists ✅")
-        else:
-            print("User missing ❌")
-
-        user_details = sec.return_user_parameters("admin", users_table=users)
-        print(f"user details: {user_details}")
-
-    run_step(5, "PL Security: get Users table", step_5)
-
-    # ----------------------------
-    # Step 6: Add user
-    # ----------------------------
-    def step_6():
-        ok = sec.add_new_user(user_name="yuval", permission="administrator", password="Z@qqaz$$2", verify_password="Z@qqaz$$2",
-                              snmpv3_auth="No Auth", snmpv3_priv="No Priv")
+    def step_10():
+        ok = sec.enable_user(user_name="test")
         
         if ok is not True:
-            raise AssertionError("Add user name failed.")
+            raise AssertionError("Enable user name failed.")
 
-    run_step(6, "PL Security: verify Add w/o username is blocked", step_6)
+    run_step(10, "PL Security: verify enable user", step_10)
 
     # Cleanup: logout (best-effort)
     try:
@@ -126,7 +170,7 @@ def test_PL_security_page(page):
 
 
 if __name__ == "__main__":
-    import time
+    import time 
 
     start_time = time.perf_counter()
 

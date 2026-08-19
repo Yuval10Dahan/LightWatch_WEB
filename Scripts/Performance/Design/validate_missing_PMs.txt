@@ -1,0 +1,26 @@
+Adjust the script 'validate_missing_PMs' in C:\Gitlab_y\automation\LightWatch_WEB\Scripts\Performance\PythonScripts, by this steps:
+
+side functions:
+
+
+step 1:
+
+
+step 2: 
+
+
+step 3:
+
+
+step 4:
+
+
+step 5:
+
+
+step 6: 
+
+
+collect if each step passed.
+if one of them failed then say that the test failed.
+if all of them are pass then say that the test passed.

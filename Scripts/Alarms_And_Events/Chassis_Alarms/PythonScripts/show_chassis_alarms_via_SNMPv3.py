@@ -46,7 +46,7 @@ import sys
 from sys import argv
 from Utilities.QCreporter import open_report, close_report, step_passed, step_failed
 import os
-from datetime import datetime
+from datetime import datetime, date
 
 
 # Allow emojis on QC
@@ -97,6 +97,8 @@ WAIT = 30
 SNMPV3_USERNAME = "admin3"
 SNMPV3_PASSWORD = "Admin1234!"
 AUTH_TYPE = "SHA1"
+LW_AUTH_TYPE = "SHA-1"
+AUTH_NO_PRIV = "Authentication, No Privacy"
 
 GOOGLE_SNTP_SERVER = '216.239.35.0'
 GMT2 = "GMT+2"
@@ -249,6 +251,18 @@ def get_elements_per_chassis(element_list):
                     elements_per_chassis[current_chassis].append(ip)
     return elements_per_chassis
 
+def is_israel_daylight_saving_enabled() -> bool:
+    '''
+    Determines if Israel is currently observing daylight saving time.
+    '''
+    today = date.today()
+    year = today.year
+
+    dst_start = date(year, 3, 27)
+    dst_end = date(year, 10, 25)
+
+    return dst_start <= today < dst_end
+
 def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, report):
     domain_management = DomainManagement(page)
     device_discovery = DeviceDiscovery(page)
@@ -295,6 +309,8 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
     # Set SNTP server and timezone to synchronize device time with LW server time. #                                   
     ################################################################################
     def step_3():
+        daylight_save = "Enabled" if is_israel_daylight_saving_enabled() else "Disabled"
+
         for ip in DEVICES_LIST:
             device_page = page.context.new_page()
             pl_login = PL_LoginPage(device_page)
@@ -305,7 +321,7 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
             pl_main_screen = PL_Main_Screen_POM(device_page)
             pl_main_screen.set_chassis_id("")
             pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER)
-            pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2)
+            pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2, daylight_save=daylight_save)
             refresh_page(device_page)
             device_page.close()
 
@@ -327,7 +343,7 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
             pl_security.add_new_user(user_name=SNMPV3_USERNAME, permission="Administrator", password=SNMPV3_PASSWORD,
              verify_password=SNMPV3_PASSWORD, snmpv3_auth=AUTH_TYPE, password_auth=SNMPV3_PASSWORD)
 
-        sleep(5)
+        sleep(5) 
         left_panel.click_device_discovery()
         device_discovery.click_SNMPv3()
 
@@ -336,9 +352,14 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
            sleep(0.5) 
            device_discovery.set_SNMPv3_user_name(SNMPV3_USERNAME)
            sleep(0.5)
+           device_discovery.set_SNMPv3_security_level(AUTH_NO_PRIV)
+           sleep(0.5)
+           device_discovery.set_SNMPv3_authentication_protocol(LW_AUTH_TYPE)
+           sleep(0.5)
+           device_discovery.set_SNMPv3_authentication_password(SNMPV3_PASSWORD)
+           sleep(0.5)
            device_discovery.click_start_discovery()
            refresh_page(page)
-           sleep(2)
 
         refresh_page(page)
 
@@ -349,6 +370,9 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
     ##########################################################
     def step_5():
         left_panel.click_domain_management()
+        if len(DEVICES_LIST) <= 1:
+            raise AssertionError("Please provide a list of at least two device IPs in DEVICES_LIST.")
+        
         for ip in DEVICES_LIST:
             if ip == DEVICES_LIST[0]:
                 domain_management.change_CHASSIS_ID(
@@ -358,17 +382,32 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
                     existing_chassis_id=None,
                     parent_chassis=None
                 )
-            else:
+            
+            elif ip == DEVICES_LIST[1]:
                 domain_management.change_CHASSIS_ID(
-                   element_name=ip,
-                   to_mode="existing",
-                   new_chassis_id=None,
-                   existing_chassis_id="Chassis: 67",
-                   parent_chassis=None
+                    element_name=ip,
+                    to_mode="new",
+                    new_chassis_id="68",
+                    existing_chassis_id=None,
+                    parent_chassis=None
+                )
+
+            else:
+                index = DEVICES_LIST.index(ip)
+
+                existing_id = "Chassis: 67" if index % 2 == 0 else "Chassis: 68"
+
+                domain_management.change_CHASSIS_ID(
+                    element_name=ip,
+                    to_mode="existing",
+                    new_chassis_id=None,
+                    existing_chassis_id=existing_id,
+                    parent_chassis=None
                 )
         
         refresh_page(page)
         domain_management.move_to_domain(source_item_name="Chassis: 67/67", target_domain_name="ScriptDomain")
+        domain_management.move_to_domain(source_item_name="Chassis: 68/68", target_domain_name="ScriptDomain")
 
     results[5] = run_step(5, step_5, logger, report)
 
@@ -378,14 +417,15 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
     ###############################################################################
     def step_6():
         left_panel.click_network_topology()
+        upper_panel.select_domain(DOMAIN_NAME)
         network_topology.show_navigation_info()
-        element_list = network_topology.get_navigation_info_elements_list(visible_only=True)
+        element_list = network_topology.get_navigation_info_elements_list(visible_only=False)
         chassis_list = adjust_chassis_list(element_list)
         global_state['chassis_list'] = chassis_list
         network_topology.hide_navigation_info()
 
         for chassis in chassis_list:
-            network_topology.click_on_element_via_the_map(element_name=chassis)
+            network_topology.navigation_info_open_element_details(chassis)
             network_topology.element_details_click_on_faults()
          
             map_chassis_alarms = network_topology.element_details_faults_get_all_alarms()
@@ -393,6 +433,7 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
             global_state['map_chassis_alarms'][chassis] = map_chassis_alarms
          
             network_topology.element_details_faults_view_all_alarms()
+            alarms_and_events.set_from_date_relative_to_now(hours=6)
             alarms_and_events_chassis_alarms = alarms_and_events.get_all_alarms()
          
             if not compare_map_chassis_alarms_and_alarms_and_events_chassis_alarms(chassis, map_chassis_alarms, alarms_and_events_chassis_alarms):
@@ -408,6 +449,7 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
     #######################################################################################
     def step_7():
         left_panel.click_network_topology()
+        upper_panel.select_domain(DOMAIN_NAME)
         refresh_page(page)
         network_topology.show_navigation_info()
         element_list = network_topology.get_navigation_info_elements_list(visible_only=False)
@@ -416,16 +458,20 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
         global_state['elements_per_chassis'] = elements_per_chassis
 
         network_topology.hide_navigation_info()
+        sleep(1)
 
         chassis_list = global_state['chassis_list']
+        sleep(0.5)
         chassis_alarms_list = {c: [] for c in chassis_list}
+        if len(chassis_list) == 0: 
+            raise AssertionError(f"Chassis list is empty in Step 7")
 
         for chassis in chassis_list:
             left_panel.click_alarms_and_events()
             alarms_and_events.set_faults_type("Alarms")
             alarms_and_events.set_filterBy("Domain/Chassis")
             alarms_and_events.select_domain_or_chassis_filterBy_domain_or_chassis(chassis)
-               
+            alarms_and_events.set_from_date_relative_to_now(hours=6)
             alarms = alarms_and_events.get_all_alarms()
             chassis_alarms_list[chassis] = alarms
       
@@ -436,13 +482,12 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
     results[7] = run_step(7, step_7, logger, report)
 
     ###############################################################################
-    # Step 8 - Select other domain and validate chassis alarms in Alarms & Events #
-    # and compare them against Management Map chassis alarms for each chassis.    #
+    # Step 8 - Select the domain and validate chassis alarms in Alarms & Events   #
+    # and compare them against Management Map chassis alarms for some chassis.    #
     ###############################################################################
     def step_8():
-        domain_name = "ScriptDomain"
         left_panel.click_network_topology()
-        upper_panel.select_domain(domain_name)
+        upper_panel.select_domain(DOMAIN_NAME)
         
         network_topology.show_navigation_info()
         element_list = network_topology.get_navigation_info_elements_list(visible_only=False)
@@ -452,7 +497,7 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
         chassis = CHASSIS_NAME
         new_domain_chassis_alarms_list = {f'{chassis}': []}
 
-        network_topology.click_on_element_via_the_map(element_name=chassis)
+        network_topology.navigation_info_open_element_details(chassis)
         network_topology.element_details_click_on_faults()
         map_chassis_alarms = network_topology.element_details_faults_get_all_alarms()
         map_chassis_alarms = convert_map_chassis_alarms_to_alarms_and_events_chassis_alarms(map_chassis_alarms)
@@ -462,6 +507,7 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
             alarms_and_events.set_faults_type("Alarms")
             alarms_and_events.set_filterBy("Devices")
             alarms_and_events.select_device_filterBy_devices(ip)
+            alarms_and_events.set_from_date_relative_to_now(hours=6)
             alarms_and_events_ip_alarms = alarms_and_events.get_all_alarms()
             new_domain_chassis_alarms_list[chassis].extend(alarms_and_events_ip_alarms)
             alarms_and_events.remove_device_filterBy_devices(ip)
@@ -471,6 +517,22 @@ def test_show_chassis_alarms_via_SNMPv2(page, left_panel: LeftPanel, logger, rep
             raise AssertionError(f"Alarms mismatch for {chassis} in Step 8")
 
     results[8] = run_step(8, step_8, logger, report)
+
+    ######################################
+    # Step 9 - Remove devices from LW.   #
+    # Delete the Chassis and the Domain. #
+    ######################################
+    def step_9():
+        left_panel.click_domain_management()
+
+        for ip in DEVICES_LIST:
+            domain_management.remove_device(ip, parent_domain_name=DOMAIN_NAME)
+            refresh_page(page)
+
+        domain_management.remove_chassis(chassis_name=CHASSIS_NAME, parent_domain_name=DOMAIN_NAME)
+        domain_management.remove_domain(domain_name=DOMAIN_NAME)
+
+    results[9] = run_step(9, step_9, logger, report)
 
    # ==========================================================
 

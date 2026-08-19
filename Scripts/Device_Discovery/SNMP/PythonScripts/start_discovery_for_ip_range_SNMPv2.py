@@ -5,8 +5,9 @@ Date: 03/03/2026
 =====================================================
 Tests the start discovery for IP range for SNMPv2.
 
+Note: The test requires two devices with consecutive IP addresses. (e.g. DEVICE_IP1 = "172.16.30.15", DEVICE_IP2 = "172.16.30.16")
 
-*** Runtime: approximately == minutes ***
+*** Runtime: approximately 25 minutes ***
 """
 
 from playwright.sync_api import sync_playwright
@@ -65,8 +66,10 @@ else:
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
+    # Range devices - must be consecutive IPs
     DEVICE_IP1 = "172.16.30.15"
     DEVICE_IP2 = "172.16.30.16"
+    
     DEVICE_IP_USER = "tech"
     DEVICE_IP_PASS = "packetlight"
 
@@ -138,12 +141,14 @@ def open_device_discovery(left_panel: LeftPanel):
 def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, report):
     device_discovery  = DeviceDiscovery(page)
     network_topology  = NetworkTopology(page)
+    domain_management = DomainManagement(page)
     login  = LoginPage(page)
 
     results = {}
 
     #############################################################
     # Step 1 – Facrory default reset for all devices.           # 
+    # Remove devices from LW via Domain Management.             #
     # Open Device Discovery and navigate to SNMPv2 tab.         # 
     #############################################################
     def step_1():
@@ -162,6 +167,12 @@ def test_discovery_for_ip_range_snmpv2(page, left_panel: LeftPanel, logger, repo
 
         # Wait for devices to come back up after factory default reset
         devices_are_up(ips_to_reset, wait_time=WAIT)
+
+        # Remove devices from LW via Domain Management
+        left_panel.click_domain_management()
+        for ip in ips_to_reset:
+            domain_management.remove_device(ip)
+            sleep(5)
 
         open_device_discovery(left_panel)
         assert device_discovery.container().is_visible(), "Device Discovery container is not visible."
