@@ -80,28 +80,30 @@ else:
     # Values for the Parameter file (from QC)
     # ================================================================
 
-    LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    # LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    LW_SERVER_HOST_IP  = "172.16.10.22:8443"
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    DEVICES_LIST = ['172.16.30.15', '172.16.30.13']
+    DEVICES_LIST = ['172.16.20.125', '172.16.40.39']
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
 
-    DUT_IP_NAMES = ["PL-2000ADS (172.16.30.15)", "PL-1000IL2 (172.16.30.13)"]
+    DUT_IP_NAMES = ["PL-2000GM (172.16.20.125)", "PL-4000T (172.16.40.39)"]
 
     NEW_CHASSIS_ID = "67"
     DOMAIN_NAME = "ScriptDomain"
     SUB_DOMAIN_NAME = "ScriptSubDomain"
 
-    CATEGORY_TEST_DEVICE = "172.16.20.126"
+    CATEGORY_TEST_DEVICE = "172.16.40.30"
     
 
 # ================================================================
 # Values that should not be changed
 # ================================================================
 
-BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
+# BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
+BASE_URL = f"https://{LW_SERVER_HOST_IP}/"
 WAIT = 30
 
 CATEGORIES_LIST = ["Device", "Syslog", "System", "Configuration Event", "Inventory",

@@ -74,7 +74,8 @@ else:
    # Values for the Parameter file (from QC)
    # ================================================================
 
-   LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+   # LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+   LW_SERVER_HOST_IP  = "172.16.10.22:8443"
    LW_USERNAME = "administrator"
    LW_PASSWORD = "administrator"
 
@@ -82,7 +83,7 @@ else:
    DEVICE_IP_PASS = "packetlight"
 
 
-BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
+BASE_URL = f"https://{LW_SERVER_HOST_IP}/"
 WAIT = 30
 
 NON_PL_DEVICE_SNMPV2 = "172.16.10.22"

@@ -69,6 +69,7 @@ class PL_Upper_Panel:
         for attempt in range(retries):
             try:
                 system_btn = self.upper_panel_frame().locator("#System").first
+                sleep(2)
                 expect(system_btn).to_be_visible(timeout=timeout)
                 system_btn.scroll_into_view_if_needed()
                 system_btn.click(force=True, timeout=timeout)

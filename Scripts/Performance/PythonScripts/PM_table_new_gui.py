@@ -577,7 +577,7 @@ def test_PM_table(page, left_panel: LeftPanel, logger, report):
             refresh_page(page)
 
             device_page = page.context.new_page()
-            try:
+            try: 
                 pl_login = PL_LoginPage(device_page)
                 pl_login.goto(f"http://{ip}/")
                 ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
@@ -585,9 +585,9 @@ def test_PM_table(page, left_panel: LeftPanel, logger, report):
                     raise AssertionError(f"Login to {ip} GUI failed.")
 
                 port1_name = extract_port_name_from_list(device_name, PORT_PER_PRODUCT)
-                pl_main_screen = PL_Main_Screen_POM(device_page)
+                pl_main_screen = PL_Main_Screen_POM(device_page) 
 
-                service_types = pl_main_screen.get_service_type_dropdown_options(port_number=port1_name)
+                service_types = pl_main_screen.get_service_type_dropdown_options(port_number=port1_name) 
                 pl_main_screen.set_service_type(port_number=port1_name, service_type_value=service_types[1])
                 pl_main_screen.set_admin_status(port_number=port1_name, status="up")
                 

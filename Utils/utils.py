@@ -42,11 +42,11 @@ def create_page(playwright_object, max_size=True) -> Page:
 
     if max_size:
         browser = playwright_object.chromium.launch(channel="chrome", headless=False, args=["--window-size=1920,937", "--force-device-scale-factor=1"])
-        context = browser.new_context(viewport={"width": 1920, "height": 937}, device_scale_factor=1)
+        context = browser.new_context(viewport={"width": 1920, "height": 937}, device_scale_factor=1, ignore_https_errors=True)
 
     else:
         browser = playwright_object.chromium.launch(channel="chrome", headless=False)
-        context = browser.new_context()
+        context = browser.new_context(ignore_https_errors=True)
 
     page = context.new_page()
 

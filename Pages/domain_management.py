@@ -143,7 +143,9 @@ class DomainManagement:
         """
         Return the inventory tree with the given title.
         """
-        return self.page.locator("section.domain-management-container app-inventory-tree").filter(has=self.page.locator("h3", has_text=re.compile(rf"^\s*{re.escape(title)}\s*$"))).first
+        loc = self.page.locator("section.domain-management-container app-inventory-tree").filter(has=self.page.locator("h3", has_text=re.compile(rf"^\s*{re.escape(title)}\s*$"))).first
+        sleep(2)
+        return loc
 
     # ✅
     def from_tree(self):
@@ -175,7 +177,7 @@ class DomainManagement:
         Return a bottom action button by its visible text.
         """
         bottom_action_button = self.bottom_actions().locator("button.btn", has_text=re.compile(rf"^\s*{re.escape(text)}\s*$")).first
-        sleep(1)
+        sleep(2)
 
         return bottom_action_button
 
@@ -528,6 +530,11 @@ class DomainManagement:
             sleep(1)
             row = device_rows.filter(has_text=dev_rx).first
 
+            # Chassis ID may have changed / chassis is empty -> device is not under it; search whole tree
+            if row.count() == 0 and parent_chassis:
+                device_rows = tree.locator(", ".join([f"div.inventory-tree-level-title[type='{t}']" for t in device_types]))
+                row = device_rows.filter(has_text=dev_rx).first
+
             if row.count() == 0:
                 raise AssertionError(
                     f"Device '{target}' was not found."
@@ -535,12 +542,19 @@ class DomainManagement:
                     " If it is under a collapsed 'Chassis: X/X', pass parent_chassis.")
                 )
 
+            # After a page refresh the tree is collapsed: the row is in the DOM but hidden.
+            # Expand every collapsed ancestor (outermost -> innermost) so the row becomes visible.
+            ancestors = row.locator("xpath=ancestor::app-inventory-tree-level")
+            for i in range(ancestors.count()):
+                title = ancestors.nth(i).locator("div.inventory-tree-level-title").first
+                self.expand_tree_node_if_collapsed(title, timeout=timeout)
+
             # Click device -> enable button
             row.scroll_into_view_if_needed()
             expect(row).to_be_visible(timeout=timeout)
             sleep(2)
             row.click(force=True)
-    
+
         except Exception as e:
             raise AssertionError(f"expand_chassis_and_click_on_device('{device_id}' failed. Problem: {e}")
 
@@ -1385,12 +1399,14 @@ class DomainManagement:
 
             def warning_visible() -> bool:
                 try:
+                    sleep(1)
                     return warn.count() > 0 and warn.is_visible()
                 except Exception:
                     return False
 
             def message_visible() -> bool:
                 try:
+                    sleep(1)
                     return msg.count() > 0 and msg.is_visible()
                 except Exception:
                     return False
@@ -1405,6 +1421,7 @@ class DomainManagement:
                 msg_text = t.inner_text().strip()
 
                 ok = self.message_ok_btn()
+                sleep(1)
                 expect(ok).to_be_visible(timeout=timeout)
                 sleep(5)
                 ok.click()
@@ -1413,9 +1430,12 @@ class DomainManagement:
 
             # Warning modal must appear -> confirm
             expect(warn).to_be_visible(timeout=timeout)
+            sleep(1)
 
             yes = self.warning_yes_btn()
+            sleep(1)
             expect(yes).to_be_visible(timeout=timeout)
+            sleep(1)
             expect(yes).to_be_enabled(timeout=timeout)
             sleep(5)
             yes.click()
@@ -1660,7 +1680,9 @@ class DomainManagement:
         Expand a tree node (Domain/Chassis/etc.) if it's collapsed.
         """
         level = title_row.locator("xpath=ancestor::app-inventory-tree-level[1]")
+        sleep(3)
         collapse = level.locator("div.collapse").first
+        sleep(3)
 
         # If no collapse container, nothing to expand
         if collapse.count() == 0:
@@ -1675,7 +1697,12 @@ class DomainManagement:
             return False
 
         arrow_down = title_row.locator("xpath=../app-icon[@name='arrow-down']").first
+        sleep(3)
+        # Empty node (no children) has no arrow - nothing to expand
+        if arrow_down.count() == 0:
+            return False
         expect(arrow_down).to_be_visible(timeout=timeout)
+        sleep(2)
 
         arrow_down.click(force=True)
 
@@ -1693,8 +1720,11 @@ class DomainManagement:
         """
         Return the 'Changing chassis ID for <ip>' modal window.
         """
-        return (self.page.locator("div.modal-dialog.pl-modal").filter(has=self.page.locator("div.domain-management-modal-header div.title",
+        loc = (self.page.locator("div.modal-dialog.pl-modal").filter(has=self.page.locator("div.domain-management-modal-header div.title",
                 has_text=re.compile(r"^\s*Changing chassis ID for\s+.+\s*$", re.IGNORECASE))).first)
+
+        sleep(2)
+        return loc
 
     # ✅
     def change_the_chassis_ID_to_new_chassis_ID(self, timeout: int = 5000):
@@ -1707,7 +1737,9 @@ class DomainManagement:
 
             # Click the LABEL 
             lbl = modal.locator("label[for='radio-new']").first
+            sleep(3)
             expect(lbl).to_be_visible(timeout=timeout)
+            sleep(2)
             lbl.click(force=True)
 
             # Verify selection by label class 
@@ -1727,7 +1759,9 @@ class DomainManagement:
             expect(modal).to_be_visible(timeout=timeout)
 
             lbl = modal.locator("label[for='radio-existing']").first
+            sleep(3)
             expect(lbl).to_be_visible(timeout=timeout)
+            sleep(2)
             lbl.click(force=True)
 
             expect(lbl).to_have_class(re.compile(r"\bchecked\b"), timeout=timeout)
@@ -1744,9 +1778,11 @@ class DomainManagement:
         """
         try:
             btn = self.change_CHASSIS_ID_modal().locator("section.form-actions button.btn.btn-primary", has_text=re.compile(r"^\s*Next\s*$")).first
+            sleep(2)
 
             expect(btn).to_be_visible(timeout=timeout)
             expect(btn).to_be_enabled(timeout=timeout)
+            sleep(2)
             btn.click()
 
         except Exception as e:
@@ -1791,9 +1827,11 @@ class DomainManagement:
         """
         try:
             btn = self.change_CHASSIS_ID_modal().locator("section.form-actions button.btn.btn-primary",has_text=re.compile(r"^\s*Save\s*$", re.IGNORECASE)).first
+            sleep(3)
 
             expect(btn).to_be_visible(timeout=timeout)
             expect(btn).to_be_enabled(timeout=timeout)
+            sleep(2)
             btn.click()
 
         except Exception as e:
@@ -1806,11 +1844,13 @@ class DomainManagement:
         """
         try:
             inp = self.change_CHASSIS_ID_modal().locator("app-input[label='New Chassis ID'] input[type='number']").first
+            sleep(2)
 
             expect(inp).to_be_visible(timeout=timeout)
 
             # Clear first to avoid leftovers
             inp.fill("")
+            sleep(2)
             inp.fill(str(new_chassis_id))
 
             sleep(0.5)
@@ -1830,23 +1870,27 @@ class DomainManagement:
 
             # Click the dropdown toggle 
             toggle = modal.locator("button#button-basic").first
+            sleep(2)
             expect(toggle).to_be_visible(timeout=timeout)
             expect(toggle).to_be_enabled(timeout=timeout)
+            sleep(1)
             toggle.click()
-            sleep(0.5)
 
             menu = modal.locator("div#dropdown-basic.dropdown-menu.show").first
+            sleep(2)
             expect(menu).to_be_visible(timeout=timeout)
 
             # Use flexible regex helper to match items despite spaces / dash variants
             rx = self.nav_text_regex(chassis_id_to_select)
 
             option = menu.locator("li.dropdown-item[role='menuitem']", has_text=rx).first
+            sleep(2)
             if option.count() == 0:
                 raise AssertionError(f"Chassis ID '{chassis_id_to_select}' not found in dropdown options.")
 
             option.scroll_into_view_if_needed()
             expect(option).to_be_visible(timeout=timeout)
+            sleep(2)
             option.click()
 
             # Verify dropdown selection updated 
@@ -1863,7 +1907,6 @@ class DomainManagement:
         If the device is under a domain node (already visible), only pass chassis_id.
         """
         try:
-            sleep(1)
             target = (element_name or "").strip()
             if not target:
                 raise ValueError("element_name is empty")
@@ -1893,12 +1936,12 @@ class DomainManagement:
                 sleep(0.5)
 
                 parent_row = tree.locator("div.inventory-tree-level-title[type='CHASSIS']").filter(has_text=parent_rx).first
-                sleep(0.5)
+                sleep(2)
 
                 if parent_row.count() == 0:
                     # fallback: if in some builds it isn't typed as CHASSIS
                     parent_row = tree.locator("div.inventory-tree-level-title").filter(has_text=parent_rx).first
-                    sleep(0.5)
+                    sleep(2)
 
                 if parent_row.count() == 0:
                     raise AssertionError(f"parent_chassis '{parent}' not found in 'From' tree.")
@@ -1911,10 +1954,10 @@ class DomainManagement:
 
                 # Scope future device lookup ONLY inside this chassis subtree
                 search_root = parent_row.locator("xpath=ancestor::app-inventory-tree-level[1]")
-                sleep(0.5)
+                sleep(2)
 
             device_rows = search_root.locator(", ".join([f"div.inventory-tree-level-title[type='{t}']" for t in device_types]))
-            sleep(0.5)
+            sleep(2)
             row = device_rows.filter(has_text=dev_rx).first
 
             if row.count() == 0:
@@ -1927,20 +1970,22 @@ class DomainManagement:
             # Click device -> enable button
             row.scroll_into_view_if_needed()
             expect(row).to_be_visible(timeout=timeout)
+            sleep(2)
             row.click(force=True)
 
             btn = self.action_btn("Change Chassis ID")
+            sleep(2)
             self.wait_until(lambda: btn.count() > 0 and btn.is_visible() and btn.is_enabled(),
                             timeout_ms=timeout, interval_ms=150)
             btn.click()
-            sleep(1)
+
             return True
 
         except Exception as e:
             raise AssertionError(f"click_change_CHASSIS_ID('{element_name}', parent_chassis={parent_chassis}) failed. Problem: {e}")
          
     # ✅
-    def change_CHASSIS_ID(self, element_name: str, to_mode: str = "new", new_chassis_id: str | int | None = None, existing_chassis_id: str | None = None,
+    def change_CHASSIS_ID_old(self, element_name: str, to_mode: str = "new", new_chassis_id: str | int | None = None, existing_chassis_id: str | None = None,
         parent_chassis: str | None = None, timeout: int = 5000):
         """
         Full Change Chassis ID flow.
@@ -1966,6 +2011,7 @@ class DomainManagement:
                 # Title sanity check
                 try:
                     title = modal.locator("div.domain-management-modal-header div.title").first
+                    sleep(3)
                     if title.count() > 0:
                         expect(title).to_be_visible(timeout=timeout)
                 except Exception:
@@ -1986,6 +2032,7 @@ class DomainManagement:
 
                     # Wait until the New Chassis ID input exists 
                     new_input = modal.locator("app-input[label='New Chassis ID'] input[type='number']").first
+                    sleep(3)
                     expect(new_input).to_be_visible(timeout=timeout)
 
                     # Fill value using your setter
@@ -2000,6 +2047,7 @@ class DomainManagement:
 
                     # Wait until the dropdown exists 
                     dd_toggle = modal.locator("button#button-basic").first
+                    sleep(2)
                     expect(dd_toggle).to_be_visible(timeout=timeout)
 
                     # Select option using dropdown function 
@@ -2023,7 +2071,9 @@ class DomainManagement:
             except Exception as e:
                 try:
                     close_btn = self.change_CHASSIS_ID_modal().locator("div.domain-management-modal-header app-icon[name='close-square']").first
+                    sleep(3)
                     if close_btn.count() > 0 and close_btn.is_visible():
+                        sleep(2)
                         close_btn.click()
                 except Exception:
                     pass
@@ -2031,6 +2081,347 @@ class DomainManagement:
                 raise AssertionError(f"change_CHASSIS_ID('{element_name}', to_mode='{to_mode}') failed. Problem: {e}")
             
         raise AssertionError(f"change_CHASSIS_ID('{element_name}', to_mode='{to_mode}') failed after 3 attempts. ")
+
+    # ----------------------------------------------------------
+    # Change Chassis ID (new implementation) - private helpers
+    # ----------------------------------------------------------
+
+    _IP_RX = re.compile(r"\d{1,3}(?:\.\d{1,3}){3}")
+    _DEVICE_TYPES = ("ROADM", "TRANSPONDER", "MUXPONDER", "DEVICE")
+
+    # ✅
+    @staticmethod
+    def _chassis_key(text: str) -> str:
+        """
+        Comparison key for chassis / device names: no whitespace, unified dashes, lower-case.
+        'HAR -14' == 'HAR-14', 'Chassis: 67' == 'chassis:67'.
+        """
+        return re.sub(r"\s+", "", (text or "")).replace("–", "-").lower()
+
+    # ✅
+    def _cc_device_row(self, element_name: str):
+        """
+        Return the device title row in the 'From' tree for 'NAME (IP)' or a bare IP.
+        Matches the row's own <span> text exactly, so '10.30.6.3' never matches '10.30.6.32'.
+        """
+        target = (element_name or "").strip()
+        if not target:
+            raise ValueError("element_name is empty")
+
+        if self._IP_RX.fullmatch(target):
+            # Bare IP: either 'NAME (IP)' or a row whose text is just the IP
+            ip = re.escape(target)
+            rx = re.compile(rf"(^\s*{ip}\s*$)|(\(\s*{ip}\s*\)\s*$)")
+        else:
+            if not re.search(r"\(\s*\d{1,3}(?:\.\d{1,3}){3}\s*\)", target):
+                raise AssertionError(f"'{target}' does not look like a device row. Use 'NAME (IP)' or IP only.")
+            rx = re.compile(rf"^\s*{self.nav_text_regex(target).pattern}\s*$")
+
+        selector = ", ".join(f"div.inventory-tree-level-title[type='{t}']" for t in self._DEVICE_TYPES)
+        span = self.page.locator("div.inventory-tree-level-title-content > span", has_text=rx)
+        return self.from_tree().locator(selector).filter(has=span).first
+
+    # ✅
+    def _cc_is_row_selected(self, row) -> bool:
+        """
+        A selected tree row carries the 'current' class.
+        """
+        return re.search(r"\bcurrent\b", row.get_attribute("class") or "") is not None
+
+    # ✅
+    def _cc_reveal_row(self, row, timeout: int):
+        """
+        Make sure the device row is visible: after a refresh its domain/chassis ancestors may be collapsed.
+        """
+        if row.is_visible():
+            return
+
+        # Outermost -> innermost; skip the row's own level (its collapse holds its children, not the row)
+        ancestors = row.locator("xpath=ancestor::app-inventory-tree-level")
+        for i in range(max(0, ancestors.count() - 1)):
+            title = ancestors.nth(i).locator("xpath=./div/header/div[contains(@class,'inventory-tree-level-title')]").first
+            if title.count() > 0 and title.is_visible():
+                self.expand_tree_node_if_collapsed(title, timeout=timeout)
+
+        expect(row).to_be_visible(timeout=timeout)
+
+    # ✅
+    def _cc_select_device(self, row, timeout: int):
+        """
+        Select the device row and wait until 'Change Chassis ID' is enabled.
+
+        The old flow used row.click(force=True) once and then only polled the button. A forced click
+        lands on whatever is at the row's centre (it skips the 'receives events' check), so when the row
+        is at the edge of the scroll area the click is lost and the button never enables.
+        Here every click is verified through the row's 'current' class, escalating the click method.
+        """
+        btn = self.action_btn("Change Chassis ID")
+
+        def button_ready() -> bool:
+            return btn.count() > 0 and btn.is_visible() and btn.is_enabled()
+
+        # Already selected (clicking again could toggle it off)
+        if self._cc_is_row_selected(row) and button_ready():
+            return btn
+
+        span = row.locator("div.inventory-tree-level-title-content > span").first
+        clickers = (
+            ("click on name", lambda: span.click(timeout=timeout)),
+            ("click on row", lambda: row.click(timeout=timeout)),
+            ("forced click", lambda: row.click(force=True, timeout=timeout)),
+            ("dispatched click", lambda: span.dispatch_event("click")),
+        )
+
+        errors = []
+        for label, do_click in clickers:
+            try:
+                row.scroll_into_view_if_needed(timeout=timeout)
+                do_click()
+                self.wait_until(lambda: self._cc_is_row_selected(row) and button_ready(), timeout_ms=3000, interval_ms=200,
+                                desc=f"device row selected + 'Change Chassis ID' enabled ({label})")
+                return btn
+            except Exception as e:
+                errors.append(f"{label}: {e}")
+
+        raise AssertionError(
+            "Could not select the device row / enable 'Change Chassis ID'. "
+            f"row class='{row.get_attribute('class')}', button disabled={btn.get_attribute('disabled') is not None}. "
+            f"Tried -> {' | '.join(errors)}"
+        )
+
+    # ✅
+    def _cc_open_modal(self, element_name: str, timeout: int):
+        """
+        Select the device and open the 'Changing chassis ID for <ip>' modal. Returns the modal locator.
+        """
+        expect(self.from_tree()).to_be_visible(timeout=max(timeout, 15000))
+
+        row = self._cc_device_row(element_name)
+        self.wait_until(lambda: row.count() > 0, timeout_ms=max(timeout, 15000), interval_ms=500,
+                        desc=f"device '{element_name}' to appear in the 'From' tree")
+        self._cc_reveal_row(row, timeout)
+
+        btn = self._cc_select_device(row, timeout)
+        btn.click(timeout=timeout)
+
+        modal = self.change_CHASSIS_ID_modal()
+        expect(modal).to_be_visible(timeout=timeout)
+
+        # The title must name the device we clicked
+        ip = self._IP_RX.search(element_name)
+        if ip:
+            expect(modal.locator("div.domain-management-modal-header div.title").first).to_contain_text(ip.group(0), timeout=timeout)
+
+        return modal
+
+    # ✅    
+    def _cc_choose_mode(self, modal, mode: str, timeout: int):
+        """
+        Step 1 of the modal: pick 'New Chassis ID' / 'Existing Chassis ID' and click Next.
+        """
+        radio_id = "radio-new" if mode == "new" else "radio-existing"
+        lbl = modal.locator(f"label[for='{radio_id}']").first
+        expect(lbl).to_be_visible(timeout=timeout)
+
+        checked = re.compile(r"\bchecked\b")
+        if not checked.search(lbl.get_attribute("class") or ""):
+            lbl.click(timeout=timeout)
+            try:
+                expect(lbl).to_have_class(checked, timeout=2000)
+            except AssertionError:
+                # Fallback: drive the hidden radio input directly
+                modal.locator(f"input#{radio_id}").first.check(force=True, timeout=timeout)
+                expect(lbl).to_have_class(checked, timeout=timeout)
+
+        next_btn = modal.locator("section.form-actions button.btn", has_text=re.compile(r"^\s*Next\s*$")).first
+        expect(next_btn).to_be_enabled(timeout=timeout)
+        next_btn.click(timeout=timeout)
+
+        # Step 2 is rendered when 'Save' shows up
+        expect(modal.locator("section.form-actions button.btn", has_text=re.compile(r"^\s*Save\s*$")).first).to_be_visible(timeout=timeout)
+
+    # ✅
+    def _cc_fill_new(self, modal, new_chassis_id: str | int, timeout: int):
+        """
+        Step 2 ('new'): type the new chassis ID.
+        """
+        inp = modal.locator("app-input[label='New Chassis ID'] input").first
+        expect(inp).to_be_visible(timeout=timeout)
+        inp.fill(str(new_chassis_id), timeout=timeout)
+        expect(inp).to_have_value(str(new_chassis_id), timeout=timeout)
+
+    # ✅
+    def _cc_select_existing(self, modal, existing_chassis_id: str, timeout: int):
+        """
+        Step 2 ('existing'): pick the chassis from the 'Select Chassis ID' dropdown.
+        Matches the option text exactly (ignoring spaces), so 'Chassis: 6' never picks 'Chassis: 67'.
+        """
+        wanted = self._chassis_key(existing_chassis_id)
+        dropdown = modal.locator("app-dropdown[label='Select Chassis ID']").first
+        toggle = dropdown.locator("button.dropdown-toggle").first
+        selected = dropdown.locator("div.selected-view").first
+        menu = dropdown.locator("div.dropdown-menu").first
+        items = menu.locator("li.dropdown-item[role='menuitem']")
+
+        expect(toggle).to_be_enabled(timeout=timeout)
+
+        available = []
+        for _ in range(3):
+            if self._chassis_key(selected.inner_text()) == wanted:
+                return
+
+            if (toggle.get_attribute("aria-expanded") or "").lower() != "true":
+                toggle.click(timeout=timeout)
+            expect(menu).to_have_class(re.compile(r"\bshow\b"), timeout=timeout)
+            self.wait_until(lambda: items.count() > 0, timeout_ms=timeout, interval_ms=200, desc="chassis dropdown options")
+
+            texts = items.all_inner_texts()
+            available = [t.strip() for t in texts]
+            idx = next((i for i, t in enumerate(texts) if self._chassis_key(t) == wanted), None)
+            if idx is None:
+                raise AssertionError(f"Chassis ID '{existing_chassis_id}' not in dropdown. Available: {available}")
+
+            option = items.nth(idx)
+            option.scroll_into_view_if_needed(timeout=timeout)
+            option.click(timeout=timeout)
+
+            try:
+                self.wait_until(lambda: self._chassis_key(selected.inner_text()) == wanted, timeout_ms=2000, interval_ms=200,
+                                desc=f"dropdown to show '{existing_chassis_id}'")
+                return
+            except AssertionError:
+                continue
+
+        raise AssertionError(f"Dropdown selection did not stick on '{existing_chassis_id}' "
+                             f"(shows '{selected.inner_text().strip()}'). Available: {available}")
+
+    # ✅
+    def _cc_save(self, modal, timeout: int):
+        """
+        Click Save and wait for the outcome: the modal closes (success) or a 'Message' modal reports an error.
+        """
+        save_btn = modal.locator("section.form-actions button.btn", has_text=re.compile(r"^\s*Save\s*$")).first
+        expect(save_btn).to_be_enabled(timeout=timeout)
+        save_btn.click(timeout=timeout)
+
+        msg_modal = self.message_modal()
+        self.wait_until(lambda: msg_modal.is_visible() or not modal.is_visible(), timeout_ms=max(timeout, 15000), interval_ms=250,
+                        desc="change-chassis modal to close or an error message to appear")
+
+        if msg_modal.is_visible():
+            text = (self.message_text().text_content() or msg_modal.inner_text() or "").strip()
+            ok = self.message_ok_btn()
+            if ok.count() > 0 and ok.is_visible():
+                ok.click()
+            else:
+                msg_modal.locator("app-icon[name='close-square']").first.click()
+            raise AssertionError(f"Save rejected by the server: '{text}'")
+
+    # ✅
+    def _cc_is_applied(self, element_name: str, mode: str, new_chassis_id, existing_chassis_id) -> bool:
+        """
+        True if the device already sits under the requested chassis in the 'From' tree (DOM check, no expanding).
+        Chassis rows read 'NAME/ID' (e.g. 'Chassis: 67/67', 'DC1-71/71').
+        """
+        row = self._cc_device_row(element_name)
+        if row.count() == 0:
+            return False
+
+        chassis = row.locator("xpath=ancestor::app-inventory-tree-level[./div/header/div[@type='CHASSIS']][1]/div/header/div[@type='CHASSIS']").first
+        if chassis.count() == 0:
+            return False
+
+        key = self._chassis_key(chassis.text_content() or "")
+        if mode == "new":
+            return key.endswith(f"/{self._chassis_key(str(new_chassis_id))}")
+        return key.startswith(f"{self._chassis_key(existing_chassis_id)}/")
+
+    # ✅
+    def _cc_close_modal_if_open(self):
+        """
+        Best-effort cleanup between attempts.
+        """
+        try:
+            msg = self.message_modal()
+            if msg.count() > 0 and msg.is_visible():
+                ok = self.message_ok_btn()
+                (ok if ok.count() > 0 else msg.locator("app-icon[name='close-square']").first).click(timeout=3000)
+
+            modal = self.change_CHASSIS_ID_modal()
+            if modal.count() > 0 and modal.is_visible():
+                modal.locator("div.domain-management-modal-header app-icon[name='close-square']").first.click(timeout=3000)
+                expect(modal).to_be_hidden(timeout=3000)
+        except Exception:
+            pass
+
+    # ✅
+    def change_CHASSIS_ID(self, element_name: str, to_mode: str = "new", new_chassis_id: str | int | None = None, existing_chassis_id: str | None = None,
+        parent_chassis: str | None = None, timeout: int = 8000, attempts: int = 3, verify: bool = True):
+        """
+        Full Change Chassis ID flow.
+
+        element_name : device row, 'NAME (IP)' (e.g. 'PL-4000T (172.16.40.39)') or bare IP.
+        to_mode      : "new"      -> new_chassis_id required (e.g. 67)
+                       "existing" -> existing_chassis_id required, as shown in the dropdown
+                                     ('Chassis: 67', 'DC1-71'); a tree-style '/N' suffix is accepted too.
+        parent_chassis: kept for signature compatibility with change_CHASSIS_ID - not needed, collapsed
+                       domain/chassis ancestors of the device are expanded automatically.
+        verify       : after Save, confirm in the tree that the device is under the requested chassis.
+
+        Each attempt starts from a refreshed page. Before retrying, the tree is checked so a Save that
+        went through (but whose confirmation was missed) is not applied twice.
+        """
+        mode = (to_mode or "").strip().lower()
+        if mode not in ("new", "existing"):
+            raise AssertionError(f"Invalid to_mode='{to_mode}'. Expected 'new' or 'existing'.")
+        if mode == "new" and (new_chassis_id is None or str(new_chassis_id).strip() == ""):
+            raise AssertionError("new_chassis_id is required when to_mode='new'.")
+        if mode == "existing":
+            if not existing_chassis_id or not existing_chassis_id.strip():
+                raise AssertionError("existing_chassis_id is required when to_mode='existing'.")
+            # 'Chassis: 67/67' (tree text) -> 'Chassis: 67' (dropdown text)
+            existing_chassis_id = re.sub(r"\s*/\s*\d+\s*$", "", existing_chassis_id.strip())
+
+        label = f"change_CHASSIS_ID_new('{element_name}', to_mode='{mode}', " \
+                f"{'new_chassis_id=' + repr(new_chassis_id) if mode == 'new' else 'existing_chassis_id=' + repr(existing_chassis_id)})"
+
+        errors = []
+        for attempt in range(1, attempts + 1):
+            try:
+                refresh_page(self.page)
+
+                if attempt > 1 and self._cc_is_applied(element_name, mode, new_chassis_id, existing_chassis_id):
+                    print(f"{label}: already applied (detected before attempt {attempt}).")
+                    return
+
+                modal = self._cc_open_modal(element_name, timeout)
+                self._cc_choose_mode(modal, mode, timeout)
+
+                if mode == "new":
+                    self._cc_fill_new(modal, new_chassis_id, timeout)
+                else:
+                    self._cc_select_existing(modal, existing_chassis_id, timeout)
+
+                self._cc_save(modal, timeout)
+
+                if verify:
+                    refresh_page(self.page)
+                    expect(self.from_tree()).to_be_visible(timeout=max(timeout, 15000))
+                    self.wait_until(lambda: self._cc_is_applied(element_name, mode, new_chassis_id, existing_chassis_id),
+                                    timeout_ms=max(timeout, 20000), interval_ms=1000,
+                                    desc="device to appear under the requested chassis in the tree")
+
+                countdown_sleep(RENDER_WAIT_TIME, message="Wait for the system to render")
+                return
+
+            except Exception as e:
+                errors.append(f"attempt {attempt}: {e}")
+                print(f"{label} attempt {attempt}/{attempts} failed: {e}")
+                self._cc_close_modal_if_open()
+                if "Save rejected by the server" in str(e) or "not in dropdown" in str(e):
+                    break  # deterministic - retrying won't help
+
+        raise AssertionError(f"{label} failed. " + " || ".join(errors))
 
     # ==========================================================
     # Move to domain

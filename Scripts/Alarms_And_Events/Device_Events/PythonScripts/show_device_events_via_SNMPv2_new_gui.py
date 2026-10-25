@@ -31,6 +31,7 @@ from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery
+from Pages.network_topology import NetworkTopology
 from Pages.domain_management import DomainManagement
 from Pages.alarms_and_events import AlarmsAndEvents
 from PL_Devices.PL_Pages_New_Gui.PL_login_page_new_gui import PL_LoginPage
@@ -78,28 +79,29 @@ else:
     # Values for the Parameter file (from QC)
     # ================================================================
 
-    LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    # LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    LW_SERVER_HOST_IP  = "172.16.10.22:8443"
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    DEVICES_LIST = ['172.16.30.15', '172.16.30.13']
+    DEVICES_LIST = ['172.16.20.125', '172.16.40.39']
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
 
-    DUT_IP_NAMES = ["PL-2000ADS (172.16.30.15)", "PL-1000IL2 (172.16.30.13)"]
+    DUT_IP_NAMES = ["PL-2000GM (172.16.20.125)", "PL-4000T (172.16.40.39)"]
 
     NEW_CHASSIS_ID = "67"
     DOMAIN_NAME = "Script_Domain"
     SUB_DOMAIN_NAME = "Script_Sub_Domain"
 
-    CATEGORY_TEST_DEVICE = "172.16.40.31"
+    CATEGORY_TEST_DEVICE = "172.16.40.30"
     
 
 # ================================================================
 # Values that should not be changed
 # ================================================================
 
-BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
+BASE_URL = f"https://{LW_SERVER_HOST_IP}/"
 WAIT = 30
 
 CATEGORIES_LIST = ["Device", "Syslog", "System", "Configuration Event", "Inventory",
@@ -162,6 +164,31 @@ def run_step(step_num, step_function, logger, report) -> bool:
         step_failed(report, f"Step {step_num} – Error.")
         return False
 
+def sources_match(ip: str, dev_src: str, lw_src: str) -> bool:
+    """
+    Compare a device-GUI source with an LW source despite naming differences:
+      'EDFA Port 1' vs '172.16.40.30 EDFA 1'  -> match
+      'ETH 1 Port'  vs '172.16.40.30 Ethernet' -> match (LW has no port number)
+      'System'      vs '172.16.40.30'          -> match
+    Rule: same alphabetic words; numbers equal, or missing on either side.
+    """
+    def parse(src: str):
+        s = src.lower().replace(ip.lower(), " ")
+        tokens = re.findall(r"[a-z]+|\d+", s)
+        words = []
+        for t in tokens:
+            if t == "port" or t.isdigit():
+                continue
+            words.append("eth" if t == "ethernet" else t)
+        nums = [t for t in tokens if t.isdigit()]
+        return (words or ["system"]), nums
+
+    dev_words, dev_nums = parse(dev_src)
+    lw_words, lw_nums = parse(lw_src)
+    if dev_words != lw_words:
+        return False
+    return not dev_nums or not lw_nums or dev_nums == lw_nums
+
 def convert_lw_events_to_gui_events_format(ip: str, lw_events: list, device_events: list = None) -> list:
     """
     Convert LW events (dict format) into GUI-like table format,
@@ -194,37 +221,51 @@ def convert_lw_events_to_gui_events_format(ip: str, lw_events: list, device_even
         except Exception:
             return datetime.min
 
+    TIME_TOLERANCE_SEC = 60
+    used_dev_idx = set()
     formatted = []
 
     for event in lw_events:
-        lw_msg = event.get("Message", event.get("message", ""))
+        lw_msg =event.get("Message", event.get("message", ""))
         lw_src = normalize_source(event.get("Source", event.get("source", "")))
         lw_sev = event.get("Severity", event.get("severity", ""))
         
         if device_events:
-            for dev_event in device_events:
-                dev_msg = dev_event[3].replace("System Event :", "").strip()
-                dev_msg_lower = dev_msg.lower()
-                lw_msg_lower = lw_msg.lower()
-                
-                # Check for match to map properties
+            lw_time = parse_gui_time(convert_timestamp(event.get("Creation Timestamp", event.get("creation_timestamp", ""))))
+            lw_msg_lower = lw_msg.lower()
+
+            # Map LW severity naming to the device GUI naming by picking the device event
+            # with a matching message, preferring the same source, then the closest time,
+            # that wasn't already claimed by another LW event (message alone is
+            # ambiguous: many "Link Down").
+            best_idx, best_key = None, None
+            for idx, dev_event in enumerate(device_events):
+                if idx in used_dev_idx:
+                    continue
+                dev_msg_lower = dev_event[3].replace("System Event :", "").strip().lower()
+
                 message_match = (dev_msg_lower in lw_msg_lower) or (lw_msg_lower in dev_msg_lower)
                 if not message_match:
                     dev_words = set(dev_msg_lower.split())
                     lw_words = set(lw_msg_lower.split())
-                    if len(dev_words.intersection(lw_words)) >= 2:
-                        message_match = True
-                        
-                if message_match:
-                    dev_src = dev_event[1].strip()
-                    dev_sev = dev_event[2].strip()
-                    
-                    if dev_src != "System":
-                        lw_src = dev_event[1]
-                        
-                    if dev_sev not in ["Critical", "Major", "Minor"]:
-                        lw_sev = dev_event[2]
-                    break
+                    message_match = len(dev_words.intersection(lw_words)) >= 2
+                if not message_match:
+                    continue
+
+                delta = abs((parse_gui_time(dev_event[0]) - lw_time).total_seconds())
+                if delta > TIME_TOLERANCE_SEC:
+                    continue
+                key = (not sources_match(ip, dev_event[1], lw_src), delta)
+                if best_key is None or key < best_key:
+                    best_idx, best_key = idx, key
+
+            if best_idx is not None:
+                used_dev_idx.add(best_idx)
+                dev_event = device_events[best_idx]
+                dev_sev = dev_event[2].strip()
+
+                if dev_sev not in ["Critical", "Major", "Minor"]:
+                    lw_sev = dev_event[2]
 
         formatted.append([
             convert_timestamp(event.get("Creation Timestamp", event.get("creation_timestamp", ""))),
@@ -283,7 +324,7 @@ def compare_device_and_lw_events(ip: str, device_events: list, lw_events: list, 
                     message_match = True
 
             # Since properties are mapped in convert_lw_events_to_gui_events_format, we can strictly match them
-            source_match = (dev_src == lw_src)
+            source_match = sources_match(ip, dev_src, lw_src)
             severity_match = (dev_sev == lw_sev)
 
             if message_match and source_match and severity_match:
@@ -296,13 +337,20 @@ def compare_device_and_lw_events(ip: str, device_events: list, lw_events: list, 
             else:
                 print(f"[{ip}] Missing event:")
             print(f"  Device Event: {dev_event}")
+            # Debug: show LW rows with the same message within the same minute
+            dev_minute = dev_time_str.rsplit(":", 1)[0]
+            for lw_event in lw_events:
+                if dev_msg.lower() in lw_event[3].lower() and lw_event[0].rsplit(":", 1)[0] == dev_minute:
+                    print(f"    LW candidate: {lw_event}")
             all_matched = False
 
     if all_matched:
         if section:
-            print(f"[{ip}] All {len(device_events)} {section} device events verified in LW Server. ✅")
+            # print(f"[{ip}] All {len(device_events)} {section} device events verified in LW Server. ✅")
+            pass
         else:
-            print(f"[{ip}] All {len(device_events)} device events verified in LW Server. ✅")
+            # print(f"[{ip}] All {len(device_events)} device events verified in LW Server. ✅")
+            pass
 
     return all_matched
 
@@ -317,6 +365,7 @@ def extract_device_name_and_device_ip(device_str: str) -> tuple:
 
 def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, report):
     domain_management = DomainManagement(page)
+    network_topology  = NetworkTopology(page)
     device_discovery = DeviceDiscovery(page)
     alarms_and_events = AlarmsAndEvents(page)
 
@@ -387,15 +436,24 @@ def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
     # Step 4 – For each IP, set IP and click Start Discovery.   # 
     #############################################################
     def step_4():
-        left_panel.click_device_discovery()
-        device_discovery.click_SNMPv2()
-
         for ip in ALL_DEVICES:
+            left_panel.click_device_discovery()
+            device_discovery.click_SNMPv2()
             device_discovery.set_ip_address(ip)
-            sleep(0.5)
+            sleep(1)
             device_discovery.click_start_discovery()
             refresh_page(page)
-            sleep(2)
+            sleep(3)
+
+            ok = left_panel.click_network_topology()
+            assert ok, "Failed to navigate to Network Topology."
+
+            network_topology.show_navigation_info()
+
+            in_nav = network_topology.is_element_exist_on_navigation_info_list(ip)
+            assert in_nav, (
+                f"{ip} was not found in the Navigation Info list. "
+                f"Discovery may not have completed yet.")
 
         refresh_page(page)
 
@@ -701,15 +759,19 @@ def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             alarms_and_events.set_filterBy("Devices")
             alarms_and_events.select_device_filterBy_devices(CATEGORY_TEST_DEVICE)
             lw_events = alarms_and_events.get_all_events()
-        except Exception:
+            # print("lw_events: \n", lw_events)
+        except Exception as e:
+            print("error: ", e)
             lw_events = []
 
         union_lw_events = []
         for category in CATEGORIES_LIST:
+            alarms_and_events.clear_category_field()
             alarms_and_events.set_category(category)
             sleep(0.5)
             lw_category_events = [a for a in lw_events if a.get('category', a.get('Category')) == category]
             lw_formatted_category_events = convert_lw_events_to_gui_events_format(CATEGORY_TEST_DEVICE, lw_category_events, pl_events)
+            # print("lw_formatted_category_events: \n", lw_formatted_category_events)
             union_lw_events.extend(lw_formatted_category_events)
 
         # Normalize time (ignore seconds) for sorting to compare regardless of order
@@ -813,6 +875,7 @@ def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
                 continue
 
             target_event = lw_events[0]
+            # print(f"Target event: {target_event}\n")
             target_msg = target_event.get('Message')
             
             # 1) Positive Test Range (Filter by exact message)
@@ -820,7 +883,7 @@ def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             sleep(1) 
             
             filtered_positive = alarms_and_events.get_all_events()
-            print(f"Filtered events: {filtered_positive}\n")
+            # print(f"Filtered events: {filtered_positive}\n")
             found = any(a.get('Message', a.get('message')) == target_msg and a.get('Creation Timestamp', a.get('creation_timestamp')) == target_event.get('Creation Timestamp', target_event.get('creation_timestamp')) for a in filtered_positive)
             if not found:
                 raise AssertionError(f"Message Filter Positive Test Failed for {ip}: Target event with message '{target_msg}' was not found after filtering.")
@@ -850,6 +913,9 @@ def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
 
         for ip in DEVICES_LIST:
             left_panel.click_alarms_and_events()
+            alarms_and_events.remove_all_devices_filterBy_devices()
+            alarms_and_events.close_devices_dropdown()
+
             alarms_and_events.set_faults_type("Events")
             alarms_and_events.set_filterBy("Devices")
             alarms_and_events.select_device_filterBy_devices(ip)
@@ -860,11 +926,14 @@ def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             except:
                 lw_events = []
                 
-            last_5_hidden_events_list = lw_events[-5:] if len(lw_events) >= 5 else lw_events[:]
+            # Skip LW-only events (e.g. 'Device is reachable ...') that hide_event() ignores
+            hideable_events = [e for e in lw_events if not alarms_and_events.is_hide_ignored_event(e)]
+            last_5_hidden_events_list = hideable_events[-5:]
+            # print(f"\nlast_5_hidden_events_list: {last_5_hidden_events_list}\n")
             
-            start_index = len(lw_events) - len(last_5_hidden_events_list)
-            for i in range(start_index, len(lw_events)):
-                alarms_and_events.hide_event(i)
+            # Hide each event by its content (Message/Source/timestamps), not by its row index
+            for event in reversed(last_5_hidden_events_list):
+                alarms_and_events.hide_event(event=event)
                 sleep(0.5)
 
             refresh_page(page)
@@ -873,17 +942,36 @@ def test_show_device_events_via_SNMPv2(page, left_panel: LeftPanel, logger, repo
             alarms_and_events.set_filterBy("Devices")
             alarms_and_events.select_device_filterBy_devices(ip)
             alarms_and_events.close_devices_dropdown()
-            
+
+            # Hidden events must not be shown by default
+            try:
+                lw_events_after_hide = alarms_and_events.get_all_events()
+            except:
+                lw_events_after_hide = []
+
+            still_shown = [e for e in last_5_hidden_events_list if e in lw_events_after_hide]
+            if still_shown:
+                print(f"\nIP {ip}: hidden event(s) still shown in the events list:")
+                for n, e in enumerate(still_shown, 1):
+                    print(f"  {n}. {e.get('Message', '')}")
+                    print(f"     Severity: {e.get('Severity', '')} | Source: {e.get('Source', '')} | Domain: {e.get('Domain', '')}")
+                    print(f"     Detection: {e.get('Detection Timestamp', '')} | Creation: {e.get('Creation Timestamp', '')}")
+                print()
+                raise AssertionError(f"IP {ip}: {len(still_shown)} hidden event(s) are still shown in the events list.")
+
+            # Hidden events must come back once 'Show hidden events' is checked
             alarms_and_events.show_hidden_events()
             sleep(1)
-            
+
             try:
-                lw_hidden_events = alarms_and_events.get_all_events()
+                lw_events_with_hidden = alarms_and_events.get_all_events()
             except:
-                lw_hidden_events = []
-                
-            if lw_hidden_events != last_5_hidden_events_list:
-                raise AssertionError(f"IP {ip}: Hidden events retrieved do not match the expected 5 events list.")
+                lw_events_with_hidden = []
+
+            missing = [e for e in last_5_hidden_events_list if e not in lw_events_with_hidden]
+            if missing:
+                # print(f"\nmissing: {missing}\n")
+                raise AssertionError(f"IP {ip}: {len(missing)} hidden event(s) are missing after checking 'Show hidden events'.")
 
     results[13] = run_step(13, step_13, logger, report)
 

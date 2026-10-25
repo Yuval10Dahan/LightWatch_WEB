@@ -784,6 +784,10 @@ class Performance:
 
         Example:
             get_pm_table_number_of_intervals(32) -> first 32 rows of get_pm_table(all_pages=True)
+
+        Raises AssertionError (with a clear "no PM table" message) when no PM
+        table is present on the page at all -- missing PM data is a failure
+        this test exists to catch, not a valid "nothing to compare" state.
         """
 
         try:
@@ -791,7 +795,20 @@ class Performance:
             if number_of_intervals <= 0:
                 raise ValueError("number_of_intervals must be greater than 0")
 
+            table_locator = self.page.locator(
+                "app-performance-table app-universal-table table, "
+                "app-universal-table table, "
+                ".universal-table-container table, "
+                "table"
+            ).first
+
+            try:
+                expect(table_locator).to_be_visible(timeout=timeout)
+            except Exception:
+                raise AssertionError("No PM table found on the page.")
+
             table = self.get_pm_table(all_pages=True, timeout=timeout)
+            # print(f"table: {table}, table size: {len(table)}")
 
             return table[:number_of_intervals]
 

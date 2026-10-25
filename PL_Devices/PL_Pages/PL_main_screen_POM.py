@@ -1282,6 +1282,66 @@ class PL_Main_Screen_POM:
         return None
 
     # ✅
+    def get_service_type_dropdown_options(self, port_number, retries: int = 5, timeout: int = 10_000):
+        """
+        Returns every selectable option of a port's Service Type dropdown
+        (Configuration -> Port -> General) as a list of labels.
+
+        Example:
+            [None, "100GbE-LAN", "100GbE-LAN-CBR", "OTU4", "Encrypted 100GbE-LAN", ...]
+        """
+
+        def main_fl():
+            return self.main_page_frame()
+
+        def port_cfg_fl():
+            return main_fl().frame_locator("iframe[name='config_port'], iframe#config_port")
+
+        for attempt in range(retries):
+            try:
+                if not self.click_Configuration(timeout=timeout):
+                    raise AssertionError("click_Configuration failed")
+
+                if not self.upper_panel.click_port(port_number, timeout=timeout):
+                    raise AssertionError(f"upper_panel.click_port failed for {port_number}")
+
+                tab_general = main_fl().locator("#tab_general").first
+                expect(tab_general).to_be_visible(timeout=timeout)
+
+                if (tab_general.get_attribute("class") or "").strip() != "tab tabactive":
+                    tab_general.click(force=True, timeout=timeout)
+                    expect(tab_general).to_have_attribute("class", "tab tabactive", timeout=timeout)
+
+                cfg = port_cfg_fl()
+
+                service_dd = cfg.locator("select[name='service_type']").first
+                expect(service_dd).to_be_visible(timeout=timeout)
+
+                options = service_dd.locator("option")
+                option_count = options.count()
+
+                result = []
+                for i in range(option_count):
+                    opt = options.nth(i)
+                    if opt.get_attribute("disabled") is not None:
+                        continue  # skip the disabled separator entry
+
+                    value = (opt.get_attribute("value") or "").strip()
+                    label = (opt.inner_text() or "").strip()
+                    result.append(label)
+
+                return result
+
+            except Exception as e:
+                print(f"get_service_type_dropdown_options failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return []
+
+    # ✅
     def set_provisioning_old(self, port_number, uplink_number: Optional[int] = None,
                          retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
         """

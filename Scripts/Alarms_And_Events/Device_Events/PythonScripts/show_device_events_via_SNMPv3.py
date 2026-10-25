@@ -32,6 +32,7 @@ from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery
 from Pages.domain_management import DomainManagement
+from Pages.network_topology import NetworkTopology
 from Pages.alarms_and_events import AlarmsAndEvents
 from PL_Devices.PL_Pages.PL_login_page import PL_LoginPage
 from PL_Devices.PL_Pages.PL_security_page import PL_SecurityPage
@@ -324,6 +325,7 @@ def extract_device_name_and_device_ip(device_str: str) -> tuple:
 
 def test_show_device_events_via_SNMPv3(page, left_panel: LeftPanel, logger, report):
     domain_management = DomainManagement(page)
+    network_topology  = NetworkTopology(page)
     device_discovery = DeviceDiscovery(page)
     alarms_and_events = AlarmsAndEvents(page)
 
@@ -407,17 +409,27 @@ def test_show_device_events_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
              verify_password=SNMPV3_PASSWORD, snmpv3_auth=AUTH_TYPE, password_auth=SNMPV3_PASSWORD)
 
         sleep(5)
-        left_panel.click_device_discovery()
-        device_discovery.click_SNMPv3()
 
         for ip in ALL_DEVICES:
+            left_panel.click_device_discovery()
+            device_discovery.click_SNMPv3()
             device_discovery.set_ip_address(ip)
-            sleep(0.5)
+            sleep(1)
             device_discovery.set_SNMPv3_user_name(SNMPV3_USERNAME)
-            sleep(0.5)
+            sleep(1)
             device_discovery.click_start_discovery()
             refresh_page(page)
             sleep(2)
+
+            ok = left_panel.click_network_topology()
+            assert ok, "Failed to navigate to Network Topology."
+
+            network_topology.show_navigation_info()
+
+            in_nav = network_topology.is_element_exist_on_navigation_info_list(ip)
+            assert in_nav, (
+                f"{ip} was not found in the Navigation Info list. "
+                f"Discovery may not have completed yet.")
 
         refresh_page(page)
 

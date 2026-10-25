@@ -31,6 +31,7 @@ from playwright.sync_api import sync_playwright
 from Pages.login_page import LoginPage
 from Pages.left_panel_page import LeftPanel
 from Pages.device_discovery import DeviceDiscovery
+from Pages.network_topology import NetworkTopology
 from Pages.domain_management import DomainManagement
 from Pages.alarms_and_events import AlarmsAndEvents
 from PL_Devices.PL_Pages_New_Gui.PL_login_page_new_gui import PL_LoginPage
@@ -79,28 +80,29 @@ else:
     # Values for the Parameter file (from QC)
     # ================================================================
 
-    LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    # LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    LW_SERVER_HOST_IP  = "172.16.10.22:8443"
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    DEVICES_LIST = ['172.16.30.15', '172.16.30.13']
+    DEVICES_LIST = ['172.16.20.125', '172.16.40.39']
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
 
-    DUT_IP_NAMES = ["PL-2000ADS (172.16.30.15)", "PL-1000IL2 (172.16.30.13)"]
+    DUT_IP_NAMES = ["PL-2000GM (172.16.20.125)", "PL-4000T (172.16.40.39)"]
 
     NEW_CHASSIS_ID = "67"
     DOMAIN_NAME = "Script_Domain"
     SUB_DOMAIN_NAME = "Script_Sub_Domain"
 
-    CATEGORY_TEST_DEVICE = "172.16.40.31"
+    CATEGORY_TEST_DEVICE = "172.16.40.30"
     
 
 # ================================================================
 # Values that should not be changed
 # ================================================================
 
-BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
+BASE_URL = f"https://{LW_SERVER_HOST_IP}/"
 WAIT = 30
 
 SNMPV3_USERNAME = "admin3"
@@ -324,6 +326,7 @@ def extract_device_name_and_device_ip(device_str: str) -> tuple:
 
 def test_show_device_events_via_SNMPv3(page, left_panel: LeftPanel, logger, report):
     domain_management = DomainManagement(page)
+    network_topology  = NetworkTopology(page)
     device_discovery = DeviceDiscovery(page)
     alarms_and_events = AlarmsAndEvents(page)
 
@@ -407,17 +410,27 @@ def test_show_device_events_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
              verify_password=SNMPV3_PASSWORD, snmpv3_auth=AUTH_TYPE, password_auth=SNMPV3_PASSWORD)
 
         sleep(5)
-        left_panel.click_device_discovery()
-        device_discovery.click_SNMPv3()
 
         for ip in ALL_DEVICES:
+            left_panel.click_device_discovery()
+            device_discovery.click_SNMPv3()
             device_discovery.set_ip_address(ip)
-            sleep(0.5)
+            sleep(1)
             device_discovery.set_SNMPv3_user_name(SNMPV3_USERNAME)
-            sleep(0.5)
+            sleep(1)
             device_discovery.click_start_discovery()
             refresh_page(page)
-            sleep(2)
+            sleep(3)
+
+            ok = left_panel.click_network_topology()
+            assert ok, "Failed to navigate to Network Topology."
+
+            network_topology.show_navigation_info()
+
+            in_nav = network_topology.is_element_exist_on_navigation_info_list(ip)
+            assert in_nav, (
+                f"{ip} was not found in the Navigation Info list. "
+                f"Discovery may not have completed yet.")
 
         refresh_page(page)
 

@@ -497,11 +497,13 @@ class PL_Main_Screen_POM:
                 main_fl = self.main_page_frame()
 
                 btn = main_fl.locator("#tab_time").first
+                sleep(1)
                 expect(btn).to_be_visible(timeout=timeout)
 
                 cls = (btn.get_attribute("class") or "").strip()
                 if cls != "tab tabactive":
                     btn.scroll_into_view_if_needed()
+                    sleep(1)
                     btn.click(force=True, timeout=timeout)
 
                 expect(btn).to_have_attribute("class", "tab tabactive", timeout=timeout)
@@ -665,8 +667,10 @@ class PL_Main_Screen_POM:
 
                 # wait for config page to load
                 main_frame = self.page.frame_locator("iframe[name='main_page']")
+                sleep(1)
 
                 config_sys = main_frame.frame_locator("iframe[name='config_sys']")
+                sleep(1)
 
                 # New GUI dropped table#gen_sys_info_table entirely -- Product Name is now a
                 # plain <span class="label_text">Product Name</span> followed by a sibling
@@ -676,11 +680,13 @@ class PL_Main_Screen_POM:
                     "xpath=//span[contains(@class,'label_text') and normalize-space()='Product Name']"
                     "/following-sibling::span[contains(@class,'value_text')][1]"
                 ).first
+                sleep(1)
 
                 if product_cell.count() == 0:
                     product_cell = config_sys.locator(
                         "xpath=//table[@id='gen_sys_info_table']//td[contains(normalize-space(),'Product Name')]/following-sibling::td[1]"
                     ).first
+                    sleep(1)
 
                 expect(product_cell).to_be_visible(timeout=timeout)
 
@@ -2150,6 +2156,7 @@ class PL_Main_Screen_POM:
                     holder["text"] = ""
 
                 try:
+                    sleep(1)
                     d.accept()
                 except Exception:
                     pass
@@ -2174,6 +2181,7 @@ class PL_Main_Screen_POM:
                 if open_btn.count() == 0:
                     return False
                 expect(open_btn).to_be_visible(timeout=2_000)
+                sleep(1)
                 open_btn.click(force=True)
                 expect(self.page.locator("#addServerModal").first).to_be_visible(timeout=timeout)
                 return True
@@ -2205,6 +2213,7 @@ class PL_Main_Screen_POM:
                 sleep(0.5)
 
                 # IP
+                sleep(1)
                 ip_field.fill(ip)
 
                 if skip_protocol_and_key_and_value == False:
@@ -2246,6 +2255,7 @@ class PL_Main_Screen_POM:
                 # ---- Click Add ----
                 if use_modal:
                     add_btn = self.page.locator("#btnSubmitAddServer").first
+                    sleep(1)
                 else:
                     add_btn = row.locator(
                         "xpath=./td[last()]//input[@name='sntp_add' or @type='button' or @type='submit']"

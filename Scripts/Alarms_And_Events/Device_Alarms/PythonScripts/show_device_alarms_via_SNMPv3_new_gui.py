@@ -8,7 +8,7 @@ Tests the Device Alarms using SNMPv3.
 
 *** Runtime: approximately == minutes ***
 =====================================================
-
+ 
 Steps to verify before running this script:
 --------------------------------------------------------------------------------------------------------------------------
 1. Verify that UDP port 162 on the LW server machine is not occupied by the Windows SNMP Trap service (snmptrap.exe).
@@ -81,30 +81,29 @@ else:
     # Values for the Parameter file (from QC)
     # ================================================================
 
-    LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    # LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    LW_SERVER_HOST_IP  = "172.16.10.22:8443"
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    # DEVICES_LIST = ['172.16.30.15', '172.16.30.13']
-    DEVICES_LIST = ['172.16.20.121', '172.16.30.13']
+    DEVICES_LIST = ['172.16.20.125', '172.16.40.39']
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
 
-    # DUT_IP_NAMES = ["PL-2000ADS (172.16.30.15)", "PL-1000IL2 (172.16.30.13)"]
-    DUT_IP_NAMES = ["PL-2000M (172.16.20.121)", "PL-1000IL2 (172.16.30.13)"]
+    DUT_IP_NAMES = ["PL-2000GM (172.16.20.125)", "PL-4000T (172.16.40.39)"]
 
     NEW_CHASSIS_ID = "67"
     DOMAIN_NAME = "Script_Domain"
     SUB_DOMAIN_NAME = "Script_Sub_Domain"
 
-    CATEGORY_TEST_DEVICE = "172.16.20.126"
+    CATEGORY_TEST_DEVICE = "172.16.40.30"
     
 
 # ================================================================
 # Values that should not be changed
 # ================================================================
 
-BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
+BASE_URL = f"https://{LW_SERVER_HOST_IP}/"
 WAIT = 30
 
 SNMPV3_USERNAME = "admin3"
@@ -376,6 +375,8 @@ def test_show_device_alarms_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
             pl_security = PL_SecurityPage(device_page)
             pl_security.add_new_user(user_name=SNMPV3_USERNAME, permission="Administrator", password=SNMPV3_PASSWORD,
              verify_password=SNMPV3_PASSWORD, snmpv3_auth=AUTH_TYPE, password_auth=SNMPV3_PASSWORD)
+
+            device_page.close()
 
         sleep(5)
         left_panel.click_device_discovery()

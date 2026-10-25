@@ -8,7 +8,7 @@ from PL_Devices.PL_Pages_New_Gui.PL_login_page_new_gui import PL_LoginPage
 from Utils.utils import create_page
 
 # NOTE: adjust to your device / environment
-SERVER_HOST_IP = "172.16.30.124"
+SERVER_HOST_IP = "172.16.20.117"
 BASE_URL = f"http://{SERVER_HOST_IP}/"
 USERNAME = "tech"
 PASSWORD = "packetlight"

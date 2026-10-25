@@ -53,17 +53,18 @@ elif 2 < len(argv) < 3:
     const_dict = eval(open(directory, 'r').read())
     globals().update(const_dict)
 else:
-    LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    # LW_SERVER_HOST_IP  = "172.16.10.22:8080"
+    LW_SERVER_HOST_IP  = "172.16.10.22:8443"
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
     DEVICE_IP_USER = "tech"
     DEVICE_IP_PASS = "packetlight"
 
-    DEVICE_IP_1 = "172.16.30.16"
-    DEVICE_IP_2 = "172.16.30.113"
-    DEVICE_IP_3 = "172.16.40.21"
-    DEVICE_IP_4 = "172.16.20.111"
+    DEVICE_IP_1 = "172.16.20.125"
+    DEVICE_IP_2 = "172.16.40.30"
+    DEVICE_IP_3 = "172.16.40.39"
+    DEVICE_IP_4 = "172.16.20.212"
 
     AUTHENTICATION_PASSWORD = "Z@qqaz$$2"
     PRIVACY_PASSWORD = "Z@qqaz$$2"

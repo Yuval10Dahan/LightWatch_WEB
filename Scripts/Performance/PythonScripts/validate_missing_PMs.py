@@ -92,34 +92,11 @@ else:
     LW_USERNAME = "administrator" 
     LW_PASSWORD = "administrator"
 
-    CLI_HOST = "172.16.20.2" 
-    CLI_PORT = "2001"
+    CLI_HOST = "172.16.20.1" 
+    CLI_PORT = "2002"
 
-    PL_1000D_IP = "" # 172.16.40.133
-    PL_1000GD_IP = "" # 172.16.40.134
-    PL_1000GIL_IP = "" # 172.16.20.197
-    PL_1000GR_IP = "" # 10.30.6.25 (Hardware device)
-    PL_1000GRO_IP = "" # 172.16.40.32
-    PL_1000GRO_R_IP = "" # 172.16.40.36
-    PL_1000IL_IP = "" # 172.16.30.13
-    PL_1000R_IP = "" # 10.30.6.158
-    PL_1000RO_IP = "" # 172.16.40.131
-    PL_1000TE = "" # 
-    PL_1000TE_CRYPTO = "" # 172.16.30.22
-    PL_1000TN = "" # 172.16.40.12
-    PL_2000_IP = "172.16.20.111" # 172.16.20.111
-    PL_2000AD_LH_IP = "" # 
-    PL_2000_AD_METRO_IP = "" # 
-    PL_2000ADS_IP = "" # 172.16.30.15
-    PL_2000GA_IP = "" # 172.16.20.123
-    PL_2000GM_IP = "" # 172.16.20.126
-    PL_2000M_IP = "" # 172.16.20.120
-    PL_2000T_IP = "" # 172.16.30.17
-    PL_4000G_IP = "" # 172.16.20.23
-    PL_4000M_IP = "" # 172.16.40.21
-    PL_4000T_IP = "" # 172.16.40.40
-    PL_8000G_IP = "" # 172.16.20.117
-    PL_8000M_IP = "" # 172.16.30.113
+    DEVICE_IP = "172.16.20.11"
+    DEVICE_NAME = "PL-4000M"
 
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
@@ -131,20 +108,6 @@ else:
 # Values that should not be changed
 # ================================================================
 
-DEVICES_LIST = [PL_1000D_IP, PL_1000GD_IP, PL_1000GIL_IP, PL_1000GR_IP, 
-                PL_1000GRO_IP, PL_1000GRO_R_IP, PL_1000IL_IP, PL_1000R_IP, 
-                PL_1000RO_IP, PL_1000TE, PL_1000TE_CRYPTO, PL_1000TN, 
-                PL_2000_IP, PL_2000AD_LH_IP, PL_2000_AD_METRO_IP, PL_2000ADS_IP, 
-                PL_2000GA_IP, PL_2000GM_IP, PL_2000M_IP, PL_2000T_IP, 
-                PL_4000G_IP, PL_4000M_IP, PL_4000T_IP, PL_8000G_IP, PL_8000M_IP]
-
-DEVICES_NAMES = ["PL-1000D", "PL-1000GD", "PL-1000GIL", "PL-1000GR", 
-                "PL-1000GRO", "PL-1000GRO-R", "PL-1000IL2", "PL-1000R", 
-                "PL-1000RO2", "PL-1000TE", "PL-1000TECrypto", "PL-1000TN", 
-                "PL-2000", "PL-2000AD_LH", "PL-2000_AD_METRO", "PL-2000ADS", 
-                "PL-2000GA", "PL-2000GM", "PL-2000M", "PL-2000T", 
-                "PL-4000G", "PL-4000M", "PL-4000T", "PL-8000G", "PL-8000M"]
-
 TECH_USERNAME = "tech" 
 TECH_PASSWORD = "packetlight"
 
@@ -152,9 +115,12 @@ BASE_URL = f"http://{LW_SERVER_HOST_IP}/"
 WAIT = 5
 WAIT_FOR_PM_POLLING = 1000
 
-BACK_TO_START_CLI_COMMANDS = ["..", "..", ".."]
+BACK_TO_START_CLI_COMMANDS = ["/"]
 ETH1_DOWN_COMMANDS = ["configure", "interface", "lan 1 down", "Y"]
+ETH2_DOWN_COMMANDS = ["configure", "interface", "lan 2 down", "Y"]
 ETH1_UP_COMMANDS = ["configure", "interface", "lan 1 up", "Y"]
+
+DISCONNECT_WAIT = 1900
 
 INTERVALS_NUMBER = 32
 PM_TYPE_MINUTES = "15 Minutes"
@@ -434,30 +400,92 @@ def test_PM_table(page, left_panel: LeftPanel, logger, report):
     # Side function 
     # =============== 
 
+    def match_pm_between_lw_and_pl_device(device_ip, device_name, pm_period_type, pm_type):
+        port1 = extract_port_name_from_list(device_name, PORT_PER_PRODUCT)
+
+        device_page = page.context.new_page()
+        try:
+            pl_login = PL_LoginPage(device_page)
+            pl_login.goto(f"http://{device_ip}/")
+            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            if not ok:
+                raise AssertionError(f"Login to {device_ip} GUI failed.")
+
+            pl_performance = PL_PerformancePage(device_page)
+
+            if not pl_performance.set_PM_Period(port_number=port1, period=pm_period_type):
+                raise AssertionError(f"set_PM_Period failed for {device_ip} port {port1}.")
+
+            if not pl_performance.set_PM_Type(port_number=port1, pm_type=pm_type):
+                raise AssertionError(f"set_PM_Type failed for {device_ip} port {port1}.")
+
+            if not pl_performance.click_on_Get_PM(port_number=port1):
+                raise AssertionError(f"click_on_Get_PM failed for {device_ip} port {port1}.")
+
+            device_pm_table = pl_performance.get_PM_table(port_number=port1)
+        finally:
+            device_page.close()
+
+        left_panel.click_performance()
+
+        device_full_name = f"{device_name} ({device_ip})"
+        performance.set_device(device=device_full_name)
+        desired_port = extract_port_name_from_list(device_name, PORT_PER_PRODUCT)
+
+        if device_name == "PL-8000M":
+            port = "Port " + desired_port + "-1"
+        else:
+            port = "Port " + desired_port
+
+        performance.set_port(port=port)
+        performance.set_pm_period_type(pm_period_type=pm_period_type)
+        performance.set_pm_type(pm_type=pm_type)
+
+        try:
+            lw_pm_table = performance.get_pm_table_number_of_intervals(number_of_intervals=INTERVALS_NUMBER)
+        except Exception as e:
+            raise AssertionError(
+                f"Failed to get LW PM table for {device_ip} ({device_name}), port {port1}, "
+                f"period='{pm_period_type}', type='{pm_type}': {e}"
+            ) from e
+
+        if pm_period_type == "Days":
+            # remove the first row from the device PM table
+            device_pm_table = device_pm_table[1:]
+
+        # print(f"device_pm_table: {device_pm_table} \n \n")
+        # print(f"lw_pm_table: {lw_pm_table} \n \n")
+
+        is_match = compare_pm_tables(device_pm_table, lw_pm_table)
+        if not is_match:
+            raise AssertionError(
+                f"PM table mismatch for {device_ip} ({device_name}), port {port1}, "
+                f"period='{pm_period_type}', type='{pm_type}'."
+            )
+
     ###################################################
-    # Step 1 – (Optional) cold reset for all devices, #
-    # then wait for them all to come back up.         #
+    # Step 1 – (Optional) cold reset for the device   #
+    # then wait for it to come back up.               #
     ###################################################
     def step_1():
         if RESET_NEEDED:
-            for ip in DEVICES_LIST:
-                if not ip:
-                    continue
+            if not DEVICE_IP:
+                raise AssertionError("Device IP is not defined.")
 
-                device_page = page.context.new_page()
-                try:
-                    pl_login = PL_LoginPage(device_page)
-                    pl_login.goto(f"http://{ip}/")
-                    ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-                    if not ok:
-                        raise AssertionError(f"Login to {ip} GUI failed.")
+            device_page = page.context.new_page()
+            try:
+                pl_login = PL_LoginPage(device_page)
+                pl_login.goto(f"http://{ip}/")
+                ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+                if not ok:
+                    raise AssertionError(f"Login to {ip} GUI failed.")
 
-                    pl_main_screen = PL_Main_Screen_POM(device_page)
-                    pl_main_screen.device_restart("cold")
-                finally:
-                    device_page.close()
+                pl_main_screen = PL_Main_Screen_POM(device_page)
+                pl_main_screen.device_restart("cold")
+            finally:
+                device_page.close()
 
-            configured_devices = [ip for ip in DEVICES_LIST if ip]
+            configured_devices = [DEVICE_IP]
             devices_are_up(configured_devices, wait_time=WAIT)
 
         else:
@@ -466,41 +494,40 @@ def test_PM_table(page, left_panel: LeftPanel, logger, report):
     results[1] = run_step(1, step_1, logger, report)
 
     ################################################################################
-    # Step 2 – Login to the GUI of each IP.                                        #
+    # Step 2 – Login to the GUI of the device.                                     #
     # Set SNTP server and timezone to synchronize device time with LW server time. #                                   
     ################################################################################
     def step_2():
         daylight_save = "Enabled" if is_israel_daylight_saving_enabled() else "Disabled"
 
-        for ip in DEVICES_LIST:
-            if not ip:
-                continue
+        if not DEVICE_IP:
+            raise AssertionError("Device IP is not defined.")
 
-            device_page = page.context.new_page()
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(f"http://{ip}/")
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {ip} GUI failed."
+        device_page = page.context.new_page()
+        pl_login = PL_LoginPage(device_page)
+        pl_login.goto(f"http://{DEVICE_IP}/")
+        ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+        assert ok, f"Login to {DEVICE_IP} GUI failed."
 
-            pl_main_screen = PL_Main_Screen_POM(device_page)
-            pl_main_screen.set_chassis_id("")
+        pl_main_screen = PL_Main_Screen_POM(device_page)
+        pl_main_screen.set_chassis_id("")
 
-            # relevant for devices that only has SNTP configuration option
-            if ip == PL_1000D_IP or ip == PL_1000GD_IP or ip == PL_1000R_IP or \
-               ip == PL_1000TE_CRYPTO or ip == PL_1000TN or ip == PL_2000_IP:
-                pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER, skip_protocol_and_key_and_value=True)
-            else:
-                pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER)
+        # relevant for devices that only has SNTP configuration option
+        if DEVICE_NAME == "PL-1000D" or DEVICE_NAME == "PL-1000GD" or DEVICE_NAME == "PL-1000R" or \
+           DEVICE_NAME == "PL-1000TE-CRYPTO" or DEVICE_NAME == "PL-1000TN" or DEVICE_NAME == "PL-2000":
+            pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER, skip_protocol_and_key_and_value=True)
+        else:
+            pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER)
 
-            pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2, daylight_save=daylight_save)
-            refresh_page(device_page)
-            device_page.close()
+        pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2, daylight_save=daylight_save)
+        refresh_page(device_page)
+        device_page.close()
 
     results[2] = run_step(2, step_2, logger, report)
 
-    ################################################
-    # Step 3 – Configure SNMPv2 and save default.  #
-    ################################################
+    ###############################################
+    # Step 3 – Configure SNMPv2 and save default. #
+    ###############################################
     def step_3():
         left_panel.click_device_discovery()
         device_discovery.click_SNMPv2()
@@ -517,61 +544,58 @@ def test_PM_table(page, left_panel: LeftPanel, logger, report):
 
     results[3] = run_step(3, step_3, logger, report)
 
-    ########################################################
-    # Step 4 – Discover each device via SNMPv2 by its IP.  #
-    ########################################################
+    ######################################################
+    # Step 4 – Discover the device via SNMPv2 by its IP. #
+    ######################################################
     def step_4():
         left_panel.click_device_discovery()
 
-        # for ip in DEVICES_LIST:
-        for ip, device_name in zip(DEVICES_LIST, DEVICES_NAMES):
-            if not ip:
-                continue
+        device_discovery.click_SNMPv2()
+        device_discovery.set_ip_address(DEVICE_IP)
+        device_discovery.click_start_discovery()
+        refresh_page(page)
 
-            device_discovery.click_SNMPv2()
-            device_discovery.set_ip_address(ip)
-            device_discovery.click_start_discovery()
-            refresh_page(page)
+        device_page = page.context.new_page()
+        try:
+            pl_login = PL_LoginPage(device_page)
+            pl_login.goto(f"http://{DEVICE_IP}/")
+            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            if not ok:
+                raise AssertionError(f"Login to {DEVICE_IP} GUI failed.")
 
-            device_page = page.context.new_page()
-            try:
-                pl_login = PL_LoginPage(device_page)
-                pl_login.goto(f"http://{ip}/")
-                ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-                if not ok:
-                    raise AssertionError(f"Login to {ip} GUI failed.")
+            port1_name = extract_port_name_from_list(DEVICE_NAME, PORT_PER_PRODUCT)
+            pl_main_screen = PL_Main_Screen_POM(device_page)
 
-                port1_name = extract_port_name_from_list(device_name, PORT_PER_PRODUCT)
-                pl_main_screen = PL_Main_Screen_POM(device_page)
-                pl_main_screen.set_admin_status(port_number=port1_name, status="up")
+            service_types = pl_main_screen.get_service_type_dropdown_options(port_number=port1_name) 
+            pl_main_screen.set_service_type(port_number=port1_name, service_type_value=service_types[1])
+            pl_main_screen.set_admin_status(port_number=port1_name, status="up")
                 
-            except Exception as e:
-                print(f"Failed to set admin status at port {port1_name} for {ip} ({device_name}): {e}")
-            finally:
-                device_page.close()
+        except Exception as e:
+            print(f"Failed to set admin status at port {port1_name} for {DEVICE_IP} ({DEVICE_NAME}): {e}")
+        finally:
+            device_page.close()
 
         countdown_sleep(WAIT_FOR_PM_POLLING, message=f"Waiting for PM polling to complete, this may take a while")
 
     results[4] = run_step(4, step_4, logger, report)
 
-    ########################################################################
-    # Step 5 – Verify every discovered device appears in Navigation Info. #
-    ########################################################################
+    #################################################################
+    # Step 5 – Verify discovered device appears in Navigation Info. #
+    #################################################################
     def step_5():
         left_panel.click_network_topology()
         network_topology.show_navigation_info()
         nav_elements = network_topology.get_navigation_info_elements_list()
+        # print(f"nav_elements: {nav_elements}")
 
-        missing = [ip for ip in DEVICES_LIST if ip and not any(ip in element for element in nav_elements)]
-
-        if missing:
-            raise AssertionError(f"Devices missing from Navigation Info list: {missing}")
+        if not any(DEVICE_IP in item for item in nav_elements):
+            raise AssertionError(f"Device {DEVICE_IP} is missing from Navigation Info list.")
 
     results[5] = run_step(5, step_5, logger, report)
 
-    ########################################################################
-    # Step 6 – Add PM_domain, select it, and move all devices into it.    #
-    ########################################################################
+    ###############################################################
+    # Step 6 – Add PM_domain, select it, and move device into it. #
+    ###############################################################
     def step_6():
         left_panel.click_domain_management()
         domain_management.add_domain(DOMAIN_NAME)
@@ -580,21 +604,55 @@ def test_PM_table(page, left_panel: LeftPanel, logger, report):
         upper_panel.select_domain(DOMAIN_NAME)
 
         left_panel.click_domain_management()
-        for ip in DEVICES_LIST:
-            if not ip:
-                continue
-
-            domain_management.move_to_domain(source_item_name=ip, target_domain_name=DOMAIN_NAME)
+        if DEVICE_IP:
+            domain_management.move_to_domain(source_item_name=DEVICE_IP, target_domain_name=DOMAIN_NAME)
             sleep(1)
 
     results[6] = run_step(6, step_6, logger, report)
 
-    #################
-    # Step 7 – pass #
-    #################
+    ##############################################################################
+    # Step 7 – Disconnect the device from LW (bring eth1/eth2 down), wait out    #
+    # DISCONNECT_WAIT, then reconnect (bring eth1 up) so LW re-polls the device. #
+    # Verify no PM data was lost while disconnected: match the device's PM table #
+    # against LW's for both the Minutes and Days period types.                   #
+    ##############################################################################
     def step_7():
-        send_cli_command(session, BACK_TO_START_CLI_COMMANDS)
+        send_cli_commands(session, BACK_TO_START_CLI_COMMANDS)
         send_cli_commands(session, ETH1_DOWN_COMMANDS)
+        sleep(3)
+        send_cli_commands(session, ETH2_DOWN_COMMANDS)
+        sleep(3)
+
+        countdown_sleep(DISCONNECT_WAIT, message=f"Device is disconnected from LW right now")
+
+        CLI_Login(session=session, user=TECH_USERNAME, password=TECH_PASSWORD)
+        send_cli_commands(session, BACK_TO_START_CLI_COMMANDS)
+        send_cli_commands(session, ETH1_UP_COMMANDS)
+        sleep(5)
+
+        device_page = page.context.new_page()
+        try:
+            pl_login = PL_LoginPage(device_page)
+            pl_login.goto(f"http://{DEVICE_IP}/")
+            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+            if not ok:
+                raise AssertionError(f"Login to {DEVICE_IP} GUI failed.")
+
+            port1_name = extract_port_name_from_list(DEVICE_NAME, PORT_PER_PRODUCT)
+            pl_performance = PL_PerformancePage(device_page)
+            pl_pm_type_dropdown_values = pl_performance.get_device_pm_type_current_dropdown_options(port_number=port1_name)
+            pl_pm_type_value = pl_pm_type_dropdown_values[0]
+            device_page.close()
+
+            upper_panel.select_domain(DOMAIN_NAME)
+
+            match_pm_between_lw_and_pl_device(device_ip=DEVICE_IP, device_name=DEVICE_NAME, pm_period_type=PM_TYPE_MINUTES, pm_type=pl_pm_type_value)
+            sleep(10)
+            match_pm_between_lw_and_pl_device(device_ip=DEVICE_IP, device_name=DEVICE_NAME, pm_period_type=PM_TYPE_DAYS, pm_type=pl_pm_type_value)
+        except Exception as e:
+            raise AssertionError(f"Failed to get PL PM type dropdown options for {DEVICE_IP} ({DEVICE_NAME}): {e}") from e
+        finally:
+            close_connection(session)
 
     results[7] = run_step(7, step_7, logger, report)
 
@@ -639,7 +697,6 @@ if __name__ == "__main__":
         context.close()
         browser.close()
         close_report(report)
-        close_connection(session)
 
     end_time = time.perf_counter()
     print(f"\nTotal test runtime: {end_time - start_time:.2f} seconds")

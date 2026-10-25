@@ -154,7 +154,10 @@ class DeviceDiscovery:
         Return the visible input element of the IP address field.
         """
         # When Range mode is enabled, the single IP input may become hidden/disabled but still exist in DOM.
-        return self.ip_app_input().locator("input:visible").first
+        loc = self.ip_app_input().locator("input:visible").first
+        sleep(1)
+        return loc
+
 
     # ✅
     def set_ip_address(self, ip: str, timeout: int = 8000):
@@ -426,6 +429,7 @@ class DeviceDiscovery:
             tabset = self.protocol_tabset(timeout=timeout)
 
             tab_btn = tabset.locator("ul.nav.nav-tabs a.nav-link", has_text=re.compile(rf"^\s*{re.escape(tab_name)}\s*$")).first
+            sleep(0.5)
             expect(tab_btn).to_be_visible(timeout=timeout)
             tab_btn.click(force=True)
 
@@ -545,6 +549,7 @@ class DeviceDiscovery:
         try:
             dropdown = self.app_dropdown(label)
             selected = dropdown.locator(".selected-view span").first
+            sleep(1)
             expect(selected).to_be_visible(timeout=timeout)
             return self.clean(selected.inner_text())
         except Exception as e:
@@ -572,9 +577,11 @@ class DeviceDiscovery:
             menu = self.open_dropdown_menu(label, timeout=timeout)
 
             item = menu.locator("li.dropdown-item", has_text=re.compile(rf"^\s*{re.escape(value)}\s*$", re.IGNORECASE)).first
+            sleep(1)
 
             if item.count() == 0:
                 options = menu.locator("li.dropdown-item").all_inner_texts()
+                sleep(1)
                 options = [self.clean(x) for x in options if self.clean(x)]
                 raise AssertionError(f"Value '{value}' not found in '{label}'. Available: {options}")
 
@@ -596,6 +603,7 @@ class DeviceDiscovery:
             menu = self.open_dropdown_menu(label, timeout=timeout)
 
             options = menu.locator("li.dropdown-item").all_inner_texts()
+            sleep(1)
             options = [self.clean(x) for x in options if self.clean(x)]
 
             if value.strip() not in [o.strip() for o in options]:
