@@ -1,0 +1,5 @@
+Open C:\Gitlab_y\automation\LightWatch_WEB:
+
+1) .venv311\Scripts\python.exe -m pip freeze | Out-File -Encoding unicode Requirements\requirements_311.txt
+
+2) .venv\Scripts\python.exe -m pip freeze | Out-File -Encoding unicode Requirements\requirements_314.txt

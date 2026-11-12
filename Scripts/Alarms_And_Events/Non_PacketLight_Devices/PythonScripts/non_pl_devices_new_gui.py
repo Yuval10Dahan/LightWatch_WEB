@@ -24,6 +24,24 @@ Steps to verify before running this script:
    f. Set Startup type → Disabled → Click Apply → OK.
    g. Start LW Server.
 3. After applying the fix, verify that port 162 is now occupied by java.exe and not snmptrap.exe.
+
+
+
+4. Step 1 relies on a server that has SNMPv2 agent installed and configured.
+   If it doesn't have SNMPv2 agent installed and configured, you can install it by running the following command:
+   - Add-WindowsCapability -Online -Name "SNMP.Client~~~~0.0.1.0"
+   - $p = "HKLM:\SYSTEM\CurrentControlSet\Services\SNMP\Parameters"
+   - New-Item "$p\ValidCommunities" -Force | Out-Null
+   - New-ItemProperty "$p\ValidCommunities" -Name public -Value 8 -PropertyType DWord -Force
+   - Get-ItemProperty "$p\PermittedManagers"
+   - Remove-ItemProperty "$p\PermittedManagers" -Name 1
+   - Restart-Service SNMP
+
+   Confirm its listening on 161 and the firewall rule exists:
+   - Get-NetUDPEndpoint -LocalPort 161 ; Get-NetFirewallRule -DisplayName "*SNMP*" | ft DisplayName,Enabled
+
+   The SNMP Service (UDP In) rule must be enabled.
+   
 --------------------------------------------------------------------------------------------------------------------------
 """
 
@@ -86,9 +104,9 @@ else:
 BASE_URL = f"https://{LW_SERVER_HOST_IP}/"
 WAIT = 30
 
-NON_PL_DEVICE_SNMPV2 = "172.16.10.22"
+NON_PL_DEVICE_SNMPV2 = "172.16.10.13"
 NON_PL_DEVICE_SNMPV3 = "172.16.30.253"
-NON_PL_DEVICE_PC = "172.16.10.13"
+NON_PL_DEVICE_PC = "172.16.10.14"
 NON_PL_DEVICE_SWITCH = "172.16.30.253"
 NON_PL_DEVICE_WEBSITE = "172.16.10.101"
 PL_DEVICE_ICMP = "172.16.20.111" 

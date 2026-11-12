@@ -8,6 +8,7 @@ Date: 20/01/2026
 from playwright.sync_api import Page, expect
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from Utils.utils import refresh_page, countdown_sleep
+from time import sleep
 
 
 class SystemOperationsPage:
@@ -20,11 +21,12 @@ class SystemOperationsPage:
         self.page = page 
 
         # Locators for buttons inside the System Operations section
-        self.polling_restart_btn = page.locator('button', has_text="Restart Polling")
-        self.deleting_otn_inconsistent_services_btn = page.locator('button', has_text="Delete Inconsistent OTN Services")
-        self.synchronizing_otn_services_btn = page.locator('button', has_text="Synchronize OTN Services")
-        self.deleting_roadm_inconsistent_services_btn = page.locator('button', has_text="Delete Inconsistent ROADM Services")
-        self.synchronizing_roadm_services_btn = page.locator('button', has_text="Synchronize ROADM Services")
+        self.restart_polling_btn = page.locator('button', has_text="Restart Polling")
+        self.synchronize_inventory_btn = page.locator('button', has_text="Synchronize Inventory")
+        self.delete_inconsistent_otn_services_btn = page.locator('button', has_text="Delete Inconsistent OTN Services")
+        self.synchronize_otn_services_btn = page.locator('button', has_text="Synchronize OTN Services")
+        self.delete_inconsistent_roadm_services_btn = page.locator('button', has_text="Delete Inconsistent ROADM Services")
+        self.synchronize_roadm_services_btn = page.locator('button', has_text="Synchronize ROADM Services")
         self.exit_btn = page.locator('button', has_text="Exit")
 
         # The div that contains the buttons, to check if System Operations page is opened
@@ -35,12 +37,12 @@ class SystemOperationsPage:
     # ==========================================================
 
     # ✅
-    def click_polling_restart(self) -> bool:
+    def click_restart_polling(self) -> bool:
         success_message = "Topology polling restarted Successfully"
         failure_message = "Restart Polling"
 
         try:
-            self.polling_restart_btn.click()
+            self.restart_polling_btn.click()
             result = self.click_button(success_message, failure_message)
 
             if result:
@@ -54,53 +56,56 @@ class SystemOperationsPage:
             return False
 
     # ✅
-    def click_polling_restart_backup(self) -> bool:
-        self.polling_restart_btn.click()
-
-        # be flexible: the toast might be split or have different casing
-        toast = self.page.get_by_text("Topology polling restarted", exact=False)
+    def click_synchronize_inventory(self) -> bool:
+        success_message = "Inventory synchronization started Successfully"
+        failure_message = "Synchronize Inventory"
 
         try:
-            toast.wait_for(state="visible", timeout=10_000)
+            self.synchronize_inventory_btn.click()
+            sleep(0.5)
 
-            # Optional: wait for it to disappear 
-            toast.wait_for(state="hidden", timeout=15_000)
-            print("Polling Restart was successful ✅")
-            return True
+            # Confirmation dialog – make sure it opened, then confirm with "Yes"
+            dialog = self.page.locator('.pl-modal', has_text="Synchronize inventory")
+            sleep(2)
+            expect(dialog).to_be_visible(timeout=5000)
+            dialog.locator('button', has_text="Yes").click()
+            sleep(0.5)
+
+            return self.click_button(success_message, failure_message)
 
         except PlaywrightTimeoutError:
-            print("Polling Restart failed: toast did not appear ❌")
+            print(f"{failure_message} failed ❌")
             return False
 
-    # ✅
-    def click_deleting_OTN_inconsistent_services(self) -> bool:
+    
+    def click_delete_inconsistent_OTN_services(self) -> bool:
         success_message = "OTN services removed Successfully"
         failure_message = "Delete Inconsistent OTN Services"
-        self.deleting_otn_inconsistent_services_btn.click()
+        self.delete_inconsistent_otn_services_btn.click()
         self.click_button(success_message, failure_message)
 
-    # ✅
-    def click_synchronizing_OTN_services(self) -> bool:
+   
+    def click_synchronize_OTN_services(self) -> bool:
         success_message = "OTN services synchronized Successfully"
         failure_message = "Synchronize OTN Services"
-        self.synchronizing_otn_services_btn.click()
+        self.synchronize_otn_services_btn.click()
         self.click_button(success_message, failure_message)
 
-    # ✅
-    def click_deleting_ROADM_inconsistent_services(self) -> bool:
+    
+    def click_delete_inconsistent_ROADM_services(self) -> bool:
         success_message = "Inconsistent ROADM services deleted Successfully"
         failure_message = "Delete Inconsistent ROADM Services"
-        self.deleting_roadm_inconsistent_services_btn.click()
+        self.delete_inconsistent_roadm_services_btn.click()
         self.click_button(success_message, failure_message)
 
-    # ✅
-    def click_synchronizing_ROADM_services(self) -> bool:
+  
+    def click_synchronize_ROADM_services(self) -> bool:
         success_message = "ROADM services synchronization started Successfully"
         failure_message = "Synchronize ROADM Services"
-        self.synchronizing_roadm_services_btn.click()
+        self.synchronize_roadm_services_btn.click()
         self.click_button(success_message, failure_message)
 
-    # ✅
+   
     def click_exit(self) -> bool:
         try:
             # Make sure the System Operations window is open before exiting from it

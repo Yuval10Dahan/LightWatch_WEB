@@ -72,6 +72,7 @@ class PL_Upper_Panel:
                 sleep(2)
                 expect(system_btn).to_be_visible(timeout=timeout)
                 system_btn.scroll_into_view_if_needed()
+                sleep(2)
                 system_btn.click(force=True, timeout=timeout)
                 return True
 

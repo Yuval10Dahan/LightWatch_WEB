@@ -1,0 +1,134 @@
+Adjust the script 'inventory.py' in Scripts -> Inventory -> PythonScripts,  by this steps:
+
+side functions:
+
+def match_inventory_lists(ip):
+    login to the GUI of ip using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+    get the inventory list of the device via get_inventory_list in PL_Devices\PL_Pages\PL_main_screen_POM.py.
+    get the inventory list of ip via LW server using get_entity_inventory_list(ip) in Pages\inventory.py.
+    verify that they match. if not - fail the step.
+
+step 1: 
+Add domain called "Inventory_Domain".
+
+step 2: 
+Click on Device Discovery.
+Click on SNMPv2.
+for each ip from "DEVICES_LIST":
+    set ip address(ip)
+    click on Start Discovery
+    sleep(1)
+
+step 3: 
+for each ip from "DEVICES_LIST":
+    click on Domain Management.
+    move the ip to domain called "Inventory_Domain".
+    sleep(1)
+
+step 4:
+Click on Network Topology.
+Change domain to "Inventory_Domain" via the upper panel functions.
+verify that each ip from "DEVICES_LIST" added to the LW Server via network_topology.is_element_exist_on_navigation_info_list(ip).
+if at least one of them is missing then fail this step and alert what happened.
+
+# Filter by Default
+step 5:
+click on Inventory.
+set FilterBy to FILTERS_LIST[0].
+get the number of devices on the inventory list (via "get_number_of_devices_on_inventory_list") and verify it matches the number of devices in "DEVICES_LIST". if not, fail the step.
+get the inventory list (via “get_all_inventory_list”) and verify each element.ip_address inside "DEVICES_LIST". if "DEVICES_LIST" is not matching the list of all the ip addresses inside the inventory list fail this step.
+for each ip from "DEVICES_LIST":
+    match_inventory_lists(ip)
+
+# Filter by Device
+step 6:
+for each ip from "DEVICES_LIST":
+    set FilterBy to FILTERS_LIST[1].
+    set Devices to ip. 
+    match_inventory_lists(ip)
+    
+# Filter by Chassis
+step 7:
+click on domain management.
+get the devices under the “Inventory_Domain” via “get_devices_list_per_domain” in Pages\domain_management.py and then take the number of devices in that domain using len(list) or something.
+number_of_chassis = 1999
+for each ip from "DEVICES_LIST":
+    change chassis id to new chassis id and the value is ‘number_of_chassis’
+    number_of_chassis -= 1 
+click on Inventory.
+set FilterBy to FILTERS_LIST[2].
+get the Chassis list via “get_chassis_list” in Pages\inventory.py and save it under chassis_list_values.
+for each chassis from “chassis_list_values”:
+    match_inventory_lists(ip)
+
+
+step 8:
+click on Inventory.
+set FilterBy to FILTERS_LIST[0].
+get the devices under the “Inventory_Domain” via “get_devices_list_per_domain” in Pages\domain_management.py and save it as “devices_list”.
+create a side function that takes “devices_list” and return a list of all the unique types and their occurrences. (for example: devices_list = ['PL-2000GM (172.16.20.125)', 'PL-4000G (172.16.30.51)', 'PL-4000G (172.16.30.52)'], the function returns {’PL-2000GM’: 1, ‘PL-4000G’: 2} )
+for each element in the list that returns from the function:
+    set Quick filter = element type
+    get number of devices on inventory list via “get_number_of_devices_on_inventory_list” in Pages\inventory.py
+    match this number to element.occurrences. if its not matching fail this step. 
+    set Quick filter = element type.lower (lower cases) 
+    match this number to element.occurrences. if its not matching fail this step.
+
+
+step 9:
+click on Inventory.
+for each ip from "DEVICES_LIST":
+    set FilterBy to FILTERS_LIST[1].
+    set Devices to ip.
+    get the number of devices on the inventory list (via "get_number_of_devices_on_inventory_list") and verify it matches to 1. if not, fail the step.
+
+step 10:
+click on Inventory.
+set FilterBy to FILTERS_LIST[2].
+get the devices under the “Inventory_Domain” via “get_devices_list_per_domain” in Pages\domain_management.py and save it as “devices_list”.
+use the side function that takes “devices_list” and return a list of all the unique types and their occurrences. 
+for each element in the list that returns from the function:
+    set Quick filter = element.type
+    get number of devices on inventory list via “get_number_of_devices_on_inventory_list” in Pages\inventory.py
+    match this number to element.occurrences. if its not matching fail this step. 
+    set Quick filter = element type.lower (lower cases) 
+    match this number to element.occurrences. if its not matching fail this step.
+
+step 11:
+click on Inventory.
+set FilterBy to FILTERS_LIST[0].
+get the devices under the “Inventory_Domain” via “get_devices_list_per_domain” in Pages\domain_management.py and save it as “devices_list”.
+use the side function that takes “devices_list” and return a list of all the unique types and their occurrences. 
+take random element.type from that list and store it under “random_element_type”.
+for filter in “FILTERS_LIST”:
+    set FilterBy to filter.
+    set Quick filter to “random_element_type”.
+    expand the first row via “expand_by_row” in Pages\inventory.py.
+
+step 12:
+click on Inventory.
+set FilterBy to FILTERS_LIST[0].
+get the devices under the “Inventory_Domain” via “get_devices_list_per_domain” in Pages\domain_management.py and save it as “devices_list”.
+use the side function that takes “devices_list” and return a list of all the unique types and their occurrences. 
+take random element.type from that list and store it under “random_element_type”.
+for filter in “FILTERS_LIST”:
+    set FilterBy to filter.
+    set Quick filter to “random_element_type”.
+    expand all the rows via “expand_all”.
+    verify that all the rows got expanded via is_expanded_all in Pages\inventory.py. if not fail the step.
+
+step 13:
+click on Inventory.
+set FilterBy to FILTERS_LIST[0].
+set Quick filter to “random_element_type”.
+get the number of devices on the inventory list (via "get_number_of_devices_on_inventory_list") and save it under “number_of_device_type”.
+take “random_element_type” and remove the last character and save it under “random_element_type_changed”.
+set Quick filter to “random_element_type_changed”, and click on Whole word via “check_whole_word”.
+get the number of devices on the inventory list (via "get_number_of_devices_on_inventory_list") - if this number equal to “number_of_device_type”, fail the step.
+refresh the page via “refresh_page” in Utils\utils.py.
+set Quick filter to “random_element_type”.
+click on Whole word via “check_whole_word”.
+get the number of devices on the inventory list (via "get_number_of_devices_on_inventory_list") - if this number not equal to “number_of_device_type”, fail the step.
+
+
+collect if the each step passed, if one of them failed then say that the test failed, if all of them are pass then say that the test passed.

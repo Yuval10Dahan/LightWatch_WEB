@@ -1291,7 +1291,7 @@ class ServiceProvisioning:
 
         except Exception as e:
             raise AssertionError(f"set_ROADM_path1_channel('{channel}') failed. Problem: {e}")
-
+ 
     # ✅
     def ROADM_service_create(self, timeout_ms: int = 10000):
         """
@@ -1351,9 +1351,12 @@ class ServiceProvisioning:
                 "app-dropdown[label='A-Node']"
             ).first
 
+            sleep(0.5)
+
             expect(dropdown).to_be_visible(timeout=timeout_ms)
 
             selected = dropdown.locator(".selected-view span, .selected-view").first
+            sleep(0.5)
             expect(selected).to_be_visible(timeout=timeout_ms)
 
             current_value = self._clean(selected.inner_text()) if hasattr(self, "_clean") else re.sub(r"\s+", " ", selected.inner_text().strip())
@@ -1362,6 +1365,7 @@ class ServiceProvisioning:
                 return True
 
             btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            sleep(0.5)
             expect(btn).to_be_visible(timeout=timeout_ms)
             expect(btn).to_be_enabled(timeout=timeout_ms)
 
@@ -1374,6 +1378,7 @@ class ServiceProvisioning:
                 "app-dropdown:has(div.label:text-is('A-Node')) div.dropdown-menu.show, "
                 "app-dropdown:has(div.label:text-is('A-Node')) div.dropdown-menu"
             ).first
+            sleep(0.5)
 
             expect(menu).to_be_visible(timeout=timeout_ms)
 
@@ -1383,6 +1388,7 @@ class ServiceProvisioning:
             target = clean_text(node).lower()
 
             items = menu.locator("li.dropdown-item")
+            sleep(0.5)
             target_item = None
 
             for i in range(items.count()):
@@ -1413,6 +1419,7 @@ class ServiceProvisioning:
                 timeout_ms=timeout_ms,
                 interval_ms=200
             )
+            sleep(0.5)
 
             sleep(SLEEP)
             return True
@@ -1866,14 +1873,217 @@ class ServiceProvisioning:
 
         except Exception as e:
             raise AssertionError(f"disable_OTN_rate_limit failed. Problem: {e}")
-    
+
+    def OTN_service_click_next(self, timeout_ms: int = 10000):
+        """
+        Click the OTN Service 'Next' button.
+        """
+
+        try:
+            next_btn = self.page.locator(
+                ".otn-service-actions button.next-btn", has_text=re.compile(r"^\s*Next\s*$")
+            ).first
+            sleep(SLEEP)
+
+            expect(next_btn).to_be_visible(timeout=timeout_ms)
+            expect(next_btn).to_be_enabled(timeout=timeout_ms)
+
+            before_content = self.page.locator(".otn-service-content").first.inner_text(timeout=timeout_ms)
+            sleep(SLEEP)
+
+            next_btn.click(force=True)
+
+            self.wait_until(
+                lambda: (
+                    self.page.locator(".otn-service-content")
+                    .first
+                    .inner_text()
+                    != before_content
+                ),
+                timeout_ms=timeout_ms,
+                interval_ms=200
+            )
+
+            sleep(SLEEP)
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"OTN_service_click_next failed. Problem: {e}")
 
     def set_OTN_Z_node(self, node: str, timeout_ms: int = 40000):
-        pass
+        """
+        Set OTN Service Z-Node.
+
+        Matching ignores parentheses/extra spaces, since the selected view shows
+        'PL-2000ADS 172.16.40.19' while menu items may show 'PL-2000ADS  (172.16.40.19)'.
+        """
+
+        try:
+            node = (node or "").strip()
+            if not node:
+                raise ValueError("node is empty")
+
+            def clean_text(txt: str) -> str:
+                return re.sub(r"\s+", " ", re.sub(r"[()]", " ", txt or "")).strip().lower()
+
+            target = clean_text(node)
+
+            dropdown = self.page.locator(
+                "app-dropdown[formcontrolname='zNode'], "
+                "app-dropdown:has(div.label:text-is('Z-Node')), "
+                "app-dropdown[label='Z-Node']"
+            ).first
+
+            expect(dropdown).to_be_visible(timeout=timeout_ms)
+
+            selected = dropdown.locator(".selected-view span, .selected-view").first
+            expect(selected).to_be_visible(timeout=timeout_ms)
+
+            if clean_text(selected.inner_text()) == target:
+                return True
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            expect(btn).to_be_visible(timeout=timeout_ms)
+            expect(btn).to_be_enabled(timeout=timeout_ms)
+
+            btn.click(force=True)
+
+            # Menu can be inside the dropdown OR attached globally
+            menu = self.page.locator(
+                "div.dropdown-menu[data-label='Z-Node'].show, "
+                "div.dropdown-menu[data-label='Z-Node'], "
+                "app-dropdown:has(div.label:text-is('Z-Node')) div.dropdown-menu.show, "
+                "app-dropdown:has(div.label:text-is('Z-Node')) div.dropdown-menu"
+            ).first
+
+            expect(menu).to_be_visible(timeout=timeout_ms)
+
+            items = menu.locator("li.dropdown-item")
+            target_item = None
+
+            for i in range(items.count()):
+                item = items.nth(i)
+
+                if clean_text(item.inner_text()) == target:
+                    target_item = item
+                    break
+
+            if target_item is None:
+                options = [
+                    re.sub(r"\s+", " ", x).strip()
+                    for x in items.all_inner_texts()
+                    if x.strip()
+                ]
+
+                raise AssertionError(f"Z-Node '{node}' not found. Available options: {options}")
+
+            target_item.scroll_into_view_if_needed()
+            expect(target_item).to_be_visible(timeout=timeout_ms)
+            target_item.click(force=True)
+
+            self.wait_until(
+                lambda: clean_text(
+                    dropdown.locator(".selected-view span, .selected-view").first.inner_text()
+                ) == target,
+                timeout_ms=timeout_ms,
+                interval_ms=200
+            )
+
+            sleep(SLEEP)
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"set_OTN_Z_node('{node}') failed. Problem: {e}")
 
 
     def set_OTN_Z_port(self, port: str, timeout_ms: int = 40000):
-        pass
+        """
+        Set OTN Service Z-Port.
+        """
+
+        try:
+            port = (port or "").strip()
+            if not port:
+                raise ValueError("port is empty")
+
+            dropdown = self.page.locator(
+                "app-dropdown[formcontrolname='zPort'], "
+                "app-dropdown[label='Z-Port'], "
+                "app-dropdown:has(div.label:text-is('Z-Port'))"
+            ).first
+
+            expect(dropdown).to_be_visible(timeout=timeout_ms)
+
+            selected = dropdown.locator(".selected-view span, .selected-view").first
+            expect(selected).to_be_visible(timeout=timeout_ms)
+
+            def clean_text(txt: str) -> str:
+                return re.sub(r"\s+", " ", (txt or "").strip())
+
+            target = clean_text(port).lower()
+
+            if clean_text(selected.inner_text()).lower() == target:
+                return True
+
+            btn = dropdown.locator("button.dropdown-button, button[dropdowntoggle]").first
+            expect(btn).to_be_visible(timeout=timeout_ms)
+            expect(btn).to_be_enabled(timeout=timeout_ms)
+
+            btn.click(force=True)
+
+            menu = self.page.locator(
+                "div.dropdown-menu[data-label='Z-Port'].show, "
+                "div.dropdown-menu[data-label='Z-Port'], "
+                "app-dropdown[formcontrolname='zPort'] div.dropdown-menu.show, "
+                "app-dropdown[formcontrolname='zPort'] div.dropdown-menu"
+            ).first
+
+            expect(menu).to_be_visible(timeout=timeout_ms)
+
+            # Wait until options are loaded
+            self.wait_until(
+                lambda: menu.locator("li.dropdown-item").count() > 0,
+                timeout_ms=timeout_ms,
+                interval_ms=300
+            )
+
+            items = menu.locator("li.dropdown-item")
+
+            target_item = None
+            for i in range(items.count()):
+                item = items.nth(i)
+
+                if clean_text(item.inner_text()).lower() == target:
+                    target_item = item
+                    break
+
+            if target_item is None:
+                options = [
+                    clean_text(x)
+                    for x in items.all_inner_texts()
+                    if clean_text(x)
+                ]
+
+                raise AssertionError(f"Z-Port '{port}' not found. Available options: {options}")
+
+            target_item.scroll_into_view_if_needed()
+            expect(target_item).to_be_visible(timeout=timeout_ms)
+            target_item.click(force=True)
+
+            self.wait_until(
+                lambda: clean_text(
+                    dropdown.locator(".selected-view span, .selected-view").first.inner_text()
+                ).lower() == target,
+                timeout_ms=timeout_ms,
+                interval_ms=200
+            )
+
+            sleep(SLEEP)
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"set_OTN_Z_port('{port}') failed. Problem: {e}")
 
     # ✅
     def set_OTN_service_name(self, service_name: str, timeout_ms: int = 40000):
@@ -2005,3 +2215,138 @@ class ServiceProvisioning:
 
         except Exception as e:
             raise AssertionError(f"disable_OTN_auto_path failed. Problem: {e}")
+
+    def get_tributary_slots_table(self, timeout_ms: int = 10000) -> dict:
+        """
+        Read the OTN tributary slots checkout step (Working / Protection sections).
+
+        Each section lists device -> uplink slots blocks in path order.
+        A slot is treated as selected if it carries any class other than 'slot'.
+
+        Example return:
+            {
+                "Working": [
+                    {
+                        "device": "PL-2000ADS (172.16.40.15)",
+                        "label": "Tributary slots of Uplink 1 used by service",
+                        "uplink": "Uplink 1",
+                        "slots": ["1", "2", "3", "4", "5", "6", "7", "8"],
+                        "selected_slots": ["1"]
+                    },
+                    ...
+                ],
+                "Protection": [...]
+            }
+        """
+
+        try:
+            wrappers = self.page.locator("app-otn-service-working-step .tributary-slots-wrapper")
+            sleep(SLEEP)
+
+            expect(wrappers.first).to_be_visible(timeout=timeout_ms)
+
+            # Device and slots blocks are siblings, so walk children in DOM order to pair them
+            sections = wrappers.evaluate_all(
+                """
+                wrappers => wrappers.map(w => {
+                    const clean = t => (t || "").replace(/\\s+/g, " ").trim();
+                    const section = { title: "", blocks: [] };
+                    let device = "";
+
+                    for (const el of w.children) {
+                        if (el.classList.contains("title")) {
+                            section.title = clean(el.innerText);
+                        } else if (el.classList.contains("device")) {
+                            device = clean(el.innerText);
+                        } else if (el.classList.contains("slots")) {
+                            const slots = [...el.querySelectorAll(".slot")];
+                            section.blocks.push({
+                                device: device,
+                                label: clean(el.getAttribute("data-label")),
+                                slots: slots.map(s => clean(s.innerText)),
+                                selected_slots: slots
+                                    .filter(s => [...s.classList].some(c => c !== "slot"))
+                                    .map(s => clean(s.innerText))
+                            });
+                        }
+                    }
+                    return section;
+                })
+                """
+            )
+
+            result = {}
+
+            for section in sections:
+                for block in section["blocks"]:
+                    match = re.search(r"Uplink\s*\d+", block["label"])
+                    block["uplink"] = match.group(0) if match else ""
+
+                result[section["title"]] = section["blocks"]
+
+            return result
+
+        except Exception as e:
+            raise AssertionError(f"get_tributary_slots_table failed. Problem: {e}")
+
+    # ✅
+    def OTN_service_create(self, confirm: bool = True, timeout_ms: int = 10000):
+        """
+        Click the OTN Service 'Create' button and answer the
+        'Confirm provisioning operation' modal.
+
+        Args:
+            confirm:
+                True  = click 'Yes' (provision the service)
+                False = click 'No' (cancel, stay on the tributary slots step)
+        """
+
+        try:
+            create_btn = self.page.locator(
+                ".otn-service-actions button.next-btn", has_text=re.compile(r"^\s*Create\s*$")
+            ).first
+            sleep(SLEEP)
+
+            expect(create_btn).to_be_visible(timeout=timeout_ms)
+            expect(create_btn).to_be_enabled(timeout=timeout_ms)
+
+            create_btn.click(force=True)
+
+            modal = self.page.locator(
+                ".otn-service-working-step-modal-container",
+                has=self.page.locator(".title", has_text="Confirm provisioning operation")
+            ).first
+
+            expect(modal).to_be_visible(timeout=timeout_ms)
+            sleep(SLEEP)
+
+            answer = "Yes" if confirm else "No"
+            answer_btn = modal.locator(
+                "section.form-actions button", has_text=re.compile(rf"^\s*{answer}\s*$")
+            ).first
+
+            expect(answer_btn).to_be_visible(timeout=timeout_ms)
+            expect(answer_btn).to_be_enabled(timeout=timeout_ms)
+
+            answer_btn.click(force=True)
+            sleep(SLEEP * 100)
+
+            expect(modal).to_be_hidden(timeout=timeout_ms)
+
+            if confirm:
+                # After provisioning, the wizard closes / content changes
+                self.wait_until(
+                    lambda: (
+                        self.page.locator("app-otn-service-working-step").count() == 0
+                        or not self.page.locator("app-otn-service-working-step").first.is_visible()
+                    ),
+                    timeout_ms=timeout_ms,
+                    interval_ms=200
+                )
+
+                sleep(10)
+
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"OTN_service_create(confirm={confirm}) failed. Problem: {e}")

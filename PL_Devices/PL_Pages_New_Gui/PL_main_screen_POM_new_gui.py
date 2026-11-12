@@ -181,12 +181,14 @@ class PL_Main_Screen_POM:
                 left_fl = self.page.frame_locator("iframe[name='vertical_menu_frame'], frame[name='vertical_menu_frame']")
 
                 maint_btn = left_fl.locator("#Maintenance").first
+                sleep(1)
                 expect(maint_btn).to_be_visible(timeout=timeout)
 
                 # If it's not already active, click it
                 cls = (maint_btn.get_attribute("class") or "").strip()
                 if cls != "vertical_button vertical_button_active":
                     maint_btn.scroll_into_view_if_needed()
+                    sleep(1)
                     maint_btn.click(force=True, timeout=timeout)
 
                 return True
@@ -518,6 +520,115 @@ class PL_Main_Screen_POM:
                     pass
 
         return False
+
+    # ✅
+    def click_inventory(self, retries: int = 3, timeout: int = 20_000) -> bool:
+        """
+        Click the Inventory tab under Configuration -> System.
+
+        Returns:
+            True on success, False otherwise.
+        """
+
+        for attempt in range(retries):
+            try:
+                if not self.click_Configuration(timeout=timeout):
+                    raise Exception("click_Configuration failed")
+
+                if not self.upper_panel.click_system(timeout=timeout):
+                    raise Exception("upper_panel.click_system failed")
+
+                self.page.wait_for_timeout(500)
+
+                main_fl = self.main_page_frame()
+
+                btn = main_fl.locator("#tab_inventory").first
+                expect(btn).to_be_visible(timeout=timeout)
+
+                cls = (btn.get_attribute("class") or "").strip()
+                if cls != "tab tabactive":
+                    btn.scroll_into_view_if_needed()
+                    btn.click(force=True, timeout=timeout)
+
+                expect(btn).to_have_attribute("class", "tab tabactive", timeout=timeout)
+
+                return True
+
+            except Exception as e:
+                print(f"click_inventory failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return False
+
+    # ✅
+    def get_inventory_list(self, retries: int = 3, timeout: int = 20_000):
+        """
+        Returns the Configuration -> System -> Inventory table as a list of
+        header->value dicts, one per inventory entry, read from the table's own
+        header row (#thead) so the columns follow whatever the device renders.
+
+        Example:
+            [
+                {"Name": "PL-2000GM", "Description": "Main Board", "Serial Number": "231203957",
+                 "Hardware Rev": "01-05-0", "Part Number": "PRAS003540", "Manufacturer": "PacketLight Networks"},
+                {"Name": "PSU 1", "Description": "AC Power Interface Card", ...},
+                ...
+            ]
+
+        Headers hidden by the page (e.g. "CLEI Code" on non-OEM18 units, which
+        has no matching cell either) are skipped. Empty cells (e.g. the FAN
+        unit's serial/part number) come back as "".
+
+        Returns [] on failure.
+        """
+
+        for attempt in range(retries):
+            try:
+                if not self.click_inventory(timeout=timeout):
+                    raise Exception("click_inventory failed")
+
+                cfg = self.main_page_frame().frame_locator("iframe[name='config_sys'], iframe#config_sys")
+
+                header_cells = cfg.locator("#thead th")
+                expect(header_cells.first).to_be_visible(timeout=timeout)
+
+                headers = []
+                for i in range(header_cells.count()):
+                    th = header_cells.nth(i)
+                    if not th.is_visible():
+                        continue
+                    headers.append(th.inner_text().replace("\xa0", " ").strip())
+
+                rows = cfg.locator("#tbody tr")
+                expect(rows.first).to_be_visible(timeout=timeout)
+
+                inventory = []
+                for i in range(rows.count()):
+                    cells = rows.nth(i).locator("td")
+                    cell_count = cells.count()
+                    if cell_count == 0:
+                        continue
+
+                    row_dict = {}
+                    for j, header in enumerate(headers):
+                        value = cells.nth(j).inner_text().replace("\xa0", " ").strip() if j < cell_count else ""
+                        row_dict[header] = value
+
+                    inventory.append(row_dict)
+
+                return inventory
+
+            except Exception as e:
+                print(f"get_inventory_list failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return []
 
     # ✅
     def set_chassis_id(self, chassis_id, retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
@@ -1379,25 +1490,17 @@ class PL_Main_Screen_POM:
         return []
 
     # ✅
-    def set_provisioning_old(self, port_number, uplink_number: Optional[int] = None,
-                         retries: int = 5, timeout: int = 10_000) -> Tuple[bool, str]:
+    def click_provisioning_tab(self, port_number, retries: int = 5, timeout: int = 10_000) -> bool:
         """
+        Navigate to Configuration -> Port -> Provisioning tab.
+
         Args:
             port_number:
                 Examples: 1, "1", "Port-1"
 
-            uplink_number:
-                Optional. Usually 1 or 2.
-                If provided, selects the matching uplink radio button.
-
         Returns:
-            (success, dialog_text)
-
-        Raises:
-            Exception:
-                If the provisioning page is missing the instruction,
-                if the slot count cannot be parsed,
-                or if there are not enough continuous free slots.
+            True if the Provisioning tab is active and its page (config_port iframe) is loaded,
+            False otherwise.
         """
 
         def main_fl():
@@ -1405,187 +1508,6 @@ class PL_Main_Screen_POM:
 
         def port_cfg_fl():
             return main_fl().frame_locator("iframe[name='config_port'], iframe#config_port")
-
-        def arm_dialog_capture_once(holder: dict):
-            def _handler(d):
-                try:
-                    holder["text"] = (d.message or "").strip()
-                except Exception:
-                    holder["text"] = ""
-
-                try:
-                    d.accept()
-                except Exception:
-                    pass
-
-            try:
-                self.page.once("dialog", _handler)
-            except Exception:
-                pass
-
-        def wait_for_dialog_text(holder: dict, ms: int = 5000) -> str:
-            step = 50
-            loops = max(1, ms // step)
-            for _ in range(loops):
-                if holder.get("text") is not None:
-                    return holder.get("text") or ""
-                self.page.wait_for_timeout(step)
-            return holder.get("text") or ""
-
-        def extract_required_slots(cfg) -> int:
-            body = cfg.locator("body").first
-            expect(body).to_be_visible(timeout=timeout)
-            txt = body.inner_text()
-
-            m = re.search(r"select\s+up\s+to\s+(\d+)\s+slots?", txt, re.IGNORECASE)
-            if not m:
-                raise Exception("Could not parse required slot count from provisioning page text")
-
-            return int(m.group(1))
-
-        def select_uplink_if_needed(cfg, uplink: Optional[int]) -> None:
-            if uplink is None:
-                return
-
-            if uplink not in {1, 2}:
-                raise ValueError(f"Unsupported uplink_number '{uplink}'. Expected 1 or 2.")
-
-            # First try direct label-based radio selection
-            radio_candidates = cfg.locator("input[type='radio']")
-            count = radio_candidates.count()
-
-            for i in range(count):
-                radio = radio_candidates.nth(i)
-                try:
-                    label_text = radio.evaluate("""
-                        el => {
-                            let txt = '';
-                            let n = el.nextSibling;
-                            while (n) {
-                                if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) {
-                                    txt = n.textContent.trim();
-                                    break;
-                                }
-                                if (n.nodeType === Node.ELEMENT_NODE && n.innerText && n.innerText.trim()) {
-                                    txt = n.innerText.trim();
-                                    break;
-                                }
-                                n = n.nextSibling;
-                            }
-                            if (!txt && el.parentElement) txt = el.parentElement.innerText || '';
-                            return txt.trim();
-                        }
-                    """)
-                except Exception:
-                    label_text = ""
-
-                if f"Uplink {uplink}" in label_text:
-                    radio.check(force=True)
-                    self.page.wait_for_timeout(500)
-                    return
-
-            # Fallback: if there are exactly 2 radios, use index
-            if count >= 2:
-                radio_candidates.nth(uplink - 1).check(force=True)
-                self.page.wait_for_timeout(500)
-                return
-
-            raise Exception(f"Could not find Uplink {uplink} radio button")
-
-        def get_numeric_slot_checkboxes(cfg):
-            """
-            Return list of:
-                {
-                    "index": locator index,
-                    "slot": int,
-                    "enabled": bool,
-                    "checked": bool
-                }
-
-            Only numeric slot checkboxes are returned.
-            Legend / decorative checkboxes are ignored.
-            """
-            cbs = cfg.locator("input[type='checkbox']")
-            total = cbs.count()
-            result = []
-
-            for i in range(total):
-                cb = cbs.nth(i)
-
-                try:
-                    slot_text = cb.evaluate("""
-                        el => {
-                            let txt = '';
-                            let n = el.nextSibling;
-                            while (n) {
-                                if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) {
-                                    txt = n.textContent.trim();
-                                    break;
-                                }
-                                if (n.nodeType === Node.ELEMENT_NODE && n.innerText && n.innerText.trim()) {
-                                    txt = n.innerText.trim();
-                                    break;
-                                }
-                                n = n.nextSibling;
-                            }
-                            if (!txt && el.parentElement) txt = el.parentElement.innerText || '';
-                            return txt.trim();
-                        }
-                    """)
-                except Exception:
-                    slot_text = ""
-
-                m = re.search(r"\b(\d+)\b", slot_text)
-                if not m:
-                    continue
-
-                slot_num = int(m.group(1))
-
-                try:
-                    enabled = cb.is_enabled()
-                except Exception:
-                    enabled = False
-
-                try:
-                    checked = cb.is_checked()
-                except Exception:
-                    checked = False
-
-                result.append(
-                    {
-                        "index": i,
-                        "slot": slot_num,
-                        "enabled": enabled,
-                        "checked": checked,
-                    }
-                )
-
-            # sort by visible slot number
-            result.sort(key=lambda x: x["slot"])
-            return result
-
-        def find_first_continuous_free_block(slot_rows, needed: int):
-            """
-            Free means:
-                enabled == True and checked == False
-
-            Continuous means numeric sequence:
-                n, n+1, n+2, ...
-            """
-            free_slots = [r for r in slot_rows if r["enabled"] and not r["checked"]]
-
-            for start in range(len(free_slots)):
-                block = [free_slots[start]]
-
-                for j in range(start + 1, len(free_slots)):
-                    if free_slots[j]["slot"] == block[-1]["slot"] + 1:
-                        block.append(free_slots[j])
-                        if len(block) == needed:
-                            return block
-                    elif free_slots[j]["slot"] > block[-1]["slot"] + 1:
-                        break
-
-            return None
 
         for attempt in range(retries):
             try:
@@ -1595,70 +1517,391 @@ class PL_Main_Screen_POM:
                 if not self.upper_panel.click_port(port_number, timeout=timeout):
                     raise AssertionError(f"upper_panel.click_port failed for {port_number}")
 
-                main_frame = main_fl()
-
-                provisioning_tab = main_frame.locator("#tab_provisioning").first
+                provisioning_tab = main_fl().locator("#tab_provisioning").first
                 expect(provisioning_tab).to_be_visible(timeout=timeout)
 
                 if (provisioning_tab.get_attribute("class") or "").strip() != "tab tabactive":
                     provisioning_tab.click(force=True, timeout=timeout)
-                    expect(provisioning_tab).to_have_attribute("class", "tab tabactive", timeout=timeout)
+                expect(provisioning_tab).to_have_attribute("class", "tab tabactive", timeout=timeout)
 
-                cfg = port_cfg_fl()
-                body = cfg.locator("body").first
-                expect(body).to_be_visible(timeout=timeout)
+                # The Provisioning screen is one of the Config_Port_Pro*.asp pages (product dependent)
+                cfg_iframe = main_fl().locator("iframe[name='config_port'], iframe#config_port").first
+                expect(cfg_iframe).to_have_attribute("src", re.compile(r"Config_Port_Pro"), timeout=timeout)
 
-                # Select uplink if requested
-                select_uplink_if_needed(cfg, uplink_number)
-
-                # Parse required number of slots from page instruction
-                needed_slots = extract_required_slots(cfg)
-
-                slot_rows = get_numeric_slot_checkboxes(cfg)
-                if not slot_rows:
-                    raise Exception("No numeric provisioning slot checkboxes were found")
-
-                block = find_first_continuous_free_block(slot_rows, needed_slots)
-                if not block:
-                    raise Exception(
-                        f"There are no {needed_slots} continuous available slots for provisioning"
-                    )
-
-                # Select the block
-                cbs = cfg.locator("input[type='checkbox']")
-                for item in block:
-                    cb = cbs.nth(item["index"])
-                    if not cb.is_checked():
-                        cb.check(force=True)
-
-                # Click Make Provisioning
-                make_btn = cfg.locator(
-                    "#make_break, input[name='make_break'], input.prov_but[value='Make Provisioning']"
-                ).first
-
-                expect(make_btn).to_be_visible(timeout=timeout)
-                expect(make_btn).to_be_enabled(timeout=timeout)
-
-                dlg_holder = {"text": None}
-                arm_dialog_capture_once(dlg_holder)
-
-                make_btn.click(force=True, timeout=timeout)
-
-                self.page.wait_for_timeout(1000)
-                dialog_text = wait_for_dialog_text(dlg_holder, ms=5000)
-
-                return True, dialog_text
+                expect(port_cfg_fl().locator("body").first).to_be_visible(timeout=timeout)
+                return True
 
             except Exception as e:
-                print(f"set_provisioning failed (attempt {attempt + 1}): {e}")
-                if attempt == retries - 1:
-                    raise
+                print(f"click_provisioning_tab failed (attempt {attempt + 1}): {e}")
                 try:
                     self.page.wait_for_timeout(1000)
                 except Exception:
                     pass
 
-        raise Exception("set_provisioning failed")
+        return False
+    
+    # ✅
+    def get_provisioning_table(self, port_number, retries: int = 5, timeout: int = 10_000) -> Optional[dict]:
+        """
+        Read the Provisioning tab of a port (Configuration -> Port -> Provisioning).
+
+        The page opens on the provisioned uplink tab and disables the other uplink tab
+        when the port is provisioned, so the open uplink tab is the provisioned uplink.
+
+        Args:
+            port_number:
+                Examples: 1, "1", "Port-1"
+
+        Returns:
+            dict, e.g.:
+                {
+                    "service": "10GbE-LAN",            # from the "For <service> service, ..." guide text
+                    "max_slots": 8,                    # None when provisioning is not needed (auto-provisioned)
+                    "provisioned": True,               # this port has slots provisioned
+                    "uplink": 1,                       # provisioned uplink (1/2), None if not provisioned
+                    "selected_uplink_tab": 1,          # uplink tab currently open on the page
+                    "protection": "Facility",          # "Facility" / "Equipment" / None
+                    "facility_protection_active": True,  # "Facility Protection - ACTIVE" shown
+                    "provisioned_slots": [1, 2, ..., 8],
+                    "slots": [                         # slots of the open uplink tab
+                        {"slot": 1, "checked": True, "enabled": False, "state": "this_port"},
+                        {"slot": 9, "checked": False, "enabled": False, "state": "free"},
+                        ...
+                    ],
+                }
+
+            slot "state" is one of (matches the page Legend):
+                "this_port"    - Occupied by this port            (class 'prov')
+                "another_port" - Occupied by another port         (class 'local')
+                "pass_through" - Occupied by Pass-through service (class 'passthru')
+                "free"         - Free
+
+            None if failed.
+        """
+
+        def main_fl():
+            return self.main_page_frame()
+
+        def port_cfg_fl():
+            return main_fl().frame_locator("iframe[name='config_port'], iframe#config_port")
+
+        class_to_state = {
+            "prov": "this_port",
+            "local": "another_port",
+            "passthru": "pass_through",
+        }
+
+        def read_selected_uplink_tab(cfg) -> Optional[int]:
+            tabs = cfg.locator("#tabs_uplinks button.tab[id^='tabUplink']")
+            count = tabs.count()
+            for i in range(count):
+                tab = tabs.nth(i)
+                if "tabactive" in (tab.get_attribute("class") or "").split():
+                    m = re.search(r"tabUplink(\d+)$", tab.get_attribute("id") or "")
+                    if m:
+                        return int(m.group(1))
+            # Single-uplink products have no uplink tabs
+            return 1 if count == 0 else None
+
+        def read_slots(cfg, uplink: int):
+            # Slot checkboxes: id='up<U>_slot<TS>' (TS 0-based) -> UI label TS+1
+            rows = cfg.locator(f"#divSlot{uplink} input[type='checkbox'][id^='up{uplink}_slot']").evaluate_all("""
+                els => els.map(el => ({
+                    ts: el.getAttribute('data-ts'),
+                    checked: el.checked,
+                    disabled: el.disabled,
+                    cls: el.className || ''
+                }))
+            """)
+
+            result = []
+            for r in rows:
+                try:
+                    ts = int(r["ts"])
+                except (TypeError, ValueError):
+                    continue
+
+                state = "free"
+                for cls in r["cls"].split():
+                    if cls in class_to_state:
+                        state = class_to_state[cls]
+                        break
+
+                result.append({
+                    "slot": ts + 1,
+                    "checked": bool(r["checked"]),
+                    "enabled": not r["disabled"],
+                    "state": state,
+                })
+
+            result.sort(key=lambda x: x["slot"])
+            return result
+
+        def read_protection(cfg) -> Tuple[Optional[str], bool]:
+            # e.g. "Facility Protection - ACTIVE" / "Facility Protection" / "Equipment Protection" / ""
+            prot = cfg.locator("#protection_text").first
+            txt = (prot.inner_text() or "").strip() if prot.count() else ""
+
+            m = re.search(r"(Facility|Equipment)\s+Protection", txt, re.IGNORECASE)
+            if not m:
+                return None, False
+
+            mode = m.group(1).capitalize()
+            active = mode == "Facility" and re.search(r"\bACTIVE\b", txt) is not None
+            return mode, active
+
+        for attempt in range(retries):
+            try:
+                if not self.click_provisioning_tab(port_number, timeout=timeout):
+                    raise AssertionError(f"click_provisioning_tab failed for {port_number}")
+
+                cfg = port_cfg_fl()
+                expect(cfg.locator("#divSlots").first).to_be_visible(timeout=timeout)
+
+                guide_txt = (cfg.locator("span.value_text").first.inner_text() or "").strip()
+
+                service = None
+                max_slots = None
+                m = re.search(r"For\s+(.+?)\s+service,\s*select\s+(?:up\s+to\s+)?(\d+)\s+slots?", guide_txt, re.IGNORECASE)
+                if m:
+                    service = m.group(1).strip()
+                    max_slots = int(m.group(2))
+                else:
+                    # Auto-provisioned services: "For <service> service provisioning is not needed"
+                    m = re.search(r"For\s+(.+?)\s+service\s+provisioning\s+is\s+not\s+needed", guide_txt, re.IGNORECASE)
+                    if m:
+                        service = m.group(1).strip()
+
+                selected_uplink = read_selected_uplink_tab(cfg)
+                if selected_uplink is None:
+                    raise Exception("Could not determine the selected uplink tab")
+
+                slots = read_slots(cfg, selected_uplink)
+                if not slots:
+                    raise Exception(f"No provisioning slot checkboxes were found for Uplink {selected_uplink}")
+
+                provisioned_slots = [s["slot"] for s in slots if s["state"] == "this_port"]
+                provisioned = bool(provisioned_slots)
+
+                protection, facility_protection_active = read_protection(cfg)
+
+                return {
+                    "service": service,
+                    "max_slots": max_slots,
+                    "provisioned": provisioned,
+                    "uplink": selected_uplink if provisioned else None,
+                    "selected_uplink_tab": selected_uplink,
+                    "protection": protection,
+                    "facility_protection_active": facility_protection_active,
+                    "provisioned_slots": provisioned_slots,
+                    "slots": slots,
+                }
+
+            except Exception as e:
+                print(f"get_provisioning_table failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return None
+
+
+    def get_provisioning_all_uplinks(self, port_number, retries: int = 5, timeout: int = 10_000) -> Optional[dict]:
+        """
+        Read the slot map of EVERY uplink from the Provisioning tab of 'port_number'.
+
+        Workaround for a device limitation: on a port with Facility Protection (APS), the Provisioning
+        tab opens on the APS active Rx uplink (g_slOptoApsActiveLineRx) and disables both uplink tabs.
+        On top of that, its rendering (displayProv) MERGES both uplinks for an APS port - a slot is drawn
+        as occupied if the port holds it on Uplink 1 OR Uplink 2 - so the drawn slot boxes cannot tell
+        the uplinks apart.
+
+        The page (Config_Port_Pro_*.asp) carries the raw per-uplink data as globals, the same data the
+        slot boxes are drawn from:
+            provArray[uplink][port] -> 10 bytes, bit (byte*8 + bit) = slot index (slot = index + 1)
+            msi[uplink - 1][index]  -> non-zero (and not 0xFF) = slot in use on the uplink (pass-through
+                                       when no local port holds it)
+        so every uplink is decoded from that, without the APS merge and without clicking the tabs.
+        Falls back to the drawn slot boxes (hidden uplinks included) when the globals are missing.
+
+        Args:
+            port_number:
+                Examples: 3, "3", "Port-3"
+
+        Returns:
+            dict, e.g.:
+                {
+                    "port": "3",
+                    "selected_uplink_tab": 2,
+                    "protection": "Facility",           # "Facility" / "Equipment" / None
+                    "facility_protection_active": True,
+                    "uplinks": {
+                        1: [{"slot": 9,  "state": "this_port", "owner": None}, ...],
+                        2: [{"slot": 17, "state": "this_port", "owner": None},
+                            {"slot": 9,  "state": "another_port", "owner": 2}, ...],
+                    },
+                }
+            slot "state" as in get_provisioning_table(). "owner" is the owning port number of an
+            'another_port' slot (the page's data-port attribute), else None.
+            None if failed.
+        """
+
+        def main_fl():
+            return self.main_page_frame()
+
+        def port_cfg_fl():
+            return main_fl().frame_locator("iframe[name='config_port'], iframe#config_port")
+
+        class_to_state = {
+            "prov": "this_port",
+            "local": "another_port",
+            "passthru": "pass_through",
+        }
+
+        m_port = re.search(r"\d+", str(port_number))
+        if not m_port:
+            print(f"get_provisioning_all_uplinks: invalid port '{port_number}'")
+            return None
+        this_port = int(m_port.group(0))
+
+        def read_raw(cfg, uplink_ids):
+            # Page globals: provArray / msi (see docstring). evaluate() runs in the config_port frame.
+            raw = cfg.locator("body").first.evaluate("""
+                (_body, uplinkIds) => {
+                    if (typeof provArray === 'undefined' || typeof msi === 'undefined') return null;
+                    const out = {};
+                    for (const u of uplinkIds) {
+                        if (!provArray[u]) return null;
+                        const nSlots = document.querySelectorAll(
+                            `#divSlot${u} input[type='checkbox'][id^='up${u}_slot']`).length;
+                        const ports = {};
+                        for (let p = 1; p < provArray[u].length; p++) {
+                            ports[p] = Array.from(provArray[u][p] || [], v => Number.isFinite(v) ? v : 0);
+                        }
+                        out[u] = {nSlots: nSlots, ports: ports, msi: Array.from(msi[u - 1] || [], v => Number(v) || 0)};
+                    }
+                    return out;
+                }
+            """, uplink_ids)
+            if not raw:
+                return None
+
+            uplinks = {}
+            for uplink in uplink_ids:
+                data = raw.get(str(uplink)) or raw.get(uplink)
+                if not data or not data["nSlots"]:
+                    return None
+                slots = []
+                for index in range(data["nSlots"]):
+                    byte, bit = divmod(index, 8)
+                    owners = [int(p) for p, bytes_ in data["ports"].items()
+                              if byte < len(bytes_) and (bytes_[byte] or 0) & (1 << bit)]
+                    msi_val = data["msi"][index] if index < len(data["msi"]) else 0
+                    if this_port in owners:
+                        state, owner = "this_port", None
+                    elif owners:
+                        state, owner = "another_port", owners[0]
+                    elif msi_val not in (0, 0xFF):
+                        state, owner = "pass_through", None
+                    else:
+                        state, owner = "free", None
+                    slots.append({"slot": index + 1, "state": state, "owner": owner})
+                uplinks[uplink] = slots
+            return uplinks
+
+        def read_drawn_slots(cfg, uplink: int):
+            # Fallback: the drawn slot boxes (hidden uplinks too - evaluate_all does not need visibility).
+            # NOTE: merged across uplinks on an APS port (see docstring).
+            rows = cfg.locator(f"#divSlot{uplink} input[type='checkbox'][id^='up{uplink}_slot']").evaluate_all("""
+                els => els.map(el => ({
+                    ts: el.getAttribute('data-ts'),
+                    cls: el.className || '',
+                    owner: el.getAttribute('data-port'),
+                }))
+            """)
+
+            result = []
+            for r in rows:
+                try:
+                    ts = int(r["ts"])
+                except (TypeError, ValueError):
+                    continue
+
+                classes = r["cls"].split()
+                state = next((class_to_state[c] for c in ("prov", "local", "passthru") if c in classes), "free")
+
+                owner = None
+                if state == "another_port" and r.get("owner") is not None:
+                    try:
+                        owner = int(r["owner"])
+                    except (TypeError, ValueError):
+                        owner = None
+
+                result.append({"slot": ts + 1, "state": state, "owner": owner})
+
+            result.sort(key=lambda x: x["slot"])
+            return result
+
+        for attempt in range(retries):
+            try:
+                if not self.click_provisioning_tab(port_number, timeout=timeout):
+                    raise AssertionError(f"click_provisioning_tab failed for {port_number}")
+
+                cfg = port_cfg_fl()
+                expect(cfg.locator("#divSlots").first).to_be_visible(timeout=timeout)
+
+                # Every rendered uplink container: <div id="divSlot<u>" class="uplink-container">
+                div_ids = cfg.locator("#divSlots div[id^='divSlot']").evaluate_all("els => els.map(el => el.id)")
+                uplink_ids = sorted({int(m.group(1)) for d in div_ids if (m := re.fullmatch(r"divSlot(\d+)", d or ""))})
+                if not uplink_ids:
+                    raise Exception("No uplink slot containers (#divSlot<N>) were found")
+
+                uplinks = read_raw(cfg, uplink_ids)
+                source = "raw"
+                if uplinks is None:
+                    source = "drawn"
+                    uplinks = {}
+                    for uplink in uplink_ids:
+                        slots = read_drawn_slots(cfg, uplink)
+                        if not slots:
+                            raise Exception(f"No provisioning slot checkboxes were found for Uplink {uplink}")
+                        uplinks[uplink] = slots
+
+                # Uplink tab the page opened on (the active/provisioned one)
+                selected_uplink = None
+                for uplink in uplink_ids:
+                    tab = cfg.locator(f"#tabUplink{uplink}").first
+                    if tab.count() and "tabactive" in (tab.get_attribute("class") or "").split():
+                        selected_uplink = uplink
+                        break
+                if selected_uplink is None and len(uplink_ids) == 1:
+                    selected_uplink = uplink_ids[0]
+
+                # e.g. "Facility Protection - ACTIVE" / "Equipment Protection" / ""
+                prot = cfg.locator("#protection_text").first
+                prot_txt = (prot.inner_text() or "").strip() if prot.count() else ""
+                m = re.search(r"(Facility|Equipment)\s+Protection", prot_txt, re.IGNORECASE)
+                protection = m.group(1).capitalize() if m else None
+                facility_protection_active = protection == "Facility" and re.search(r"\bACTIVE\b", prot_txt) is not None
+
+                return {
+                    "port": str(port_number),
+                    "selected_uplink_tab": selected_uplink,
+                    "protection": protection,
+                    "facility_protection_active": facility_protection_active,
+                    "source": source,                   # "raw" (page data) / "drawn" (slot boxes fallback)
+                    "uplinks": uplinks,
+                }
+
+            except Exception as e:
+                print(f"get_provisioning_all_uplinks failed (attempt {attempt + 1}): {e}")
+                try:
+                    self.page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+        return None
 
     # ✅
     def set_provisioning(self, port_number, uplink_number: Optional[int] = None, slots_number: Optional[int] = None,
@@ -2905,11 +3148,15 @@ class PL_Main_Screen_POM:
             return False, ""
 
         def main_page_fl():
-            return self.page.frame_locator("iframe[name='main_page'], iframe#main_body")
+            main_page_fl = self.page.frame_locator("iframe[name='main_page'], iframe#main_body")
+            sleep(0.5)
+            return main_page_fl
 
         def maint_sys_fl():
             # Selenium: frame name='maint_sys'
-            return main_page_fl().frame_locator("iframe[name='maint_sys'], iframe#maint_sys")
+            maint_sys_fl = main_page_fl().frame_locator("iframe[name='maint_sys'], iframe#maint_sys")
+            sleep(0.5)
+            return maint_sys_fl
 
         def arm_dialog_capture_once() -> dict:
             """
@@ -2967,8 +3214,10 @@ class PL_Main_Screen_POM:
             """
             try:
                 modal = self.page.locator("#statusModal").first
+                sleep(0.5)
                 modal.wait_for(state="visible", timeout=ms)
                 msg = self.page.locator("#statusModalMessage").first
+                sleep(0.5)
                 return (msg.inner_text() or "").strip()
             except Exception:
                 return None
@@ -2984,12 +3233,14 @@ class PL_Main_Screen_POM:
 
                 # Click Restart tab (main_page frame)
                 restart_tab = main_page_fl().locator("#tab_restart").first
+                sleep(1)
                 expect(restart_tab).to_be_visible(timeout=timeout)
                 restart_tab.click()
                 expect(restart_tab).to_have_attribute("class", "tab tabactive", timeout=timeout)
 
                 # Restart button is input type=image by ID (unchanged in new GUI)
                 reset_btn = maint_sys_fl().locator(f"input#{reset_id}").first
+                sleep(1)
                 expect(reset_btn).to_be_visible(timeout=timeout)
                 reset_btn.scroll_into_view_if_needed()
 
@@ -2997,6 +3248,7 @@ class PL_Main_Screen_POM:
                 dlg_holder = arm_dialog_capture_once()
 
                 # Click
+                sleep(1)
                 reset_btn.click(force=True)
 
                 # Try to capture dialog message (may be stolen by another handler)
@@ -3005,6 +3257,7 @@ class PL_Main_Screen_POM:
                 # Service lock text may be in the page body
                 try:
                     body = maint_sys_fl().locator("body").first
+                    sleep(1)
                     if body.is_visible(timeout=1000):
                         body_text = body.inner_text() or ""
                         if SERVICE_LOCK_DETECTED in body_text:

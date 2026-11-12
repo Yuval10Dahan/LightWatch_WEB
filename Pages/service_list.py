@@ -57,6 +57,36 @@ class ServiceList:
             raise AssertionError(f"Condition not met within {timeout_ms}ms. Last error: {last_exc}")
         raise AssertionError(f"Condition not met within {timeout_ms}ms.")
 
+    def _wait_for_page_rows(self, rows_text: Callable[[], str], active_page: Callable[[], object],
+                            before_rows: str, before_page, timeout: int = 8000):
+        """
+        After clicking a pager link (Next / Previous / a page number): wait until the table shows the
+        new page's rows. LW tables highlight the new page number at once (~10 ms) but the rows of that
+        page arrive from the server only later (~300 ms), so waiting for the page number reads the
+        previous page's rows again and loses the new page. Waits for the ROWS to change, then for them
+        to stop changing for 0.3 s. If two pages have the very same rows text, a moved page number is
+        accepted instead.
+
+        rows_text   - returns the table body text now
+        active_page - returns the active page number/text now
+        """
+        try:
+            self.wait_until(lambda: rows_text() not in ("", before_rows), timeout_ms=max(timeout, 10000), interval_ms=100)
+        except AssertionError:
+            if active_page() == before_page:
+                raise
+
+        last = [rows_text(), time.time()]
+
+        def settled() -> bool:
+            now_text = rows_text()
+            if now_text != last[0]:
+                last[0], last[1] = now_text, time.time()
+                return False
+            return time.time() - last[1] >= 0.3
+
+        self.wait_until(settled, timeout_ms=min(max(timeout, 3000), 5000), interval_ms=100)
+
     # ✅
     @staticmethod
     def _clean(s: str) -> str:
@@ -1752,6 +1782,8 @@ class ServiceList:
             except Exception:
                 pass
 
+            sleep(1)
+
             return True
 
         except Exception as e:
@@ -1868,11 +1900,15 @@ class ServiceList:
                 if row_index is not None and selected_index == str(row_index):
                     return True
 
-            pagination = self.page.locator(
-                "div.simple-table-footer ul.pagination, "
-                "ngb-pagination ul.pagination, "
-                "ul.pagination"
-            ).first
+            # The Service List table's own pager (same one click_next / click_previous use);
+            # the generic selectors are only a fallback for older layouts.
+            pagination = self.page.locator("div.pagination ngb-pagination ul.pagination").first
+            if pagination.count() == 0:
+                pagination = self.page.locator(
+                    "div.simple-table-footer ul.pagination, "
+                    "ngb-pagination ul.pagination, "
+                    "ul.pagination"
+                ).first
 
             def get_rows():
                 expect(table).to_be_visible(timeout=timeout)
@@ -1880,7 +1916,7 @@ class ServiceList:
 
             def current_page_number() -> int | None:
                 try:
-                    active = self.page.locator("ul.pagination li.page-item.active a.page-link").first
+                    active = pagination.locator("li.page-item.active a.page-link").first
                     if active.count() == 0:
                         return None
 
@@ -1933,27 +1969,15 @@ class ServiceList:
                         return False
 
             def first_row_fingerprint() -> str:
+                """The whole table body text (all rows of the page shown)."""
                 try:
-                    rows = get_rows()
-                    if rows.count() == 0:
-                        return ""
-                    return self._clean(rows.first.inner_text())
+                    return self._clean(table.locator("tbody").first.inner_text())
                 except Exception:
                     return ""
 
             def wait_for_page_change(before_page: int | None, before_fp: str):
-                self.wait_until(
-                    lambda: (
-                        (
-                            before_page is not None
-                            and current_page_number() is not None
-                            and current_page_number() != before_page
-                        )
-                        or first_row_fingerprint() != before_fp
-                    ),
-                    timeout_ms=timeout,
-                    interval_ms=150
-                )
+                # Wait for the new page's ROWS - the page number changes before they arrive
+                self._wait_for_page_rows(first_row_fingerprint, current_page_number, before_fp, before_page, timeout)
 
             def goto_first_page():
                 if pagination.count() == 0:
@@ -1969,71 +1993,115 @@ class ServiceList:
                     before_fp = first_row_fingerprint()
 
                     p.click(force=True)
+                    wait_for_page_change(before_page, before_fp)
 
-                    self.wait_until(
-                        lambda: (
-                            is_disabled(prev_btn())
-                            or (
-                                before_page is not None
-                                and current_page_number() is not None
-                                and current_page_number() != before_page
-                            )
-                            or first_row_fingerprint() != before_fp
-                        ),
-                        timeout_ms=min(timeout, 4000),
-                        interval_ms=150
-                    )
+            def goto_page_one():
+                """Jump straight to page 1 via its page link; fall back to clicking Previous."""
+                if pagination.count() == 0 or current_page_number() == 1:
+                    return
 
-            def row_service_name(row) -> str:
+                first_link = pagination.locator(
+                    "li.page-item a.page-link",
+                    has_text=re.compile(r"^\s*1\s*$")
+                ).first
+
+                if first_link.count() > 0:
+                    before_page = current_page_number()
+                    before_fp = first_row_fingerprint()
+                    first_link.click(force=True)
+                    wait_for_page_change(before_page, before_fp)
+                    return
+
+                goto_first_page()
+
+            def goto_next_page() -> bool:
+                """Click Next and wait for the new page. False when already on the last page."""
+                n = next_btn()
+                if n is None or n.count() == 0 or is_disabled(n):
+                    return False
+
+                before_page = current_page_number()
+                before_fp = first_row_fingerprint()
+
+                n.click(force=True)
+                wait_for_page_change(before_page, before_fp)
+                return True
+
+            def row_service_names(row) -> list[str]:
+                """The Name cell's text, plus its title attribute(s) in case the shown text is cut."""
                 cells = row.locator("td")
-                if cells.count() > 1:
-                    return self._clean(cells.nth(1).inner_text())
-                return self._clean(row.inner_text())
+                if cells.count() <= 1:
+                    return [self._clean(row.inner_text())]
 
-            def find_service_on_current_page():
+                cell = cells.nth(1)
+                names = [self._clean(cell.inner_text())]
+
+                for el in [cell] + [cell.locator("[title]").nth(i) for i in range(cell.locator("[title]").count())]:
+                    title = self._clean(el.get_attribute("title") or "")
+                    if title:
+                        names.append(title)
+
+                return names
+
+            def find_exact_on_current_page(name: str):
                 rows = get_rows()
-
                 for i in range(rows.count()):
                     row = rows.nth(i)
-                    name = row_service_name(row)
-
-                    if name.lower() == service_name.lower():
+                    if any(n.lower() == name.lower() for n in row_service_names(row)):
                         return row
-
-                for i in range(rows.count()):
-                    row = rows.nth(i)
-                    row_text = self._clean(row.inner_text())
-
-                    if service_name.lower() in row_text.lower():
-                        return row
-
                 return None
 
-            goto_first_page()
+            def find_exact_across_pages(name: str):
+                """Walk every page from page 1 and return the row whose Name is exactly 'name'."""
+                goto_page_one()
+                for _ in range(MAX_SCROLL_PAGES):
+                    row = find_exact_on_current_page(name)
+                    if row is not None:
+                        return row
+                    if not goto_next_page():
+                        return None
+                return None
+
+            def names_containing_across_pages(part: str) -> list[str]:
+                """Full names (Name column only) on every page that contain 'part'."""
+                found = []
+                goto_page_one()
+                for _ in range(MAX_SCROLL_PAGES):
+                    rows = get_rows()
+                    for i in range(rows.count()):
+                        shown = row_service_names(rows.nth(i))
+                        if any(part.lower() in n.lower() for n in shown):
+                            full = max(shown, key=len)
+                            if full not in found:
+                                found.append(full)
+                    if not goto_next_page():
+                        break
+                return found
 
             target_row = None
 
             if service_name:
-                for _ in range(MAX_SCROLL_PAGES):
-                    target_row = find_service_on_current_page()
+                # 1) exact Name match on ANY page wins - never settle for a partial match on an
+                #    earlier page while the exact service sits on a later one.
+                target_row = find_exact_across_pages(service_name)
 
-                    if target_row is not None:
-                        break
+                # 2) no exact match: accept a partial Name match only if exactly one service has it
+                if target_row is None:
+                    candidates = names_containing_across_pages(service_name)
 
-                    n = next_btn()
-                    if n is None or n.count() == 0 or is_disabled(n):
-                        break
-
-                    before_page = current_page_number()
-                    before_fp = first_row_fingerprint()
-
-                    n.click(force=True)
-                    wait_for_page_change(before_page, before_fp)
+                    if len(candidates) == 1:
+                        target_row = find_exact_across_pages(candidates[0])
+                    elif len(candidates) > 1:
+                        raise AssertionError(
+                            f"Service '{service_name}' was not found by exact name, and {len(candidates)} "
+                            f"services contain it: {candidates}"
+                        )
 
                 if target_row is None:
                     raise AssertionError(f"Service '{service_name}' was not found across all pages.")
 
             else:
+                goto_page_one()
                 idx = row_index - 1
 
                 for _ in range(MAX_SCROLL_PAGES):
@@ -2074,6 +2142,8 @@ class ServiceList:
                 interval_ms=150
             )
 
+            sleep(SLEEP * 5)
+
             return True
 
         except Exception as e:
@@ -2093,13 +2163,20 @@ class ServiceList:
                 "table"
             ).first
 
-            expect(table).to_be_visible(timeout=timeout)
+            # A filter with no match shows "No services found" instead of a table -> no rows
+            no_services = self.page.get_by_text("No services found", exact=True).first
+            expect(table.or_(no_services)).to_be_visible(timeout=timeout)
+            if not table.is_visible() and no_services.is_visible():
+                return []
 
-            pagination = self.page.locator(
-                "div.simple-table-footer ul.pagination, "
-                "ngb-pagination ul.pagination, "
-                "ul.pagination"
-            ).first
+            # The Service List table's own pager; the generic selectors are only a fallback
+            pagination = self.page.locator("div.pagination ngb-pagination ul.pagination").first
+            if pagination.count() == 0:
+                pagination = self.page.locator(
+                    "div.simple-table-footer ul.pagination, "
+                    "ngb-pagination ul.pagination, "
+                    "ul.pagination"
+                ).first
 
             def get_rows():
                 expect(table).to_be_visible(timeout=timeout)
@@ -2135,17 +2212,19 @@ class ServiceList:
                 return data
 
             def first_row_fingerprint() -> str:
+                """The whole table body text (all rows of the page shown)."""
                 try:
-                    rows = get_rows()
-                    if rows.count() == 0:
-                        return ""
-                    return self._clean(rows.first.inner_text())
+                    return self._clean(table.locator("tbody").first.inner_text())
                 except Exception:
                     return ""
 
+            def wait_for_page_change(before_page: int | None, before_fp: str):
+                # Wait for the new page's ROWS - the page number changes before they arrive
+                self._wait_for_page_rows(first_row_fingerprint, current_page_number, before_fp, before_page, timeout)
+
             def current_page_number() -> int | None:
                 try:
-                    active = self.page.locator("ul.pagination li.page-item.active a.page-link").first
+                    active = pagination.locator("li.page-item.active a.page-link").first
 
                     if active.count() == 0:
                         return None
@@ -2209,20 +2288,7 @@ class ServiceList:
                     before_fp = first_row_fingerprint()
 
                     p.click(force=True)
-
-                    self.wait_until(
-                        lambda: (
-                            is_disabled(prev_btn())
-                            or (
-                                before_page is not None
-                                and current_page_number() is not None
-                                and current_page_number() != before_page
-                            )
-                            or first_row_fingerprint() != before_fp
-                        ),
-                        timeout_ms=min(timeout, 4000),
-                        interval_ms=150
-                    )
+                    wait_for_page_change(before_page, before_fp)
 
             goto_first_page()
 
@@ -2257,19 +2323,7 @@ class ServiceList:
                 before_fp = first_row_fingerprint()
 
                 n.click(force=True)
-
-                self.wait_until(
-                    lambda: (
-                        (
-                            before_page is not None
-                            and current_page_number() is not None
-                            and current_page_number() != before_page
-                        )
-                        or first_row_fingerprint() != before_fp
-                    ),
-                    timeout_ms=timeout,
-                    interval_ms=150
-                )
+                wait_for_page_change(before_page, before_fp)
 
             return services
 
@@ -2795,6 +2849,199 @@ class ServiceList:
         except Exception as e:
             raise AssertionError(f"acknowledge_alarm failed. Problem: {e}")
 
+    def get_events_list(self, max_pages: int | None = None, timeout: int = 15000) -> list[dict]:
+        """
+        Read the Events table of the Service List Events / Alarms panel.
+
+        Only reads: the service must already be selected, the panel open and
+        Faults type set to 'Events'.
+        max_pages -> read at most this many pages (None = all pages). The panel lists the
+                     newest events first, so max_pages=1 gives the most recent ones.
+
+        Returns:
+            list[dict] - one dict per event row, in table order (newest first), across the pages read.
+            [] when the table has no events.
+            Each dict (keys are the column headers; all values are str except 'Service affecting'):
+            {
+                "Message":             str,   # e.g. "Service status changed"
+                "Severity":            str,   # e.g. "Info", "Clear", "Major"
+                "Managed device":      str,   # e.g. "PL-2000ADS (172.16.40.15)/PL-2000ADS (172.16.40.19)"
+                "Domain":              str,   # e.g. "OTN_Domain"
+                "Category":            str,   # e.g. "OTN Service", "Device"
+                "Source":              str,   # e.g. "Service: A-TO-B-PORT1-10G", "172.16.40.15 Port 1"
+                "Detection Timestamp": str,   # "dd.mm.yyyy, HH:MM:SS", e.g. "10.11.2026, 17:45:54"
+                "Creation Timestamp":  str,   # "dd.mm.yyyy, HH:MM:SS"
+                "Service affecting":   bool,  # True = checkbox checked
+                "Device type":         str,   # e.g. "PL-2000ADS"
+            }
+        """
+        return self._read_faults_panel("Events", max_pages, timeout)
+
+    def get_alarms_list(self, max_pages: int | None = None, timeout: int = 15000) -> list[dict]:
+        """
+        Read the Alarms table of the Service List Events / Alarms panel.
+
+        Only reads: the service must already be selected, the panel open and
+        Faults type set to 'Alarms'.
+        max_pages -> read at most this many pages (None = all pages).
+
+        Returns:
+            list[dict] - one dict per alarm row, in table order, across the pages read.
+            [] when the service has no alarms.
+            Each dict (keys are the column headers; all values are str except 'Ack' and 'Service affecting'):
+            {
+                "Ack":                 bool,  # True = alarm acknowledged (checkbox checked)
+                "Message":             str,   # e.g. "Power Supply Failure"
+                "Severity":            str,   # e.g. "Major", "Minor", "Critical", "Clear"
+                "Managed device":      str,   # e.g. "172.16.40.20"
+                "Domain":              str,   # e.g. "OTN_Domain"
+                "Category":            str,   # e.g. "Device"
+                "Source":              str,   # e.g. "172.16.40.20 PSU 2"
+                "Detection Timestamp": str,   # "dd.mm.yyyy, HH:MM:SS", e.g. "09.11.2026, 16:54:24"
+                "Creation Timestamp":  str,   # "dd.mm.yyyy, HH:MM:SS"
+                "Service affecting":   bool,  # True = checkbox checked
+                "Device type":         str,   # e.g. "PL-2000ADS"
+            }
+        """
+        return self._read_faults_panel("Alarms", max_pages, timeout)
+
+    def _read_faults_panel(self, faults_type: str, max_pages: int | None, timeout: int) -> list[dict]:
+        """
+        Shared reader of the Service List Events / Alarms table for get_events_list / get_alarms_list.
+        Does not select a service or change Faults type - it reads every page (or max_pages)
+        of the table that is shown and returns one dict per row.
+        Checkbox columns (Ack, Service affecting) are returned as bool.
+        """
+
+        try:
+            faults = self.page.locator("app-faults-table").first
+            expect(faults).to_be_visible(timeout=timeout)
+
+            table = faults.locator("app-simple-table table").first
+            tbody = table.locator("tbody").first
+            expect(table.locator("thead").first).to_be_visible(timeout=timeout)
+
+            # Make sure the table shown is the wanted one (it may still be re-rendering after a
+            # Faults type change): Alarms start with an 'Ack' column, Events do not
+            first_header = table.locator("thead th").first.locator("span.name").first
+            want_ack = faults_type.lower() == "alarms"
+            try:
+                self.wait_until(lambda: (self._clean(first_header.inner_text()).lower() == "ack") == want_ack, timeout_ms=timeout, interval_ms=150)
+            except AssertionError:
+                raise AssertionError(f"the panel does not show the {faults_type} table - set Faults type to '{faults_type}' first.")
+
+            # Scoped to the Events / Alarms table (the Service List table has its own pager)
+            pagination = faults.locator("ul.pagination").first
+
+            # Column headers: text columns, the 'Ack' / 'Service affecting' checkboxes, and the expand/edit icons (ignored)
+            headers, kinds = [], []
+            ths = table.locator("thead th")
+            for i in range(ths.count()):
+                th = ths.nth(i)
+                cls = (th.get_attribute("class") or "").lower()
+                name = th.locator("span.name").first
+                header = self._clean(name.inner_text()) if name.count() else ""
+                if not header or "expand" in cls or "edit" in cls:
+                    headers.append("")
+                    kinds.append("ignore")
+                elif header.lower() in ("ack", "service affecting"):
+                    headers.append(header)
+                    kinds.append("checkbox")
+                else:
+                    headers.append(header)
+                    kinds.append("text")
+
+            # Whole page in one browser call: bool for the checkbox column, text otherwise
+            read_page_js = """
+                (tb, kinds) => Array.from(tb.querySelectorAll('tr')).map(tr =>
+                    Array.from(tr.querySelectorAll('td')).slice(0, kinds.length).map((td, i) => {
+                        if (kinds[i] === 'ignore') return null;
+                        if (kinds[i] === 'checkbox') return td.querySelector('svg.checked') !== null;
+                        const span = td.querySelector('span.name');
+                        return (span || td).innerText;
+                    }))
+            """
+
+            def read_page() -> list[dict]:
+                rows = []
+                for cells in tbody.evaluate(read_page_js, kinds):
+                    row = {}
+                    for i, value in enumerate(cells):
+                        if kinds[i] == "ignore" or not headers[i]:
+                            continue
+                        row[headers[i]] = value if kinds[i] == "checkbox" else self._clean(value)
+                    if any(v not in ("", False) for v in row.values()):
+                        rows.append(row)
+                return rows
+
+            def pager_button(label: str):
+                if pagination.count() == 0:
+                    return None
+                btn = pagination.locator(f"a.page-link[aria-label='{label}']").first
+                return btn if btn.count() else None
+
+            def is_disabled(btn) -> bool:
+                if btn is None:
+                    return True
+                li = btn.locator("xpath=ancestor::li[1]").first
+                return "disabled" in (li.get_attribute("class") or "").lower() or (btn.get_attribute("aria-disabled") or "").lower() == "true"
+
+            def rows_text() -> str:
+                try:
+                    return self._clean(tbody.inner_text())
+                except Exception:
+                    return ""
+
+            def click_and_wait(btn):
+                # The pager highlights the new page number at once (~10 ms) but the rows of that page
+                # arrive from the server only later (~300 ms). Wait for the ROWS to change - waiting for
+                # the page number alone reads the previous page's rows again and loses the new page.
+                def active_page() -> str:
+                    active = pagination.locator("li.page-item.active").first
+                    return self._clean(active.inner_text()) if active.count() else ""
+
+                before, before_page = rows_text(), active_page()
+                btn.click(force=True)
+                try:
+                    self.wait_until(lambda: rows_text() not in ("", before), timeout_ms=min(timeout, 10000), interval_ms=100)
+                except AssertionError:
+                    # Two pages with the very same rows text: accept it only if the page did move
+                    if active_page() == before_page:
+                        raise
+
+                # ...and for the rows to stop changing (the table may render in more than one pass)
+                last = [rows_text(), time.time()]
+
+                def settled() -> bool:
+                    now_text = rows_text()
+                    if now_text != last[0]:
+                        last[0], last[1] = now_text, time.time()
+                        return False
+                    return time.time() - last[1] >= 0.3
+
+                self.wait_until(settled, timeout_ms=min(timeout, 5000), interval_ms=100)
+
+            # Start from page 1 (the pager always shows a '1' link)
+            if not is_disabled(pager_button("Previous")):
+                first = pagination.locator("li.page-item a.page-link", has_text=re.compile(r"^\s*1\s*$")).first
+                click_and_wait(first)
+
+            events = read_page()
+            pages_read = 1
+
+            while max_pages is None or pages_read < max_pages:
+                nxt = pager_button("Next")
+                if is_disabled(nxt):
+                    break
+                click_and_wait(nxt)
+                events += read_page()
+                pages_read += 1
+
+            return events
+
+        except Exception as e:
+            raise AssertionError(f"get_{faults_type.lower()}_list failed. Problem: {e}")
+
     # =========================
     # Performance
     # ========================= 
@@ -3198,7 +3445,13 @@ class ServiceList:
 
     # ✅
     def performance_set_pm_period_type(self, pm_period_type: str) -> bool:
+        """Select the PM period type and wait until LW shows the table of the new period type."""
+        changed = self._clean(self.performance.get_pm_period_type()).lower() != self._clean(pm_period_type).lower()
+        mark = self._performance_mark_table() if changed else ""
         self.performance.set_pm_period_type(pm_period_type)
+        if changed:
+            self._performance_wait_for_reload(mark)
+        return True
 
     # ✅
     def performance_get_pm_period_type(self) -> str:
@@ -3206,11 +3459,86 @@ class ServiceList:
 
     # ✅
     def performance_set_pm_type(self, pm_type: str) -> bool:
+        """Select the PM type and wait until LW shows the table of the new PM type."""
+        changed = self._clean(self.performance.get_pm_type()).lower() != self._clean(pm_type).lower()
+        mark = self._performance_mark_table() if changed else ""
         self.performance.set_pm_type(pm_type)
+        if changed:
+            self._performance_wait_for_reload(mark)
+        return True
 
     # ✅
     def performance_get_pm_type(self) -> str:
         return self.performance.get_pm_type()
+
+    # Embedded Performance panel: how LW reloads the PM table
+    # - Every filter change (PM type, PM period type, ports, dates...) makes LW remove the table, show
+    #   'Loading data...' and build a new table ~2-3 s later; the rows then re-render once more ~1 s later.
+    #   Reading before that returns the PREVIOUS filter's table - e.g. Native Signal rows while Egress PM
+    #   is selected (same columns, so nothing looks wrong).
+    # - The footer 'Refresh' button RESETS the PM type to 'Native Signal' (dates, devices, ports and
+    #   PM period type are kept), so it must not be clicked before reading another PM type.
+
+    def _performance_panel(self):
+        return self.page.locator(".service-actionWrapper-modePanels app-performance-table").first
+
+    def _performance_mark_table(self) -> str:
+        """Mark the PM table body shown now (to tell later that LW replaced it). Returns the mark, '' if no table."""
+        body = self._performance_panel().locator("table tbody").first
+        if body.count() == 0:
+            return ""
+        mark = f"pm-{time.time_ns()}"
+        try:
+            body.evaluate("(tb, m) => tb.setAttribute('data-pm-read-mark', m)", mark)
+        except Exception:
+            return ""
+        return mark
+
+    def _performance_wait_for_reload(self, mark: str, timeout: int = 30000, start_timeout: int = 5000):
+        """After a filter change: wait until LW removed the marked table (reload started), then for the new one."""
+        if mark:
+            marked = self.page.locator(f"[data-pm-read-mark='{mark}']")
+            try:
+                self.wait_until(lambda: marked.count() == 0, timeout_ms=start_timeout, interval_ms=100)
+            except AssertionError:
+                pass  # no reload (nothing to reload for this change) - the table shown is current
+        self._performance_wait_for_table(timeout=timeout)
+
+    def _performance_wait_for_table(self, timeout: int = 30000, settle_s: float = 1.5):
+        """
+        Wait until the embedded PM table is shown (no 'Loading data...') and its rows stopped changing
+        for 'settle_s' seconds. Does NOT click Refresh (that would reset the PM type to Native Signal).
+        """
+        panel = self._performance_panel()
+        expect(panel).to_be_visible(timeout=timeout)
+
+        def loading() -> bool:
+            return "loading data" in (panel.inner_text() or "").lower()
+
+        def table_shown() -> bool:
+            return not loading() and panel.locator("table tbody").count() > 0
+
+        def body_text() -> str:
+            try:
+                return self._clean(panel.locator("table tbody").first.inner_text())
+            except Exception:
+                return ""
+
+        self.wait_until(table_shown, timeout_ms=timeout, interval_ms=100)
+
+        last = [body_text(), time.time()]
+
+        def settled() -> bool:
+            if not table_shown():
+                last[1] = time.time()
+                return False
+            now_text = body_text()
+            if now_text != last[0]:
+                last[0], last[1] = now_text, time.time()
+                return False
+            return time.time() - last[1] >= settle_s
+
+        self.wait_until(settled, timeout_ms=timeout, interval_ms=100)
 
     # ✅
     def performance_get_pm_table(self, all_pages: bool = False, timeout: int = 8000) -> list[dict]:
@@ -3220,10 +3548,13 @@ class ServiceList:
         Works generically for any number of columns.
 
         If all_pages=True, reads all paginated PM table pages.
+
+        Reads only after any reload in progress ended and the rows stopped changing, so the rows belong
+        to the filters selected now. Refresh is NOT clicked: it resets the PM type to Native Signal.
         """
 
         try:
-            self.performance_refresh_pm_table()
+            self._performance_wait_for_table(timeout=max(timeout, 30000))
 
             table = self.page.locator(
                 ".service-actionWrapper-modePanels app-performance-table "
@@ -3273,11 +3604,36 @@ class ServiceList:
 
                 return data
 
-            def first_row_fingerprint() -> str:
-                first_row = table.locator("tbody tr").first
-                if first_row.count() == 0:
+            def rows_text() -> str:
+                try:
+                    return self._clean(table.locator("tbody").first.inner_text())
+                except Exception:
                     return ""
-                return self._clean(first_row.inner_text())
+
+            def wait_for_next_page_rows(before_rows: str, before_page: str):
+                """
+                The pager highlights the new page number at once (~10 ms) but the rows of that page
+                arrive from the server only later (~300 ms). Wait for the ROWS to change, then for them
+                to stop changing - waiting for the page number alone reads the previous page's rows
+                again and loses the new page.
+                """
+                try:
+                    self.wait_until(lambda: rows_text() not in ("", before_rows), timeout_ms=max(timeout, 10000), interval_ms=100)
+                except AssertionError:
+                    # Two pages with the very same rows text: accept it only if the page did move
+                    if active_page_text() == before_page:
+                        raise
+
+                last = [rows_text(), time.time()]
+
+                def settled() -> bool:
+                    now_text = rows_text()
+                    if now_text != last[0]:
+                        last[0], last[1] = now_text, time.time()
+                        return False
+                    return time.time() - last[1] >= 0.3
+
+                self.wait_until(settled, timeout_ms=min(timeout, 5000), interval_ms=100)
 
             def active_page_text() -> str:
                 active = self.page.locator(
@@ -3317,6 +3673,17 @@ class ServiceList:
             if not all_pages:
                 return read_current_page()
 
+            # Start from page 1 (no Refresh any more to reset the pager)
+            if active_page_text() not in ("", "1"):
+                first_link = self.page.locator(
+                    ".service-actionWrapper-modePanels app-performance-table ul.pagination li.page-item a.page-link",
+                    has_text=re.compile(r"^\s*1\s*$")
+                ).first
+                if first_link.count() > 0:
+                    before_page, before_rows = active_page_text(), rows_text()
+                    first_link.click(force=True)
+                    wait_for_next_page_rows(before_rows, before_page)
+
             all_data = []
             seen = set()
 
@@ -3333,20 +3700,13 @@ class ServiceList:
                     break
 
                 before_page = active_page_text()
-                before_fp = first_row_fingerprint()
+                before_rows = rows_text()
 
                 clicked = click_next_embedded()
                 if not clicked:
                     break
 
-                self.wait_until(
-                    lambda: (
-                        active_page_text() != before_page
-                        or first_row_fingerprint() != before_fp
-                    ),
-                    timeout_ms=timeout,
-                    interval_ms=200
-                )
+                wait_for_next_page_rows(before_rows, before_page)
 
                 expect(table).to_be_visible(timeout=timeout)
 
@@ -3739,9 +4099,10 @@ class ServiceList:
     # =========================
  
     # ✅
-    def remove_service(self, row_index: int | None = None, service_name: str | None = None, timeout: int = 8000) -> bool:
+    def remove_service(self, row_index: int | None = None, service_name: str | None = None,
+                       timeout: int = 8000, remove_timeout: int = 60000) -> bool:
         """
-        Remove a service by GLOBAL row index across all pages.
+        Remove a service by GLOBAL row index across all pages, or by exact service name.
 
         row_index:
             1 = first service across all pages
@@ -3749,8 +4110,18 @@ class ServiceList:
 
         service_name:
             exact service name to search across all pages
+
+        timeout:
+            UI waits (select the row, open the dialog, find the buttons).
+
+        remove_timeout:
+            How long LW may take to actually remove the service. After 'Remove' is confirmed the
+            "Remove Service" dialog stays open - with its buttons disabled - while LW removes the
+            service (measured 8-13 s), then the dialog and the row disappear together. When the
+            last service is removed the table is replaced by "No services found".
         """
 
+        requested = service_name
         try:
             if row_index is None and service_name is None:
                 raise ValueError("row_index or service_name must be provided")
@@ -3778,6 +4149,10 @@ class ServiceList:
             cells = selected_row.locator("td")
             service_name = self._clean(cells.nth(1).inner_text())
 
+            # Never remove a different service than the one asked for
+            if requested and service_name.lower() != self._clean(requested).lower():
+                raise AssertionError(f"the selected row is '{service_name}', not '{requested}'")
+
             remove_btn = self.page.locator(
                 "div.service-actionWrapper-footer button",
                 has_text=re.compile(r"^\s*Remove\s*$", re.IGNORECASE)
@@ -3799,6 +4174,14 @@ class ServiceList:
 
             expect(modal).to_be_visible(timeout=timeout)
 
+            # The dialog says "Are you sure you want to remove <name>?" - make sure it is ours
+            modal_text = self._clean(modal.inner_text())
+            if service_name.lower() not in modal_text.lower():
+                cancel_btn = modal.locator("button", has_text=re.compile(r"^\s*Cancel\s*$", re.IGNORECASE)).first
+                if cancel_btn.count() > 0:
+                    cancel_btn.click(force=True)
+                raise AssertionError(f"the Remove Service dialog is not for '{service_name}': '{modal_text}'")
+
             confirm_btn = modal.locator(
                 "button.btn-primary, "
                 "button",
@@ -3809,31 +4192,39 @@ class ServiceList:
             self.wait_until(lambda: confirm_btn.is_enabled(), timeout_ms=timeout, interval_ms=150)
 
             confirm_btn.click(force=True)
-            sleep(SLEEP)
 
-            # Wait until dialog closes
-            self.wait_until(
-                lambda: modal.count() == 0 or not modal.is_visible(),
-                timeout_ms=timeout,
-                interval_ms=200
-            )
+            # LW removes the service while the dialog stays open (buttons disabled) - wait for it to close
+            try:
+                self.wait_until(
+                    lambda: modal.count() == 0 or not modal.is_visible(),
+                    timeout_ms=remove_timeout,
+                    interval_ms=300
+                )
+            except AssertionError:
+                raise AssertionError(
+                    f"the Remove Service dialog is still open {remove_timeout // 1000} s after confirming - "
+                    f"LW did not finish removing '{service_name}'"
+                )
 
-            # Wait until service no longer appears in the table
-            self.wait_until(
-                lambda: self.page.locator(
-                    "app-services-table app-universal-table table tbody tr, "
-                    "app-universal-table table tbody tr, "
-                    "tbody tr",
-                    has_text=re.compile(re.escape(service_name), re.IGNORECASE)
-                ).count() == 0,
-                timeout_ms=timeout,
-                interval_ms=300
-            )
+            # Then the service must be gone: no row whose Name cell is the service
+            # (the whole table is replaced by "No services found" after the last one)
+            name_cells = self.page.locator("table tbody tr td:nth-child(2)")
+
+            def service_gone() -> bool:
+                names = [self._clean(t).lower() for t in name_cells.all_inner_texts()]
+                return service_name.lower() not in names
+
+            try:
+                self.wait_until(service_gone, timeout_ms=timeout, interval_ms=300)
+            except AssertionError:
+                raise AssertionError(f"'{service_name}' is still in the Service List after the Remove Service dialog closed")
 
             return True
 
         except Exception as e:
-            raise AssertionError(f"remove_service(row_index={row_index}) failed. Problem: {e}")
+            raise AssertionError(
+                f"remove_service(row_index={row_index}, service_name={requested}) failed. Problem: {e}"
+            )
     
     # ✅
     def remove_service_cancel_button(self, timeout: int = 8000) -> bool:

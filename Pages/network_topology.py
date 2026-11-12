@@ -1613,6 +1613,54 @@ class NetworkTopology:
         """
         self.roadm_link_editor_set_filter("external", False, timeout)
 
+    def element_details_links_get_links_table(self, timeout: int = 5000) -> list:
+        """
+        Returns the list of links currently shown in the Node Properties panel → Links tab
+        (devices without Links sub-tabs, e.g. PL-2000ADS).
+
+        Output example:
+        [{'Side_A': 'PL-2000ADS (172.16.40.15)', 'Side_A_Info': '172.16.40.15 | Uplink 1',
+        'Link_Type': 'OTN', 'Severity': 'positive',
+        'Side_B': 'PL-2000ADS (172.16.40.19)', 'Side_B_Info': '172.16.40.19 | Uplink 2'}]
+        """
+        self.element_details_click_on_links()
+
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        pane = panel.locator("app-node-overview-properties .node-overview-tab").first
+        expect(pane).to_be_visible(timeout=timeout)
+
+        rows = pane.locator(".node-overview-list .node-overview-link-row")
+        empty = pane.locator("p.node-overview-empty")
+
+        # Rows render a moment after the tab switch: wait for either rows or the empty message
+        try:
+            self.wait_until(lambda: rows.count() > 0 or empty.count() > 0, timeout_ms=timeout, interval_ms=200)
+        except Exception as e:
+            raise AssertionError(f"element_details_links_get_links_table failed: neither links nor the empty message appeared. Problem: {e}")
+
+        def clean(s: str) -> str:
+            return re.sub(r"\s+", " ", (s or "").strip())
+
+        out = []
+        for i in range(rows.count()):
+            row = rows.nth(i)
+            side_a = row.locator(".node-overview-item-content:not(.node-overview-item-content-right)").first
+            side_b = row.locator(".node-overview-item-content.node-overview-item-content-right").first
+
+            line_cls = row.locator(".node-overview-link-line").first.get_attribute("class") or ""
+            m = re.search(r"node-overview-severity-(\w+)", line_cls)
+
+            out.append({
+                "Side_A": clean(side_a.locator(".node-overview-title").first.inner_text(timeout=timeout)),
+                "Side_A_Info": clean(side_a.locator(".node-overview-meta").first.inner_text(timeout=timeout)),
+                "Link_Type": clean(row.locator(".node-overview-link-type").first.inner_text(timeout=timeout)),
+                "Severity": m.group(1) if m else "",
+                "Side_B": clean(side_b.locator(".node-overview-title").first.inner_text(timeout=timeout)),
+                "Side_B_Info": clean(side_b.locator(".node-overview-meta").first.inner_text(timeout=timeout)),
+            })
+        return out
 
     # ==========================================================
     # Links → External MNG links
@@ -1761,8 +1809,6 @@ class NetworkTopology:
                 sleep(0.5)
         raise AssertionError(
             f"element_details_links_external_MNG_links_delete_link('{side_a}', '{side_b}') failed: {last_error}")
-
-
 
     # ==========================================================
     # Links → Internal MNG links
@@ -1952,6 +1998,7 @@ class NetworkTopology:
     # Services 
     # ==========================================================
 
+    # ✅
     def element_details_services_click_on_add_service(self, timeout: int = 5000):
         """
         In the Node Properties panel → Services tab:
@@ -1971,6 +2018,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_click_on_add_service failed: {e}")
 
+    # ✅
     def element_details_services_click_on_show_all(self, timeout: int = 5000):
         """
         In the Node Properties panel → Services tab:
@@ -1990,16 +2038,147 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_click_on_show_all failed: {e}")
 
-    def element_details_services_click_on_bandwidth(self):
+    # ✅
+    def element_details_services_click_on_bandwidth(self, timeout: int = 5000):
         """
-        
+        In the device Node Properties panel → Services tab:
+        Click the "Bandwidth" button.
         """
-        pass
+        # Make sure we are on Services main tab first
+        self.element_details_click_on_services()
+        panel = self.page.locator("app-node-properties .node-properties-container").first
+        expect(panel).to_be_visible(timeout=timeout)
+
+        btn = panel.locator("app-node-properties-services-tab .node-services-footer button.btn-stroke:has-text('Bandwidth')").first
+        try:
+            expect(btn).to_be_visible(timeout=timeout)
+            expect(btn).to_be_enabled(timeout=timeout)
+            btn.scroll_into_view_if_needed()
+            btn.click()
+        except Exception as e:
+            raise AssertionError(f"element_details_services_click_on_bandwidth failed: {e}")
+
+    # ✅
+    def element_details_services_bandwidth_click_format(self, label_text: str, timeout: int = 5000):
+        """
+        In the "Tributary slots" (Bandwidth) view:
+        Click an uplink tab (Uplink 1 / Uplink 2).
+        """
+        view = self.page.locator("app-bandwidth").first
+        expect(view).to_be_visible(timeout=timeout)
+
+        tab = view.locator("tabset ul.nav-tabs a.nav-link").filter(
+            has=self.page.locator("span", has_text=re.compile(rf"^\s*{re.escape(label_text)}\s*$"))
+        ).first
+        try:
+            expect(tab).to_be_visible(timeout=timeout)
+
+            # already selected
+            if "active" in (tab.get_attribute("class") or "").split():
+                return
+
+            tab.scroll_into_view_if_needed()
+            tab.click()
+            expect(tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
+        except Exception as e:
+            raise AssertionError(f"element_details_services_bandwidth_click_on_{label_text.replace(' ', '').lower()} failed: {e}")
+
+    # ✅
+    def element_details_services_bandwidth_click_on_uplink1(self, timeout: int = 5000):
+        """
+        In the "Tributary slots" (Bandwidth) view:
+        Click the "Uplink 1" tab.
+        """
+        self.element_details_services_bandwidth_click_format("Uplink 1", timeout=timeout)
+
+    # ✅
+    def element_details_services_bandwidth_click_on_uplink2(self, timeout: int = 5000):
+        """
+        In the "Tributary slots" (Bandwidth) view:
+        Click the "Uplink 2" tab.
+        """
+        self.element_details_services_bandwidth_click_format("Uplink 2", timeout=timeout)
+
+    # ✅
+    def element_details_services_bandwidth_refresh(self, timeout: int = 5000):
+        """
+        In the "Tributary slots" (Bandwidth) view:
+        Click the refresh button of the currently selected uplink tab.
+        """
+        view = self.page.locator("app-bandwidth").first
+        expect(view).to_be_visible(timeout=timeout)
+
+        # Each uplink tab has its own footer, so use the one in the active tab pane
+        btn = view.locator("tabset .tab-content > tab.tab-pane.active footer button.btn-include-icon").first
+        try:
+            expect(btn).to_be_visible(timeout=timeout)
+            expect(btn).to_be_enabled(timeout=timeout)
+            btn.click()
+        except Exception as e:
+            raise AssertionError(f"element_details_services_bandwidth_refresh failed: {e}")
+
+    # ✅
+    def _bandwidth_get_all_tributary_slots(self, uplink_label: str, timeout: int = 5000) -> list:
+        """
+        Returns every tributary slot of the given uplink tab ("Uplink 1" / "Uplink 2")
+        of the "Tributary slots" (Bandwidth) view.
+        """
+        self.element_details_services_bandwidth_click_format(uplink_label, timeout=timeout)
+
+        view = self.page.locator("app-bandwidth").first
+        pane = view.locator("tabset .tab-content > tab.tab-pane.active").first
+        expect(pane).to_be_visible(timeout=timeout)
+
+        slots = pane.locator(".slots-grid .slot-item")
+
+        # The grid renders a moment after the tab switch
+        try:
+            self.wait_until(lambda: slots.count() > 0, timeout_ms=timeout, interval_ms=200)
+        except Exception as e:
+            raise AssertionError(f"{uplink_label}: get tributary slots failed: no slots appeared. Problem: {e}")
+
+        out = []
+        for i in range(slots.count()):
+            slot = slots.nth(i)
+            text = re.sub(r"\s+", " ", slot.locator("span").first.text_content(timeout=timeout) or "").strip()
+            m = re.match(r"^(\d+)\s*-\s*(.+)$", text)
+            box_cls = (slot.locator("svg").first.get_attribute("class") or "").split()
+            out.append({
+                "Slot": int(m.group(1)) if m else text,
+                "Status": m.group(2).strip() if m else "",
+                "Checked": "checked" in box_cls,
+            })
+        return out
+
+    # ✅
+    def element_details_services_bandwidth_uplink1_get_all_tributary_slots(self, timeout: int = 5000) -> list:
+        """
+        Returns all tributary slots of "Uplink 1" in the "Tributary slots" (Bandwidth) view.
+        Output example:
+        [
+        {'Slot': 1, 'Status': 'Free', 'Checked': False},
+        {'Slot': 2, 'Status': 'Free', 'Checked': False}
+        ]
+        """
+        return self._bandwidth_get_all_tributary_slots("Uplink 1", timeout=timeout)
+
+    # ✅
+    def element_details_services_bandwidth_uplink2_get_all_tributary_slots(self, timeout: int = 5000) -> list:
+        """
+        Returns all tributary slots of "Uplink 2" in the "Tributary slots" (Bandwidth) view.
+        Output example:
+        [
+        {'Slot': 1, 'Status': 'Free', 'Checked': False},
+        {'Slot': 2, 'Status': 'Free', 'Checked': False}
+        ]
+        """
+        return self._bandwidth_get_all_tributary_slots("Uplink 2", timeout=timeout)
 
     # ==========================================================
     # Services → OTN
     # ==========================================================
     
+    # ✅
     def element_details_services_click_format(self, label_text: str, timeout: int = 5000):
         """
         In the Node Properties panel → Services tab:
@@ -2026,6 +2205,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_click_on_{label_text} failed: {e}")
 
+    # ✅
     def element_details_services_click_on_OTN(self, timeout: int = 5000):
         """
         In the Node Properties panel → Services tab:
@@ -2033,6 +2213,7 @@ class NetworkTopology:
         """
         self.element_details_services_click_format("OTN", timeout=timeout)
 
+    # ✅
     def element_details_services_OTN_get_all_services(self, timeout: int = 5000) -> list:
         """
         Returns the list of services currently shown in Services -> OTN
@@ -2091,6 +2272,7 @@ class NetworkTopology:
             })
         return out
 
+    # ✅
     def element_details_services_OTN_click_on_the_3_dots(self, service: str, timeout: int = 5000):
         """
         In Services -> OTN:
@@ -2122,6 +2304,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_OTN_click_on_the_3_dots('{service}') failed: {e}")
 
+    # ✅
     def element_details_services_OTN_navigate_to_service(self, service: str, timeout: int = 5000):
         """
         In Services -> OTN:
@@ -2145,6 +2328,7 @@ class NetworkTopology:
                 sleep(0.5)
         raise AssertionError(f"element_details_services_OTN_navigate_to_service('{service}') failed: {last_error}")
 
+    # ✅
     def element_details_services_OTN_rename_service_button(self, service: str, timeout: int = 5000):
         """
         In Services -> OTN:
@@ -2168,6 +2352,7 @@ class NetworkTopology:
                 sleep(0.5)
         raise AssertionError(f"element_details_services_OTN_rename_service_button('{service}') failed: {last_error}")
 
+    # ✅
     def element_details_services_OTN_rename_service(self, service: str, new_name: str, timeout: int = 5000):
         """
         In Services -> OTN:
@@ -2195,6 +2380,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_OTN_rename_service('{service}', '{new_name}') failed: {e}")
 
+    # ✅
     def element_details_services_OTN_cancel_rename_service(self, timeout: int = 5000):
         """
         In the "Rename Service" dialog (opened by element_details_services_OTN_rename_service_button):
@@ -2212,6 +2398,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_OTN_cancel_rename_service failed: {e}")
 
+    # ✅
     def element_details_services_OTN_remove_service_button(self, service: str, timeout: int = 5000):
         """
         In Services -> OTN:
@@ -2264,6 +2451,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_OTN_remove_service('{service}') failed: {e}")
 
+    # ✅
     def element_details_services_OTN_cancel_remove_service(self, timeout: int = 5000):
         """
         In the "Remove Service" dialog (opened by element_details_services_OTN_remove_service_button):
@@ -2285,6 +2473,7 @@ class NetworkTopology:
     # Services → ROADM
     # ==========================================================
     
+    # ✅
     def element_details_services_click_on_ROADM(self, timeout: int = 5000):
         """
         In the Node Properties panel → Services tab:
@@ -2292,6 +2481,7 @@ class NetworkTopology:
         """
         self.element_details_services_click_format("ROADM", timeout=timeout)
 
+    # ✅
     def element_details_services_ROADM_get_all_services(self, timeout: int = 5000) -> list:
         """
         Returns the list of services currently shown in Services -> ROADM
@@ -2356,6 +2546,7 @@ class NetworkTopology:
             })
         return out
 
+    # ✅
     def element_details_services_ROADM_click_on_the_3_dots(self, service: str, timeout: int = 5000):
         """
         In Services -> ROADM:
@@ -2387,6 +2578,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_ROADM_click_on_the_3_dots('{service}') failed: {e}")
 
+    # ✅
     def element_details_services_ROADM_navigate_to_service(self, service: str, timeout: int = 5000):
         """
         In Services -> ROADM:
@@ -2410,6 +2602,7 @@ class NetworkTopology:
                 sleep(0.5)
         raise AssertionError(f"element_details_services_ROADM_navigate_to_service('{service}') failed: {last_error}")
 
+    # ✅
     def element_details_services_ROADM_rename_service_button(self, service: str, timeout: int = 5000):
         """
         In Services -> ROADM:
@@ -2433,6 +2626,7 @@ class NetworkTopology:
                 sleep(0.5)
         raise AssertionError(f"element_details_services_ROADM_rename_service_button('{service}') failed: {last_error}")
 
+    # ✅
     def element_details_services_ROADM_rename_service(self, service: str, new_name: str, timeout: int = 5000):
         """
         In Services -> ROADM:
@@ -2460,6 +2654,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_ROADM_rename_service('{service}', '{new_name}') failed: {e}")
 
+    # ✅
     def element_details_services_ROADM_cancel_rename_service(self, timeout: int = 5000):
         """
         In the "Rename Service" dialog (opened by element_details_services_ROADM_rename_service_button):
@@ -2477,6 +2672,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_ROADM_cancel_rename_service failed: {e}")
 
+    # ✅
     def element_details_services_ROADM_remove_service_button(self, service: str, timeout: int = 5000):
         """
         In Services -> ROADM:
@@ -2529,6 +2725,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"element_details_services_ROADM_remove_service('{service}') failed: {e}")
 
+    # ✅
     def element_details_services_ROADM_cancel_remove_service(self, timeout: int = 5000):
         """
         In the "Remove Service" dialog (opened by element_details_services_ROADM_remove_service_button):
@@ -2550,6 +2747,7 @@ class NetworkTopology:
     # Services → CS
     # ==========================================================
     
+    # ✅
     def element_details_services_click_on_CS(self, timeout: int = 5000):
         """
         In the Node Properties panel → Services tab:
@@ -2952,6 +3150,7 @@ class NetworkTopology:
     # Info (Chassis)
     # ==========================================================
 
+    # ✅
     def chassis_element_details_info_get_domain_name(self, timeout: int = 5000) -> str:
         """
         Returns the "Domain Name" value shown in the chassis Info tab (e.g. "BOS-11").
@@ -2961,6 +3160,7 @@ class NetworkTopology:
             raise AssertionError(f"chassis_element_details_info_get_domain_name failed: 'Domain Name' not found in {info}")
         return info["Domain Name"]
 
+    # ✅
     def chassis_element_details_info_get_domain_description(self, timeout: int = 5000) -> str:
         """
         Returns the "Domain Description" value shown in the chassis Info tab (e.g. "Chassis").
@@ -2969,7 +3169,8 @@ class NetworkTopology:
         if "Domain Description" not in info:
             raise AssertionError(f"chassis_element_details_info_get_domain_description failed: 'Domain Description' not found in {info}")
         return info["Domain Description"]
-    
+
+    # ✅
     def chassis_element_details_info_get_all_info(self, timeout: int = 5000) -> dict:
         """
         Returns everything shown in the chassis Info tab as {label: value}
@@ -3004,6 +3205,7 @@ class NetworkTopology:
     # Info (Device) → General
     # ==========================================================
 
+    # ✅
     def device_element_details_info_click_format(self, label_text: str, timeout: int = 5000):
         """
         In the device Node Properties panel → Info tab:
@@ -3012,11 +3214,13 @@ class NetworkTopology:
         # Make sure we are on Info main tab first
         self.element_details_click_on_info()
         panel = self.page.locator("app-node-properties .node-properties-container").first
+        sleep(0.5)
         expect(panel).to_be_visible(timeout=timeout)
 
         tab = panel.locator("tabset.device-info-type-tabs ul.nav-tabs a.nav-link").filter(
             has=self.page.locator("span", has_text=re.compile(rf"^\s*{re.escape(label_text)}\s*$"))
         ).first
+        sleep(1)
         try:
             expect(tab).to_be_visible(timeout=timeout)
 
@@ -3025,11 +3229,13 @@ class NetworkTopology:
                 return
 
             tab.scroll_into_view_if_needed()
+            sleep(0.5)
             tab.click()
             expect(tab).to_have_class(re.compile(r"\bactive\b"), timeout=timeout)
         except Exception as e:
             raise AssertionError(f"device_element_details_info_click_on_{label_text.lower()} failed: {e}")
 
+    # ✅
     def device_element_details_info_click_on_general(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info tab:
@@ -3037,6 +3243,7 @@ class NetworkTopology:
         """
         self.device_element_details_info_click_format("General", timeout=timeout)
 
+    # ✅
     def _device_info_general_get_text_value(self, label: str, timeout: int = 5000) -> str:
         """
         Returns the text value of a row in the device Info -> General tab by its
@@ -3058,12 +3265,14 @@ class NetworkTopology:
             raise AssertionError(f"device_element_details_info_general_get '{label}' failed: {e}")
         return re.sub(r"\s+", " ", (value or "").strip())
 
+    # ✅
     def device_element_details_info_general_get_domain_name(self, timeout: int = 5000) -> str:
         """
         Returns the "Domain Name" value shown in the device Info -> General tab (e.g. "Default").
         """
         return self._device_info_general_get_text_value("Domain Name", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_name(self, timeout: int = 5000) -> str:
         """
         Returns the "Name" value shown in the device Info -> General tab
@@ -3071,18 +3280,21 @@ class NetworkTopology:
         """
         return self._device_info_general_get_text_value("Name", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_ip(self, timeout: int = 5000) -> str:
         """
         Returns the "IP" value shown in the device Info -> General tab (e.g. "172.16.20.11").
         """
         return self._device_info_general_get_text_value("IP", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_type(self, timeout: int = 5000) -> str:
         """
         Returns the "Type" value shown in the device Info -> General tab (e.g. "PL-4000M").
         """
         return self._device_info_general_get_text_value("Type", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_location(self, timeout: int = 5000) -> str:
         """
         Returns the "Location" value shown in the device Info -> General tab
@@ -3090,6 +3302,7 @@ class NetworkTopology:
         """
         return self._device_info_general_get_text_value("Location", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_description(self, timeout: int = 5000) -> str:
         """
         Returns the "Description" value shown in the device Info -> General tab
@@ -3097,6 +3310,7 @@ class NetworkTopology:
         """
         return self._device_info_general_get_text_value("Description", timeout=timeout)
 
+    # ✅
     def _device_info_general_get_checkbox_value(self, label: str, timeout: int = 5000) -> bool:
         """
         Returns the state (True = checked) of a checkbox row in the device Info -> General tab
@@ -3119,6 +3333,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_general_get '{label}' failed: {e}")
 
+    # ✅
     def device_element_details_info_general_get_managed(self, timeout: int = 5000) -> bool:
         """
         Returns the state of the "Managed" checkbox in the device Info -> General tab
@@ -3126,12 +3341,14 @@ class NetworkTopology:
         """
         return self._device_info_general_get_checkbox_value("Managed", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_alarm_status(self, timeout: int = 5000) -> str:
         """
         Returns the "Alarm Status" value shown in the device Info -> General tab (e.g. "Major").
         """
         return self._device_info_general_get_text_value("Alarm Status", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_connectivity_status(self, timeout: int = 5000) -> str:
         """
         Returns the "Connectivity Status" value shown in the device Info -> General tab
@@ -3139,6 +3356,7 @@ class NetworkTopology:
         """
         return self._device_info_general_get_text_value("Connectivity Status", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_OTDR_capable(self, timeout: int = 5000) -> bool:
         """
         Returns the state of the "OTDR Capable" checkbox in the device Info -> General tab
@@ -3146,6 +3364,7 @@ class NetworkTopology:
         """
         return self._device_info_general_get_checkbox_value("OTDR Capable", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_get_NMS_owned(self, timeout: int = 5000) -> str:
         """
         Returns the "NMS Owned" value shown in the device Info -> General tab
@@ -3153,6 +3372,7 @@ class NetworkTopology:
         """
         return self._device_info_general_get_text_value("NMS Owned", timeout=timeout)
 
+    # ✅
     def device_element_details_info_general_show_device_performance(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → General tab:
@@ -3169,9 +3389,28 @@ class NetworkTopology:
             expect(btn).to_be_enabled(timeout=timeout)
             btn.scroll_into_view_if_needed()
             btn.click()
+
+            sleep(5)
         except Exception as e:
             raise AssertionError(f"device_element_details_info_general_show_device_performance failed: {e}")
 
+    def _device_OTN_services_confirm_dialog(self, panel, title: str):
+        """
+        Locate the Manage/Release Device OTN Services confirmation by its title.
+        Newer LW builds show it as a page-level modal (.modal-dialog.pl-modal);
+        older ones as an inline .device-info-owned-warning box in the panel.
+        Matches whichever is present.
+        """
+        title_re = re.compile(rf"^\s*{re.escape(title)}\s*$")
+        modal = self.page.locator(".modal-dialog.pl-modal").filter(
+            has=self.page.locator(".modal-header .title", has_text=title_re)
+        )
+        inline = panel.locator("app-device-info-properties .device-info-owned-warning").filter(
+            has=self.page.locator(".device-info-owned-warning-title", has_text=title_re)
+        )
+        return modal.or_(inline).first
+
+    # ✅
     def device_element_details_info_general_manage_device_OTN_services(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → General tab:
@@ -3181,21 +3420,25 @@ class NetworkTopology:
         self.device_element_details_info_click_on_general(timeout=timeout)
 
         panel = self.page.locator("app-node-properties .node-properties-container").first
+        sleep(0.5)
         expect(panel).to_be_visible(timeout=timeout)
 
         btn = panel.locator("app-device-info-properties .device-info-footer button.btn-primary:has-text('Manage Device OTN Services')").first
-        # The release flow probably reuses the same warning box, so match it by its title
-        warning = panel.locator("app-device-info-properties .device-info-owned-warning").filter(
-            has=self.page.locator(".device-info-owned-warning-title", has_text=re.compile(r"^\s*Manage Device OTN Services\s*$"))
-        ).first
+        sleep(0.5)
+
+        # Confirmation dialog, matched by its title
+        warning = self._device_OTN_services_confirm_dialog(panel, "Manage Device OTN Services")
+        sleep(1)
         try:
             expect(btn).to_be_visible(timeout=timeout)
             expect(btn).to_be_enabled(timeout=timeout)
             btn.scroll_into_view_if_needed()
+            sleep(0.5)
             btn.click()
 
             expect(warning).to_be_visible(timeout=timeout)
             confirm = warning.locator("button.btn-primary:has-text('Manage')").first
+            sleep(0.5)
             expect(confirm).to_be_enabled(timeout=timeout)
             confirm.click()
 
@@ -3204,6 +3447,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_general_manage_device_OTN_services failed: {e}")
 
+    # ✅
     def device_element_details_info_general_cancel_manage_device_OTN_services_button(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → General tab:
@@ -3216,9 +3460,7 @@ class NetworkTopology:
         expect(panel).to_be_visible(timeout=timeout)
 
         btn = panel.locator("app-device-info-properties .device-info-footer button.btn-primary:has-text('Manage Device OTN Services')").first
-        warning = panel.locator("app-device-info-properties .device-info-owned-warning").filter(
-            has=self.page.locator(".device-info-owned-warning-title", has_text=re.compile(r"^\s*Manage Device OTN Services\s*$"))
-        ).first
+        warning = self._device_OTN_services_confirm_dialog(panel, "Manage Device OTN Services")
         try:
             if not warning.is_visible():
                 expect(btn).to_be_visible(timeout=timeout)
@@ -3235,6 +3477,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_general_cancel_manage_device_OTN_services_button failed: {e}")
 
+    # ✅
     def device_element_details_info_general_release_device_OTN_services(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → General tab:
@@ -3248,10 +3491,8 @@ class NetworkTopology:
         expect(panel).to_be_visible(timeout=timeout)
 
         btn = panel.locator("app-device-info-properties .device-info-footer button.btn-primary:has-text('Release Device OTN Services')").first
-        # Same warning box as the manage flow: match it by its title
-        warning = panel.locator("app-device-info-properties .device-info-owned-warning").filter(
-            has=self.page.locator(".device-info-owned-warning-title", has_text=re.compile(r"^\s*Release Device OTN Services\s*$"))
-        ).first
+        # Same confirmation dialog as the manage flow: match it by its title
+        warning = self._device_OTN_services_confirm_dialog(panel, "Release Device OTN Services")
         try:
             expect(btn).to_be_visible(timeout=timeout)
             expect(btn).to_be_enabled(timeout=timeout)
@@ -3268,6 +3509,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_general_release_device_OTN_services failed: {e}")
 
+    # ✅
     def device_element_details_info_general_cancel_release_device_OTN_services_button(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → General tab:
@@ -3280,9 +3522,7 @@ class NetworkTopology:
         expect(panel).to_be_visible(timeout=timeout)
 
         btn = panel.locator("app-device-info-properties .device-info-footer button.btn-primary:has-text('Release Device OTN Services')").first
-        warning = panel.locator("app-device-info-properties .device-info-owned-warning").filter(
-            has=self.page.locator(".device-info-owned-warning-title", has_text=re.compile(r"^\s*Release Device OTN Services\s*$"))
-        ).first
+        warning = self._device_OTN_services_confirm_dialog(panel, "Release Device OTN Services")
         try:
             if not warning.is_visible():
                 expect(btn).to_be_visible(timeout=timeout)
@@ -3303,6 +3543,7 @@ class NetworkTopology:
     # Info (Device) → Protocols
     # ==========================================================
 
+    # ✅
     def device_element_details_info_click_on_protocols(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info tab:
@@ -3310,6 +3551,7 @@ class NetworkTopology:
         """
         self.device_element_details_info_click_format("Protocols", timeout=timeout)
 
+    # ✅
     def device_element_details_info_protocols_set_data_exchange_protocol(self, protocol: str, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3341,6 +3583,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_protocols_set_data_exchange_protocol('{protocol}') failed: {e}")
 
+    # ✅
     def _device_info_protocols_set_input(self, form_control: str, value, timeout: int = 5000):
         """
         Set a text/number input of the device Info -> Protocols form
@@ -3361,6 +3604,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_protocols_set '{form_control}' = '{value}' failed: {e}")
 
+    # ✅
     def device_element_details_info_protocols_set_read_community(self, read_community: str, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3368,6 +3612,7 @@ class NetworkTopology:
         """
         self._device_info_protocols_set_input("readCommunity", read_community, timeout=timeout)
 
+    # ✅
     def device_element_details_info_protocols_set_write_community(self, write_community: str, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3375,6 +3620,7 @@ class NetworkTopology:
         """
         self._device_info_protocols_set_input("writeCommunity", write_community, timeout=timeout)
 
+    # ✅
     def device_element_details_info_protocols_set_admin_community(self, admin_community: str, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3382,6 +3628,7 @@ class NetworkTopology:
         """
         self._device_info_protocols_set_input("adminCommunity", admin_community, timeout=timeout)
 
+    # ✅
     def device_element_details_info_protocols_set_contact_port(self, contact_port, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3390,6 +3637,7 @@ class NetworkTopology:
         """
         self._device_info_protocols_set_input("contactPort", contact_port, timeout=timeout)
 
+    # ✅
     def device_element_details_info_protocols_set_performance_transport_protocol(self, protocol: str, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3422,6 +3670,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_protocols_set_performance_transport_protocol('{protocol}') failed: {e}")
 
+    # ✅
     def device_element_details_info_protocols_reset_to_default(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3444,6 +3693,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_protocols_reset_to_default failed: {e}")
 
+    # ✅
     def device_element_details_info_protocols_save_as_default(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:
@@ -3466,6 +3716,7 @@ class NetworkTopology:
         except Exception as e:
             raise AssertionError(f"device_element_details_info_protocols_save_as_default failed: {e}")
 
+    # ✅
     def device_element_details_info_protocols_click_on_update_button(self, timeout: int = 5000):
         """
         In the device Node Properties panel → Info → Protocols tab:

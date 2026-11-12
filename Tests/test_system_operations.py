@@ -12,13 +12,14 @@ from Pages.left_panel_page import LeftPanel
 import time
 
 
-SERVER_HOST_IP = "172.16.10.22:8080"  # Your base URL here
-BASE_URL = f"http://{SERVER_HOST_IP}/"  # Complete URL with trailing slash
+# SERVER_HOST_IP = "172.16.10.22:8080"  # Your base URL here
+SERVER_HOST_IP = "172.16.10.22:8443"
+BASE_URL = f"https://{SERVER_HOST_IP}/"  # Complete URL with trailing slash
 USERNAME = "administrator"
 PASSWORD = "administrator"
 
 def test_system_operations(page, left_panel):
-    try:
+    try: 
         left_panel.click_system_operations()
         system_operations = SystemOperationsPage(page)
         
@@ -28,16 +29,19 @@ def test_system_operations(page, left_panel):
             raise Exception("System Operations page is not visible ❌")
 
         # Click on the desired function and assert visibility of confirmation text
-        system_operations.click_polling_restart()
+        system_operations.click_restart_polling()
+        left_panel.click_system_operations()
+
+        system_operations.click_synchronize_inventory()
 
         left_panel.click_system_operations()
-        system_operations.click_deleting_OTN_inconsistent_services()
+        system_operations.click_delete_inconsistent_OTN_services()
 
-        system_operations.click_synchronizing_OTN_services()
+        system_operations.click_synchronize_OTN_services()
 
-        system_operations.click_deleting_ROADM_inconsistent_services()
+        system_operations.click_delete_inconsistent_ROADM_services()
 
-        system_operations.click_synchronizing_ROADM_services()
+        system_operations.click_synchronize_ROADM_services()
 
         # Click Exit and ensure the page disappears
         system_operations.click_exit()

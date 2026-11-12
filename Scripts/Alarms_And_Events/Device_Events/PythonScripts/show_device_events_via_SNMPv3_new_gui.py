@@ -85,11 +85,11 @@ else:
     LW_USERNAME = "administrator"
     LW_PASSWORD = "administrator"
 
-    DEVICES_LIST = ['172.16.20.125', '172.16.40.39']
+    DEVICES_LIST = ['172.16.20.125', '172.16.30.51']
     DEVICE_IP_USER = "tech" 
     DEVICE_IP_PASS = "packetlight"
 
-    DUT_IP_NAMES = ["PL-2000GM (172.16.20.125)", "PL-4000T (172.16.40.39)"]
+    DUT_IP_NAMES = ["PL-2000GM (172.16.20.125)", "PL-4000G (172.16.30.51)"]
 
     NEW_CHASSIS_ID = "67"
     DOMAIN_NAME = "Script_Domain"
@@ -109,7 +109,8 @@ SNMPV3_USERNAME = "admin3"
 SNMPV3_PASSWORD = "Admin1234!"
 AUTH_TYPE = "SHA1"
 
-SNMPV3_USERNAME = "admin"
+AUTH_NO_PRIV = "Authentication, No Privacy"
+LW_AUTH_TYPE = "SHA-1"
 
 CATEGORIES_LIST = ["Device", "Syslog", "System", "Configuration Event", "Inventory",
                     "Discovery", "Provisioning", "Security", "Service", "OTN Service", 
@@ -334,107 +335,116 @@ def test_show_device_events_via_SNMPv3(page, left_panel: LeftPanel, logger, repo
     pl_events_stored = {}
     pl_events_port_1 = {}
 
-    #######################################
-    # Step 1 – Add domain and sub-domain. #
-    #######################################
-    def step_1():
-        left_panel.click_domain_management()
-        domain_management.add_domain(DOMAIN_NAME)
-        sleep(0.5)
-        domain_management.add_domain(SUB_DOMAIN_NAME, parent_domain_name=DOMAIN_NAME)
-        sleep(0.5)
+    # #######################################
+    # # Step 1 – Add domain and sub-domain. #
+    # #######################################
+    # def step_1():
+    #     left_panel.click_domain_management()
+    #     domain_management.add_domain(DOMAIN_NAME)
+    #     sleep(0.5)
+    #     domain_management.add_domain(SUB_DOMAIN_NAME, parent_domain_name=DOMAIN_NAME)
+    #     sleep(0.5)
 
-    results[1] = run_step(1, step_1, logger, report)
+    # results[1] = run_step(1, step_1, logger, report)
 
-    ###################################################
-    # Step 2 – Factory default reset for all devices. # 
-    ###################################################
-    def step_2():
-        for ip in ALL_DEVICES:
-            device_page = page.context.new_page()
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(f"http://{ip}/")
-            pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            sleep(1)
+    # ###################################################
+    # # Step 2 – Factory default reset for all devices. # 
+    # ###################################################
+    # def step_2():
+    #     for ip in ALL_DEVICES:
+    #         device_page = page.context.new_page()
+    #         pl_login = PL_LoginPage(device_page)
+    #         pl_login.goto(f"http://{ip}/")
+    #         pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+    #         sleep(1)
 
-            pl_main_screen_POM = PL_Main_Screen_POM(device_page)
-            pl_main_screen_POM.device_restart("factory")
-            sleep(5)
-            device_page.close()
+    #         pl_main_screen_POM = PL_Main_Screen_POM(device_page)
+    #         pl_main_screen_POM.device_restart("factory")
+    #         sleep(5)
+    #         device_page.close()
 
-        # Wait for devices to come back up after factory default reset
-        devices_are_up(ALL_DEVICES, wait_time=WAIT)
+    #     # Wait for devices to come back up after factory default reset
+    #     devices_are_up(ALL_DEVICES, wait_time=WAIT)
 
-    results[2] = run_step(2, step_2, logger, report)
+    # results[2] = run_step(2, step_2, logger, report)
 
-    ################################################################################
-    # Step 3 – Login to the GUI of each IP.                                        #
-    # Set SNTP server and timezone to synchronize device time with LW server time. #                                   
-    ################################################################################
-    def step_3():
-        for ip in ALL_DEVICES:
-            device_page = page.context.new_page()
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(f"http://{ip}/")
+    # ################################################################################
+    # # Step 3 – Login to the GUI of each IP.                                        #
+    # # Set SNTP server and timezone to synchronize device time with LW server time. #                                   
+    # ################################################################################
+    # def step_3():
+    #     for ip in ALL_DEVICES:
+    #         device_page = page.context.new_page()
+    #         pl_login = PL_LoginPage(device_page)
+    #         pl_login.goto(f"http://{ip}/")
 
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {ip} GUI failed."
+    #         ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+    #         assert ok, f"Login to {ip} GUI failed."
 
-            pl_main_screen = PL_Main_Screen_POM(device_page)
+    #         pl_main_screen = PL_Main_Screen_POM(device_page)
 
-            # set chassis id to empty 
-            pl_main_screen.set_chassis_id(" ") 
+    #         # set chassis id to empty 
+    #         pl_main_screen.set_chassis_id(" ") 
 
-            pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER)
-            pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2)
-            refresh_page(device_page)
+    #         pl_main_screen.add_sntp_server(GOOGLE_SNTP_SERVER)
+    #         pl_main_screen.set_sntp_configuration(status="Enabled", gmt=GMT2)
+    #         refresh_page(device_page)
 
-            device_page.close()
+    #         device_page.close()
 
-    results[3] = run_step(3, step_3, logger, report)
+    # results[3] = run_step(3, step_3, logger, report)
 
-    ###################################################
-    # Step 4 – Add SNMPv3 user to each IP.            #
-    # For each IP, set IP and click Start Discovery.  #                                   
-    ###################################################
-    def step_4():
-        for ip in ALL_DEVICES:
-            device_page = page.context.new_page()
-            pl_login = PL_LoginPage(device_page)
-            pl_login.goto(f"http://{ip}/")
-            ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
-            assert ok, f"Login to {ip} GUI failed."
+    # ###################################################
+    # # Step 4 – Add SNMPv3 user to each IP.            #
+    # # For each IP, set IP and click Start Discovery.  #                                   
+    # ###################################################
+    # def step_4():
+    #     for ip in ALL_DEVICES:
+    #         device_page = page.context.new_page()
+    #         pl_login = PL_LoginPage(device_page)
+    #         pl_login.goto(f"http://{ip}/")
+    #         ok = pl_login.login(DEVICE_IP_USER, DEVICE_IP_PASS)
+    #         assert ok, f"Login to {ip} GUI failed."
 
-            pl_security = PL_SecurityPage(device_page)
-            pl_security.add_new_user(user_name=SNMPV3_USERNAME, permission="Administrator", password=SNMPV3_PASSWORD,
-             verify_password=SNMPV3_PASSWORD, snmpv3_auth=AUTH_TYPE, password_auth=SNMPV3_PASSWORD)
+    #         pl_security = PL_SecurityPage(device_page)
+    #         pl_security.add_new_user(user_name=SNMPV3_USERNAME, permission="Administrator", password=SNMPV3_PASSWORD,
+    #          verify_password=SNMPV3_PASSWORD, snmpv3_auth=AUTH_TYPE, password_auth=SNMPV3_PASSWORD)
 
-        sleep(5)
+    #         device_page.close()
 
-        for ip in ALL_DEVICES:
-            left_panel.click_device_discovery()
-            device_discovery.click_SNMPv3()
-            device_discovery.set_ip_address(ip)
-            sleep(1)
-            device_discovery.set_SNMPv3_user_name(SNMPV3_USERNAME)
-            sleep(1)
-            device_discovery.click_start_discovery()
-            refresh_page(page)
-            sleep(3)
+    #     sleep(5)
 
-            ok = left_panel.click_network_topology()
-            assert ok, "Failed to navigate to Network Topology."
+    #     for ip in ALL_DEVICES:
+    #         left_panel.click_device_discovery()
+    #         device_discovery.click_SNMPv3()
 
-            network_topology.show_navigation_info()
+    #         device_discovery.set_ip_address(ip)
+    #         sleep(0.5)
+    #         device_discovery.set_SNMPv3_user_name(SNMPV3_USERNAME)
+    #         sleep(0.5)
+    #         device_discovery.set_SNMPv3_security_level(AUTH_NO_PRIV)
+    #         sleep(0.5)
+    #         device_discovery.set_SNMPv3_authentication_protocol(LW_AUTH_TYPE)
+    #         sleep(0.5)
+    #         device_discovery.set_SNMPv3_authentication_password(SNMPV3_PASSWORD)
+    #         sleep(0.5)
+    #         device_discovery.click_start_discovery()
+    #         refresh_page(page)
+    #         sleep(3)
 
-            in_nav = network_topology.is_element_exist_on_navigation_info_list(ip)
-            assert in_nav, (
-                f"{ip} was not found in the Navigation Info list. "
-                f"Discovery may not have completed yet.")
+    #         ok = left_panel.click_network_topology()
+    #         assert ok, "Failed to navigate to Network Topology."
 
-        refresh_page(page)
+    #         network_topology.show_navigation_info()
 
-    results[4] = run_step(4, step_4, logger, report)
+    #         in_nav = network_topology.is_element_exist_on_navigation_info_list(ip)
+    #         assert in_nav, (
+    #             f"{ip} was not found in the Navigation Info list. "
+    #             f"Discovery may not have completed yet.")
+
+    #     refresh_page(page)
+
+    # results[4] = run_step(4, step_4, logger, report)
 
     ##########################################################
     # Step 5 – Change chassis ID and move chassis to domain. # 

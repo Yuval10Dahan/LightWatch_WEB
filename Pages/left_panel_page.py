@@ -25,11 +25,11 @@ class LeftPanel:
         self.performance = page.locator('li[routerlink="map/performance"]')
         self.device_discovery = page.locator('li[routerlink="map/discovery"]')
         self.domain_management = page.locator('li[routerlink="devicemanagement"]')
-        self.inventory = page.locator('li[routerlink="inventory"]')
+        self.inventory = page.locator('li[routerlink="map/inventory"]')
         self.alarms_and_events = page.locator('li[routerlink="map/faults"]')
         self.system_operations = page.locator('li', has_text="System Operations")
         self.user_management = page.locator('li', has_text="User Management")
-        self.task_manager = page.locator('li', has_text="Task Manager")
+        self.help_and_about = page.locator('li', has_text="Help & About")
         self.system_configuration = page.locator('li', has_text="System Configuration")
         self.logout = page.locator('li', has_text="Logout")
         self.reload_button = page.locator('button', has_text="Reload")
@@ -175,18 +175,6 @@ class LeftPanel:
             return False
 
     # ✅
-    def click_task_manager(self) -> bool:
-        try:
-            self.task_manager.click()
-            expect(self.task_manager).to_have_class('active')
-            sleep(5)
-            return True
-        
-        except TimeoutError:
-            print(f"Click on 'Task Manager' failed ❌")
-            return False
-
-    # ✅
     def click_system_configuration(self) -> bool:
         try:
             self.system_configuration.click()
@@ -196,6 +184,27 @@ class LeftPanel:
         
         except TimeoutError:
             print(f"Click on 'System Configuration' failed ❌")
+            return False
+
+    # ✅
+    def click_help_and_about(self) -> bool:
+        try:
+            help_and_about_popup = self.page.locator('app-sidenav-details')
+
+            # If Help & About is already open, do nothing
+            if help_and_about_popup.is_visible():
+                return True
+
+            # Help & About has no routerlink, so the <li> never gets the 'active' class;
+            # verify that the details panel opened instead
+            self.help_and_about.click()
+            expect(help_and_about_popup).to_be_visible(timeout=10_000)
+
+            sleep(1)
+            return True
+
+        except (PlaywrightTimeoutError, AssertionError):
+            print(f"Click on 'Help & About' failed ❌")
             return False
 
     # ✅

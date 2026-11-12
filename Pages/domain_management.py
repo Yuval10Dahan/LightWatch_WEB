@@ -219,6 +219,7 @@ class DomainManagement:
         Click a tree row.
         """
         row = self.row_locator(name, tree_title=tree_title)
+        sleep(2)
         self.click_row_and_wait(row, timeout=timeout, wait_for="any_action", desc=f"any action enabled after selecting '{name}'")
 
     # ✅
@@ -619,6 +620,7 @@ class DomainManagement:
         """
         expect(row).to_be_visible(timeout=timeout)
         row.scroll_into_view_if_needed()
+        sleep(1)
         row.click(force=True)
 
         if wait_for == "none":
@@ -977,7 +979,7 @@ class DomainManagement:
         """
         # Validate domain exists
         row = self.row_locator(domain_name, tree_title="From")
-        sleep(1)
+        sleep(3)
         if row.count() == 0:
             raise AssertionError(f"remove_domain('{domain_name}') failed: element not found in tree.")
 
@@ -1110,7 +1112,7 @@ class DomainManagement:
                 return
 
             refresh_page(self.page)
-            sleep(5)
+            sleep(2)
 
             # Re-check after refresh
             if self.verify_element_deleted(target, element_type="domain", tree_title="From", refresh=False):
@@ -1139,6 +1141,7 @@ class DomainManagement:
             # Optional validation of warning text
             try:
                 article = warn.locator("article").first
+                sleep(3)
                 if article.count() > 0:
                     text = article.inner_text().lower()
                     if "will be deleted" not in text:
@@ -1150,6 +1153,7 @@ class DomainManagement:
             yes = self.warning_yes_btn()
             expect(yes).to_be_visible(timeout=timeout)
             expect(yes).to_be_enabled(timeout=timeout)
+            sleep(3)
             yes.click()
 
             refresh_page(self.page)
@@ -1386,10 +1390,10 @@ class DomainManagement:
 
             if parent_chassis:
                 self.expand_chassis_and_click_on_device(device_id=device_name_or_ip, parent_chassis=parent_chassis)
-                sleep(5)
+                sleep(2)
             else:
                 self.expand_chassis_and_click_on_device(device_id=device_name_or_ip)
-                sleep(5)
+                sleep(2)
 
             # Click Remove
             self.click_remove_device_btn(target, timeout=timeout)
@@ -1423,7 +1427,7 @@ class DomainManagement:
                 ok = self.message_ok_btn()
                 sleep(1)
                 expect(ok).to_be_visible(timeout=timeout)
-                sleep(5)
+                sleep(3)
                 ok.click()
 
                 raise AssertionError(f"remove_device('{target}') failed (Message modal): {msg_text}")
@@ -1437,7 +1441,7 @@ class DomainManagement:
             expect(yes).to_be_visible(timeout=timeout)
             sleep(1)
             expect(yes).to_be_enabled(timeout=timeout)
-            sleep(5)
+            sleep(3)
             yes.click()
 
             # After confirming, sometimes a Message modal can still appear (blocked by dependencies)
@@ -2603,3 +2607,62 @@ class DomainManagement:
 
         except Exception as e:
             raise AssertionError(f"move_to_domain('{source_item_name}' -> '{target_domain_name}') failed. Problem: {e}")
+
+    # ==========================================================
+    # Side Functions
+    # ==========================================================
+
+    def get_devices_list_per_domain(self, domain_name: str, tree_title: str = "From") -> list[str]:
+        """
+        Return the "NAME (IP)" text of every device under the given domain, e.g.
+        ['PL-2000GM (172.16.20.125)', 'PL-4000G (172.16.30.51)', ...].
+        Includes devices nested inside the domain's chassis, but not devices of its sub-domains.
+        Reads the DOM directly, so the domain does not need to be expanded.
+        """
+        try:
+            domain_name = (domain_name or "").strip()
+            if not domain_name:
+                raise ValueError("domain_name is empty")
+
+            domain_row = self.domain_row_locator(domain_name, tree_title=tree_title)
+            if domain_row.count() == 0:
+                raise AssertionError(f"domain '{domain_name}' not found in '{tree_title}' tree.")
+
+            tree = self.from_tree() if tree_title == "From" else self.to_tree()
+            device_types = ["DEVICE", "ROADM", "TRANSPONDER", "MUXPONDER"]
+
+            devices = tree.evaluate(
+                """(tree, [domainName, deviceTypes]) => {
+                    const norm = s => (s || '').replace(/\\s+/g, ' ').trim();
+                    const titleOf = level => level.querySelector(':scope > div > header .inventory-tree-level-title');
+
+                    const domainLevel = [...tree.querySelectorAll('app-inventory-tree-level')].find(level => {
+                        const t = titleOf(level);
+                        return t && t.getAttribute('type') === 'DOMAIN' && norm(t.textContent) === domainName;
+                    });
+                    if (!domainLevel) return null;
+
+                    const result = [];
+                    const walk = level => {
+                        const children = level.querySelectorAll(':scope > div > div.collapse > app-inventory-tree-level');
+                        for (const child of children) {
+                            const t = titleOf(child);
+                            const type = t ? t.getAttribute('type') : '';
+                            if (type === 'DOMAIN') continue;          // sub-domain -> not part of this domain
+                            if (deviceTypes.includes(type)) result.push(norm(t.textContent));
+                            walk(child);                              // chassis -> descend into its devices
+                        }
+                    };
+                    walk(domainLevel);
+                    return result;
+                }""",
+                [domain_name, device_types],
+            )
+
+            if devices is None:
+                raise AssertionError(f"domain '{domain_name}' not found in '{tree_title}' tree.")
+
+            return devices
+
+        except Exception as e:
+            raise AssertionError(f"get_devices_list_per_domain('{domain_name}') failed. Problem: {e}")

@@ -1,0 +1,219 @@
+Adjust the script 'OTN_2000ADS_2000GA_2000GM.py' in Scripts -> Service_Provisioning -> PythonScripts,  by this steps:
+
+side functions:
+
+
+create_otn_service_protection(a_node, a_port, lw_service_type, z_node, z_port, service_name, service_path, protection_device):
+    click on service provisioning.
+    create_OTN_service()
+    set_OTN_A_node(a_node)
+    set_OTN_A_port(a_port)
+    enable_OTN_protection()
+    set_OTN_service_type(lw_service_type)
+    OTN_service_click_next()
+    set_OTN_Z_node(z_node)
+    set_OTN_Z_port(z_port)
+    set_OTN_service_name(service_name)
+    enable_OTN_auto_path()
+    OTN_service_click_next()
+
+    get the tributary slots table via "get_tributary_slots_table" and store it as service_path. 
+    service_path is made of 'Working' and 'Protection': 
+    for device in Working:
+        save the device slots as lw_slots.
+        login to the GUI of device using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+        click_Configuration() in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+        click_provisioning_tab(a_port) in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+        get_provisioning_table(a_port) in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py and extract the taken slots from it and save it as device slots.
+        compare lw_slots to device slots. make sure the Facility Protection is indeed active in device slots. make sure this slots are Occupied by this port in device slots. if not fail this step.
+     
+    for device in Protection:
+        if device == protection_device:
+            save the device slots as lw_slots.
+            login to the GUI of device using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+            click_Configuration() in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+            click_provisioning_tab(a_port) in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+            get_provisioning_table(a_port) in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py and extract the taken slots from it and save it as device slots.
+            compare lw_slots to device slots. make sure the Facility Protection is not active in device slots. make sure this slots are Occupied by Pass-through service in device slots. if not fail this step.
+
+    OTN_service_create()
+
+
+create_otn_service_unprotected(a_node, a_port, lw_service_type, z_node, z_port, service_name, service_path):
+    click on service provisioning.
+    create_OTN_service()
+    set_OTN_A_node(a_node)
+    set_OTN_A_port(a_port)
+    set_OTN_service_type(lw_service_type)
+    OTN_service_click_next()
+    set_OTN_Z_node(z_node)
+    set_OTN_Z_port(z_port)
+    set_OTN_service_name(service_name)
+    enable_OTN_auto_path()
+    OTN_service_click_next()
+
+    get the tributary slots table via "get_tributary_slots_table" and store it as service_path.
+    service_path is made of 'Working':
+    for device in Working:
+        save the device slots as lw_slots.
+        login to the GUI of device using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+        click_Configuration() in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+        click_provisioning_tab(a_port) in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+        get_provisioning_table(a_port) in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py and extract the taken slots from it and save it as device slots.
+        compare lw_slots to device slots. make sure this slots are Occupied by this port in device slots. if not fail this step.
+
+     OTN_service_create()
+
+
+
+step 1: 
+Already implemented.
+
+step 2:
+Already implemented. 
+
+step 3: 
+Already implemented.
+
+step 4:
+Already implemented.
+
+step 5:
+Already implemented.
+
+step 6:
+click on network topology.
+for ip in DEVICES_LIST:
+    network_topology.show_navigation_info()
+    network_topology.navigation_info_open_element_details(ip)
+    element_details_click_on_info()
+    device_element_details_info_click_on_general()
+    get the value of 'device_element_details_info_general_get_NMS_owned' and make sure its false. if its true fail this step.
+    device_element_details_info_general_manage_device_OTN_services()
+    get the value of 'device_element_details_info_general_get_NMS_owned' and make sure its true. if its false fail this step.
+    navigation_info_close_element_details()
+
+
+step 7:
+for ip in DEVICES_LIST:
+    set_service_type(port_number=str(UPLINK_PORT_1), service_type_value=UPLINK_SERVICE_TYPE1) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+    set_admin_status(port_number=str(UPLINK_PORT_1), status="Up") in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+    set_service_type(port_number=str(UPLINK_PORT_2), service_type_value=UPLINK_SERVICE_TYPE2) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+    set_admin_status(port_number=str(UPLINK_PORT_2), status="Up") in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+
+for ip in DEVICES_LIST:
+    set_service_type(port_number=str(CLIENT_PORT_1), service_type_value=CLIENT_SERVICE_TYPE1) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+    set_service_type(port_number=str(CLIENT_PORT_2), service_type_value=CLIENT_SERVICE_TYPE2) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+
+# Service 1+2
+step 8:
+
+create_otn_service_protection(DEVICES_LIST[0], CLIENT_PORT_1, LW_SERVICE_TYPE1, DEVICES_LIST[1], CLIENT_PORT_1, SERVICE_NAME1, SERVICE1_PATH, DEVICES_LIST[2])
+
+create_otn_service_unprotected(DEVICES_LIST[1], CLIENT_PORT_2, LW_SERVICE_TYPE2, DEVICES_LIST[2], CLIENT_PORT_2, SERVICE_NAME2, SERVICE2_PATH)
+
+for ip in DEVICES_LIST:
+    if ip == DEVICES_LIST[0]:
+        login to the GUI of device using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+        click_Configuration() in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+        set_admin_status(port_number=str(CLIENT_PORT_1), status="Up") in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+    if ip == DEVICES_LIST[1]:
+        login to the GUI of device using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+        click_Configuration() in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+        set_admin_status(port_number=str(CLIENT_PORT_1), status="Up") in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+        set_admin_status(port_number=str(CLIENT_PORT_2), status="Up") in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+    if ip == DEVICES_LIST[2]:
+        login to the GUI of device using the functions in 'PL_Devices -> PL_Pages -> PL_login_page'.
+        click_Configuration() in C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py.
+        set_admin_status(port_number=str(CLIENT_PORT_2), status="Up") in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py"
+
+
+refresh_page(page)
+enable_OTN() in C:\Gitlab_y\automation\LightWatch_WEB\Pages\network_topology.py.
+for ip in DEVICES_LIST:
+    if ip == DEVICES_LIST[0]:
+        network_topology.show_navigation_info()
+        network_topology.navigation_info_open_element_details(ip)
+        element_details_links_get_links_table() and save it as 'ip_links'.
+        Make sure that ip_links has a positive OTN link from DEVICES_LIST[0] uplink 1 to DEVICES_LIST[1] uplink 2. if not fail this step. 
+        Make sure that ip_links has a positive OTN link from DEVICES_LIST[0] uplink 2 to DEVICES_LIST[2] uplink 1. if not fail this step.
+        (the OTN link doesn't have to be in that order - the device can be on side A or side B, as long there is a link between those 2 devices)
+        navigation_info_close_element_details() 
+
+    if ip == DEVICES_LIST[1]:
+        network_topology.show_navigation_info()
+        network_topology.navigation_info_open_element_details(ip)
+        element_details_links_get_links_table() and save it as 'ip_links'.
+        Make sure that ip_links has a positive OTN link from DEVICES_LIST[1] uplink 1 to DEVICES_LIST[2] uplink 2. if not fail this step. 
+        Make sure that ip_links has a positive OTN link from DEVICES_LIST[1] uplink 2 to DEVICES_LIST[0] uplink 1. if not fail this step. 
+        (the OTN link doesn't have to be in that order - the device can be on side A or side B, as long there is a link between those 2 devices)
+        navigation_info_close_element_details() 
+
+    if ip == DEVICES_LIST[2]:
+        network_topology.show_navigation_info()
+        network_topology.navigation_info_open_element_details(ip)
+        element_details_links_get_links_table() and save it as 'ip_links'.
+        Make sure that ip_links has a positive OTN link from DEVICES_LIST[2] uplink 2 to DEVICES_LIST[1] uplink 1. if not fail this step. 
+        Make sure that ip_links has a positive OTN link from DEVICES_LIST[2] uplink 1 to DEVICES_LIST[0] uplink 2. if not fail this step. 
+        (the OTN link doesn't have to be in that order - the device can be on side A or side B, as long there is a link between those 2 devices)
+        navigation_info_close_element_details() 
+
+click on Service List.
+select_domain_or_chassis(DOMAIN_NAME) in C:\Gitlab_y\automation\LightWatch_WEB\Pages\service_list.py.
+
+set_service_name(SERVICE_NAME1)
+get_service_list() in C:\Gitlab_y\automation\LightWatch_WEB\Pages\service_list.py. 
+Make sure that:
+Name == SERVICE_NAME1, Start == PRODUCT_NAME + (DEVICES_LIST[0]):Port + CLIENT_PORT_1, End == PRODUCT_NAME + (DEVICES_LIST[1]):Port + CLIENT_PORT_1,
+Type == CLIENT_SERVICE_TYPE1, Alert == 'OK', Consistency == 'Yes', Protection == '1+1'
+
+set_service_name(SERVICE_NAME2)
+get_service_list() in C:\Gitlab_y\automation\LightWatch_WEB\Pages\service_list.py. 
+Make sure that:
+Name == SERVICE_NAME2, Start == PRODUCT_NAME + (DEVICES_LIST[1]):Port + CLIENT_PORT_2, End == PRODUCT_NAME + (DEVICES_LIST[2]):Port + CLIENT_PORT_2,
+Type == CLIENT_SERVICE_TYPE2, Alert == 'OK', Consistency == 'Yes', Protection == 'No'
+   
+# Service 3     
+step 9:
+login to the pl devices of DEVICES_LIST[0] and DEVICES_LIST[2] and set_service_type(port_number=str(CLIENT_PORT_3), service_type_value=CLIENT_SERVICE_TYPE3) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py" to both of the devices.
+
+create_otn_service_protection(DEVICES_LIST[2], CLIENT_PORT_3, LW_SERVICE_TYPE3, DEVICES_LIST[0], CLIENT_PORT_3, SERVICE_NAME3, SERVICE3_PATH, DEVICES_LIST[1])
+
+# Service 4  
+step 10:
+login to the pl devices of DEVICES_LIST[0] and DEVICES_LIST[1] and set_service_type(port_number=str(CLIENT_PORT_4), service_type_value=CLIENT_SERVICE_TYPE4) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py" to both of the devices.
+
+create_otn_service_unprotected(DEVICES_LIST[0], CLIENT_PORT_4, LW_SERVICE_TYPE4, DEVICES_LIST[1], CLIENT_PORT_4, SERVICE_NAME4, SERVICE4_PATH)
+
+# Service 5  
+step 11:
+login to the pl devices of DEVICES_LIST[1] and DEVICES_LIST[2] and set_service_type(port_number=str(CLIENT_PORT_5), service_type_value=CLIENT_SERVICE_TYPE5) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py" to both of the devices.
+
+create_otn_service_protection(DEVICES_LIST[1], CLIENT_PORT_5, LW_SERVICE_TYPE5, DEVICES_LIST[2], CLIENT_PORT_5, SERVICE_NAME5, SERVICE5_PATH, DEVICES_LIST[0])
+
+# Service 6  
+step 12:
+login to the pl devices of DEVICES_LIST[2] and DEVICES_LIST[0] and set_service_type(port_number=str(CLIENT_PORT_6), service_type_value=CLIENT_SERVICE_TYPE6) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py" to both of the devices.
+
+create_otn_service_unprotected(DEVICES_LIST[2], CLIENT_PORT_6, LW_SERVICE_TYPE6, DEVICES_LIST[0], CLIENT_PORT_6, SERVICE_NAME6, SERVICE6_PATH)
+
+# Service 7  
+step 13:
+login to the pl devices of DEVICES_LIST[0] and DEVICES_LIST[1] and set_service_type(port_number=str(CLIENT_PORT_7), service_type_value=CLIENT_SERVICE_TYPE7) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py" to both of the devices.
+
+create_otn_service_protection(DEVICES_LIST[0], CLIENT_PORT_7, LW_SERVICE_TYPE7, DEVICES_LIST[1], CLIENT_PORT_7, SERVICE_NAME7, SERVICE7_PATH, DEVICES_LIST[2])
+
+# Service 8  
+step 14:
+login to the pl devices of DEVICES_LIST[1] and DEVICES_LIST[2] and set_service_type(port_number=str(CLIENT_PORT_8), service_type_value=CLIENT_SERVICE_TYPE8) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py" to both of the devices.
+
+create_otn_service_unprotected(DEVICES_LIST[1], CLIENT_PORT_8, LW_SERVICE_TYPE8, DEVICES_LIST[2], CLIENT_PORT_8, SERVICE_NAME8, SERVICE8_PATH)
+
+# Service 9  
+step 15:
+login to the pl devices of DEVICES_LIST[0] and DEVICES_LIST[1] and set_service_type(port_number=str(CLIENT_PORT_9), service_type_value=CLIENT_SERVICE_TYPE9) in "C:\Gitlab_y\automation\LightWatch_WEB\PL_Devices\PL_Pages\PL_main_screen_POM.py" to both of the devices.
+
+create_otn_service_unprotected(DEVICES_LIST[0], CLIENT_PORT_9, LW_SERVICE_TYPE9, DEVICES_LIST[1], CLIENT_PORT_9, SERVICE_NAME9, SERVICE9_PATH)
+
+
+collect if the each step passed, if one of them failed then say that the test failed, if all of them are pass then say that the test passed.
